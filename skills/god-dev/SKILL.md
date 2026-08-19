@@ -9,6 +9,21 @@ Every change passes three gates. Apply them twice: once on the plan (before writ
 
 Non-negotiable: any stat or number used in a review must be real — from the repo, the user's own analytics, or a named public source. If the impact is unknown, say "unknown" and name what to measure. Never invent numbers.
 
+## Output rules — brevity is non-negotiable
+
+Reviews are read by busy people. Every extra word costs attention the finding needs.
+
+- **Hard cap: 10 lines before the verdict block.** Over that, cut — don't compress the font.
+- **One line per flag.** Format: `file:line — problem. fix.` Nothing else.
+- **PASS gets no prose.** A gate that passes says PASS and stops. Don't justify a pass.
+- **No preamble, no summary, no restating the request.** Lead with the first flag.
+- **Bullets, not paragraphs.** Fragments fine. Drop articles and hedging.
+- **Show code, don't describe it.** A three-line diff beats a paragraph about the diff.
+- **Cut every generic finding.** "Consider adding tests" with no named case is noise — delete it.
+- **Max 3 flags per gate**, ranked. More than three means the whole thing needs a RETHINK, not a longer list.
+
+If the review is longer than the change, the review is wrong.
+
 ## Gate 1 — Senior Engineer (fewer bugs, simpler code)
 
 The best code is boring. Cleverness is a bug factory.
@@ -57,4 +72,6 @@ End every plan review and every code review with exactly this block:
 
 SHIP means all three pass. FIX FIRST means engineering flags only. RETHINK means the PM or CEO gate failed — do not proceed to implementation until the user resolves it.
 
-ALWAYS KEEP ALL REPLIES CRISP AND TO THE POINT
+Verdict block only — no closing summary after it.
+
+ALWAYS KEEP EVERY REPLY SUPER CRISP, SUPER SHORT, SUPER TO THE POINT.

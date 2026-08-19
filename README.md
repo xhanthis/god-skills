@@ -48,6 +48,10 @@ Restart Claude Code — skills load at session start.
 
 Invoke explicitly with `/god-dev`, or let it fire on its own. The description triggers it whenever you ask Claude to write, review, refactor, or plan code, whenever a diff or PR is being prepared, and whenever a new feature idea shows up — including the bare questions "should we build this?" and "is this code good?".
 
+## Brevity
+
+Hard cap of 10 lines before the verdict block. One line per flag (`file:line — problem. fix.`). Max three flags per gate, ranked. A gate that passes says `PASS` and says nothing else. If the review is longer than the change, the review is wrong.
+
 ## Ground rule
 
 Any number in a review must be real — from the repo, your analytics, or a named public source. Unknown impact is reported as **unknown**, alongside what to instrument to find out. No invented statistics.
