@@ -1,66 +1,127 @@
 # God Skills
 
-[Claude Code](https://claude.com/claude-code) skills I use every day. Two so far.
+[Claude Code](https://claude.com/claude-code) skills I use every day. What started as two skills is now an agent operating system: 29 specialists that behave like one organization instead of one assistant guessing outside its expertise.
 
-| Skill | What it does | Fires on |
-|---|---|---|
-| **[God Dev](#god-dev)** | Puts every change through three review gates — senior engineer, product manager, CEO — once on the plan and once on the diff. | `/god-dev`, or on its own when you write, review, refactor, or plan code or a PR. |
-| **[God Write](#god-write)** | Strips AI-isms from prose and puts a human voice back in. Codifies the 29 tells from Wikipedia's "Signs of AI writing". | `/god-write`, or when you humanize, de-slop, or match-voice a draft before publishing. |
+Each God owns a domain, knows what it should not do, and hands work to the next God rather than winging it.
 
 ## Install
 
-Each skill is a single `SKILL.md`. Put it under `~/.claude/skills/<name>/` for every project, or `.claude/skills/<name>/` to check it into one repo. Restart Claude Code — skills load at session start.
+One command, no clone:
 
 ```bash
-# all projects — swap god-dev for god-write to install the other
-git clone https://github.com/xhanthis/god-skills.git /tmp/god-skills
-mkdir -p ~/.claude/skills/god-dev
-cp /tmp/god-skills/skills/god-dev/SKILL.md ~/.claude/skills/god-dev/SKILL.md
+npx god-skills            # every skill, asks global or project
 ```
 
 ```bash
-# one repo, checked in for the team
-mkdir -p .claude/skills/god-write
-curl -sL https://raw.githubusercontent.com/xhanthis/god-skills/main/skills/god-write/SKILL.md \
-  -o .claude/skills/god-write/SKILL.md
+npx god-skills dev tester security --global   # just these three
+npx god-skills list                           # see all 29
+npx god-skills --project --force              # overwrite in this repo
 ```
 
----
-
-## God Dev
-
-Most AI coding assistants optimize for "did it compile". This one also asks *should this exist* and *what does it cost the business to own forever*.
-
-| Gate | Asks |
+| Flag | Does |
 |---|---|
-| **Senior Engineer** | Is it the simplest thing that works? Edge cases named? Queries parameterized? Failures loud? Tests present? |
-| **Product Manager** | WHO hits WHAT pain WHEN? What's the evidence? What's the thinnest slice? What metric proves it worked? |
-| **CEO** | Which business metric moves, and via what chain? What's the worst realistic failure? Who maintains it in three years? What are the kill criteria? |
+| `-g, --global` | installs to `~/.claude/skills` (every project) |
+| `-p, --project` | installs to `./.claude/skills` (this repo, checked in for the team) |
+| `-a, --all` | every skill, no prompt |
+| `-f, --force` | overwrite skills already there |
+| `-y, --yes` | no prompts, defaults to global |
 
-Every review ends with a fixed verdict block:
+Short names work: `npx god-skills dev` installs `god-dev`.
+
+<details>
+<summary>Manual install</summary>
+
+Skills are plain folders with a `SKILL.md`. Copy them anywhere Claude Code looks:
+
+```bash
+git clone https://github.com/xhanthis/god-skills.git /tmp/god-skills
+mkdir -p ~/.claude/skills && cp -r /tmp/god-skills/skills/* ~/.claude/skills/
+```
+
+```bash
+# one skill
+mkdir -p .claude/skills/god-dev
+curl -sL https://raw.githubusercontent.com/xhanthis/god-skills/main/skills/god-dev/SKILL.md \
+  -o .claude/skills/god-dev/SKILL.md
+```
+
+</details>
+
+Restart Claude Code after installing — skills load at session start.
+
+## How it runs
 
 ```
-**God Dev Verdict**
-- **Engineer:** PASS / FLAG — <most important issue, with file/line>
-- **PM:** PASS / FLAG — <problem statement + success metric, or what's missing>
-- **CEO:** PASS / FLAG — <expected business impact or the unknown blocking it>
-- **Call:** SHIP / FIX FIRST / RETHINK
+USER → god-context → god-cos → specialists → god-da → god → god-police → EXECUTE
 ```
 
-`SHIP` = all three pass. `FIX FIRST` = engineering flags only. `RETHINK` = the PM or CEO gate failed, so implementation stops until you resolve it.
+- **Vague request** ("booking amount is wrong") → **god-context** investigates the codebase and reconstructs the real problem before anyone writes code.
+- **god-cos** picks the minimum set of specialists and the order they run in.
+- **Writing code** → **god-architect** → **god-dev** → **god-tester** (auto-chained) → **god-security**.
+- **Any significant decision** → **god-da** attacks it → **god** decides → **god-police** checks nobody cheated to get there.
 
-Hard cap of 10 lines before the verdict, one line per flag (`file:line — problem. fix.`), max three flags per gate. A gate that passes says `PASS` and nothing else. If the review is longer than the change, the review is wrong.
+Failure loops: `tester → dev → tester` · `security → dev → tester → security` · `cfo → dev → tester` · `police → agent → rework → police`
 
-**Ground rule:** any number in a review must be real — from the repo, your analytics, or a named public source. Unknown impact is reported as **unknown**, alongside what to instrument to find out. No invented statistics.
+## The skills
 
-## God Write
+| Skill | Core question |
+|---|---|
+| **god-context** | What is the user actually trying to solve? |
+| **god-cos** | Who handles this, in what order? |
+| **god-pm** | What should we build, and how does it get delivered? |
+| **god-researcher** | What is actually true, and what is changing? |
+| **god-data** | What does the data say? |
+| **god-growth** | Where is the real bottleneck? |
+| **god-designer** | How should the experience work? |
+| **god-customer** | Would customers actually care? |
+| **god-strategist** | Where should the business go? |
+| **god-cfo** | Do the numbers reconcile? |
+| **god-pricer** | What should we charge, and why? |
+| **god-cmo** | How do we get the right people to care? |
+| **god-sales** | How do we convert the right prospects? |
+| **god-ops** | How does this work repeatedly without heroics? |
+| **god-architect** | What should the system look like before we build? |
+| **god-dev** | How do we implement this correctly? |
+| **god-tester** | Does it actually work — and can we prove it? |
+| **god-security** | How could this be exploited? |
+| **god-pl** | What does Indian law require? |
+| **god-da** | Why might we be wrong? |
+| **god** | What is the final decision? |
+| **god-police** | Did anyone take shortcuts? |
+| **god-editor** | Can this be clearer and shorter? |
+| **god-simplifier** | What can we remove? |
+| **god-scout** | What opportunity are we missing? |
+| **god-historian** | Why did we get here? |
+| **god-plan** | Highest-leverage use of the day? |
+| **god-health** | Is this pace sustainable? |
+| **god-write** | Does this read like a human wrote it? |
 
-Sterile, voiceless writing is as obvious as slop, so this skill does two things: it removes the AI tells, then it puts a human back in. The 29 patterns come from Wikipedia's [Signs of AI writing](https://en.wikipedia.org/wiki/Wikipedia:Signs_of_AI_writing) — significance inflation, copula avoidance ("serves as" for "is"), the rule of three, em-dash overuse, chatbot artifacts ("Great question!"), knowledge-cutoff hedging, and the rest.
+## The rules every God obeys
 
-Load it when you ask to humanize, de-AI, or de-slop text, rewrite a draft (blog post, PR description, docs, email, tweet) to sound natural, match a supplied voice sample, or review prose for AI tells before publishing. It also applies to Claude's own user-facing prose — release notes, PR bodies, long explanations.
+**No fabrication.** Numbers come from the repo, your analytics, or a named public source. Unknown impact is reported as unknown, plus what to instrument to find out. Legal sections and citations are verified, never remembered.
 
-Adapted from [blader/humanizer](https://github.com/blader/humanizer) (MIT, Siqi Chen). The 29 patterns, the personality/soul section, and the worked example are preserved verbatim; only the tool references were swapped for Claude Code (`Read`/`Edit`/`Write`). Original license lives in `skills/god-write/LICENSE`.
+**Proof over claims.** god-tester writes tests and actually runs them. Tests that could not run return `UNVERIFIED`, never `PASS`. On `FAIL` it fixes and retests, capped at three cycles before it hands the failure back.
+
+**Adversarial before final.** Nothing significant reaches a decision without god-da trying to destroy it first.
+
+**Integrity gate.** god-police audits the trail before any PASS or SHIP — skipped research, fabricated citations, hidden failures, false test claims, bypassed specialists. It re-runs one test and re-checks one citation, because sampling catches most shortcuts.
+
+**Brevity.** Every skill ends with the same output discipline: lead with the finding, one line per point, max three points, no prose on a pass. If the review is longer than the change, the review is wrong.
+
+## Highlights
+
+### god-dev
+Senior engineer standards while coding: search before writing so nothing gets a parallel implementation, simplest design that survives a junior's reading, edge cases named explicitly (null, retries, concurrency, idempotency, pagination, timezones, unicode), parameterized queries, loud failures. Not done when it runs — done when god-tester returns PASS.
+
+### god-tester
+Reads the diff, scans for redundancy and N+1 queries, writes unit/integration/E2E tests, runs them for real, auto-fixes failures, and ends with a fixed verdict block: tests run, found, fixed, remaining, `PASS / FAIL / UNVERIFIED`.
+
+### god-cfo
+Owns every rupee: booking bifurcation, revenue-share slabs, partner splits, commissions, settlements. Reconciles totals, hunts leakage and double counting, and validates slab boundaries with edge cases (exactly at the slab edge, zero, refunds, GST-inclusive vs exclusive). Financial logic in code gets recomputed independently before it's trusted.
+
+### god-write
+Strips AI-isms from prose and puts a human voice back in, built on the 29 tells from Wikipedia's [Signs of AI writing](https://en.wikipedia.org/wiki/Wikipedia:Signs_of_AI_writing) — significance inflation, copula avoidance, the rule of three, em-dash overuse, chatbot artifacts, cutoff hedging.
 
 ## License
 
-MIT — see [`LICENSE`](LICENSE). God Write keeps its own MIT license (Siqi Chen) in [`skills/god-write/LICENSE`](skills/god-write/LICENSE).
+MIT.

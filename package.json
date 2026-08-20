@@ -1,0 +1,34 @@
+{
+  "name": "god-skills",
+  "version": "2.0.0",
+  "description": "29 Claude Code agent skills that behave like one organization — product, business, engineering, validation and personal performance.",
+  "bin": {
+    "god-skills": "bin/god-skills.js"
+  },
+  "files": [
+    "bin",
+    "skills",
+    "README.md",
+    "LICENSE"
+  ],
+  "keywords": [
+    "claude",
+    "claude-code",
+    "skills",
+    "agents",
+    "ai"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/xhanthis/god-skills.git"
+  },
+  "homepage": "https://github.com/xhanthis/god-skills#readme",
+  "bugs": {
+    "url": "https://github.com/xhanthis/god-skills/issues"
+  },
+  "license": "MIT",
+  "author": "xhanthis",
+  "engines": {
+    "node": ">=18"
+  }
+}
