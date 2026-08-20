@@ -56,6 +56,30 @@ Hard cap of 10 lines before the verdict block. One line per flag (`file:line —
 
 Any number in a review must be real — from the repo, your analytics, or a named public source. Unknown impact is reported as **unknown**, alongside what to instrument to find out. No invented statistics.
 
+## Also in this repo: God Write
+
+A second Claude Code skill that strips AI-isms from prose and restores a real human voice. It codifies the 29 tells from Wikipedia's [Signs of AI writing](https://en.wikipedia.org/wiki/Wikipedia:Signs_of_AI_writing) — significance inflation, copula avoidance, rule-of-three, em-dash overuse, chatbot artifacts, hedging — and rewrites against them without flattening the writing into something equally lifeless.
+
+Load it when you ask to humanize, de-AI, or de-slop text, rewrite a draft (blog post, PR description, docs, email) to sound natural, match a voice sample, or review prose for AI tells before publishing.
+
+**All projects** (user-level):
+
+```bash
+git clone https://github.com/xhanthis/god-dev.git /tmp/god-dev
+mkdir -p ~/.claude/skills/god-write
+cp /tmp/god-dev/skills/god-write/SKILL.md ~/.claude/skills/god-write/SKILL.md
+```
+
+**One project** (repo-level):
+
+```bash
+mkdir -p .claude/skills/god-write
+curl -sL https://raw.githubusercontent.com/xhanthis/god-dev/main/skills/god-write/SKILL.md \
+  -o .claude/skills/god-write/SKILL.md
+```
+
+Adapted from [blader/humanizer](https://github.com/blader/humanizer) (MIT, Siqi Chen). Original license preserved in `skills/god-write/LICENSE`.
+
 ## License
 
-MIT
+MIT — see `LICENSE`. The bundled God Write skill retains its own MIT license (Siqi Chen) in `skills/god-write/LICENSE`.
