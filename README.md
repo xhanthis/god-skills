@@ -6,20 +6,48 @@ Each God owns a domain, knows what it should not do, and hands work to the next 
 
 ## Install
 
-Skills are plain folders with a `SKILL.md`. Drop them under `~/.claude/skills/` for every project, or `.claude/skills/` to check them into one repo. Restart Claude Code — skills load at session start.
+One command, no clone:
 
 ```bash
-# everything, all projects
+npx god-skills            # every skill, asks global or project
+```
+
+```bash
+npx god-skills dev tester security --global   # just these three
+npx god-skills list                           # see all 29
+npx god-skills --project --force              # overwrite in this repo
+```
+
+| Flag | Does |
+|---|---|
+| `-g, --global` | installs to `~/.claude/skills` (every project) |
+| `-p, --project` | installs to `./.claude/skills` (this repo, checked in for the team) |
+| `-a, --all` | every skill, no prompt |
+| `-f, --force` | overwrite skills already there |
+| `-y, --yes` | no prompts, defaults to global |
+
+Short names work: `npx god-skills dev` installs `god-dev`.
+
+<details>
+<summary>Manual install</summary>
+
+Skills are plain folders with a `SKILL.md`. Copy them anywhere Claude Code looks:
+
+```bash
 git clone https://github.com/xhanthis/god-skills.git /tmp/god-skills
 mkdir -p ~/.claude/skills && cp -r /tmp/god-skills/skills/* ~/.claude/skills/
 ```
 
 ```bash
-# one skill, checked in for the team
+# one skill
 mkdir -p .claude/skills/god-dev
 curl -sL https://raw.githubusercontent.com/xhanthis/god-skills/main/skills/god-dev/SKILL.md \
   -o .claude/skills/god-dev/SKILL.md
 ```
+
+</details>
+
+Restart Claude Code after installing — skills load at session start.
 
 ## How it runs
 
