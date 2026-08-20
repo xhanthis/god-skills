@@ -1,10 +1,35 @@
-# God Dev
+# God Skills
 
-A [Claude Code](https://claude.com/claude-code) skill that puts every change through three review gates — **senior engineer**, **product manager**, and **CEO** — once on the plan and once on the diff.
+[Claude Code](https://claude.com/claude-code) skills I use every day. Two so far.
+
+| Skill | What it does | Fires on |
+|---|---|---|
+| **[God Dev](#god-dev)** | Puts every change through three review gates — senior engineer, product manager, CEO — once on the plan and once on the diff. | `/god-dev`, or on its own when you write, review, refactor, or plan code or a PR. |
+| **[God Write](#god-write)** | Strips AI-isms from prose and puts a human voice back in. Codifies the 29 tells from Wikipedia's "Signs of AI writing". | `/god-write`, or when you humanize, de-slop, or match-voice a draft before publishing. |
+
+## Install
+
+Each skill is a single `SKILL.md`. Put it under `~/.claude/skills/<name>/` for every project, or `.claude/skills/<name>/` to check it into one repo. Restart Claude Code — skills load at session start.
+
+```bash
+# all projects — swap god-dev for god-write to install the other
+git clone https://github.com/xhanthis/god-skills.git /tmp/god-skills
+mkdir -p ~/.claude/skills/god-dev
+cp /tmp/god-skills/skills/god-dev/SKILL.md ~/.claude/skills/god-dev/SKILL.md
+```
+
+```bash
+# one repo, checked in for the team
+mkdir -p .claude/skills/god-write
+curl -sL https://raw.githubusercontent.com/xhanthis/god-skills/main/skills/god-write/SKILL.md \
+  -o .claude/skills/god-write/SKILL.md
+```
+
+---
+
+## God Dev
 
 Most AI coding assistants optimize for "did it compile". This one also asks *should this exist* and *what does it cost the business to own forever*.
-
-## The three gates
 
 | Gate | Asks |
 |---|---|
@@ -22,64 +47,20 @@ Every review ends with a fixed verdict block:
 - **Call:** SHIP / FIX FIRST / RETHINK
 ```
 
-`SHIP` = all three pass. `FIX FIRST` = engineering flags only. `RETHINK` = the PM or CEO gate failed — implementation stops until you resolve it.
+`SHIP` = all three pass. `FIX FIRST` = engineering flags only. `RETHINK` = the PM or CEO gate failed, so implementation stops until you resolve it.
 
-## Install
+Hard cap of 10 lines before the verdict, one line per flag (`file:line — problem. fix.`), max three flags per gate. A gate that passes says `PASS` and nothing else. If the review is longer than the change, the review is wrong.
 
-**All projects** (user-level):
+**Ground rule:** any number in a review must be real — from the repo, your analytics, or a named public source. Unknown impact is reported as **unknown**, alongside what to instrument to find out. No invented statistics.
 
-```bash
-git clone https://github.com/xhanthis/god-dev.git /tmp/god-dev
-mkdir -p ~/.claude/skills/god-dev
-cp /tmp/god-dev/skills/god-dev/SKILL.md ~/.claude/skills/god-dev/SKILL.md
-```
+## God Write
 
-**One project** (repo-level, checked in for the whole team):
+Sterile, voiceless writing is as obvious as slop, so this skill does two things: it removes the AI tells, then it puts a human back in. The 29 patterns come from Wikipedia's [Signs of AI writing](https://en.wikipedia.org/wiki/Wikipedia:Signs_of_AI_writing) — significance inflation, copula avoidance ("serves as" for "is"), the rule of three, em-dash overuse, chatbot artifacts ("Great question!"), knowledge-cutoff hedging, and the rest.
 
-```bash
-mkdir -p .claude/skills/god-dev
-curl -sL https://raw.githubusercontent.com/xhanthis/god-dev/main/skills/god-dev/SKILL.md \
-  -o .claude/skills/god-dev/SKILL.md
-```
+Load it when you ask to humanize, de-AI, or de-slop text, rewrite a draft (blog post, PR description, docs, email, tweet) to sound natural, match a supplied voice sample, or review prose for AI tells before publishing. It also applies to Claude's own user-facing prose — release notes, PR bodies, long explanations.
 
-Restart Claude Code — skills load at session start.
-
-## Use
-
-Invoke explicitly with `/god-dev`, or let it fire on its own. The description triggers it whenever you ask Claude to write, review, refactor, or plan code, whenever a diff or PR is being prepared, and whenever a new feature idea shows up — including the bare questions "should we build this?" and "is this code good?".
-
-## Brevity
-
-Hard cap of 10 lines before the verdict block. One line per flag (`file:line — problem. fix.`). Max three flags per gate, ranked. A gate that passes says `PASS` and says nothing else. If the review is longer than the change, the review is wrong.
-
-## Ground rule
-
-Any number in a review must be real — from the repo, your analytics, or a named public source. Unknown impact is reported as **unknown**, alongside what to instrument to find out. No invented statistics.
-
-## Also in this repo: God Write
-
-A second Claude Code skill that strips AI-isms from prose and restores a real human voice. It codifies the 29 tells from Wikipedia's [Signs of AI writing](https://en.wikipedia.org/wiki/Wikipedia:Signs_of_AI_writing) — significance inflation, copula avoidance, rule-of-three, em-dash overuse, chatbot artifacts, hedging — and rewrites against them without flattening the writing into something equally lifeless.
-
-Load it when you ask to humanize, de-AI, or de-slop text, rewrite a draft (blog post, PR description, docs, email) to sound natural, match a voice sample, or review prose for AI tells before publishing.
-
-**All projects** (user-level):
-
-```bash
-git clone https://github.com/xhanthis/god-dev.git /tmp/god-dev
-mkdir -p ~/.claude/skills/god-write
-cp /tmp/god-dev/skills/god-write/SKILL.md ~/.claude/skills/god-write/SKILL.md
-```
-
-**One project** (repo-level):
-
-```bash
-mkdir -p .claude/skills/god-write
-curl -sL https://raw.githubusercontent.com/xhanthis/god-dev/main/skills/god-write/SKILL.md \
-  -o .claude/skills/god-write/SKILL.md
-```
-
-Adapted from [blader/humanizer](https://github.com/blader/humanizer) (MIT, Siqi Chen). Original license preserved in `skills/god-write/LICENSE`.
+Adapted from [blader/humanizer](https://github.com/blader/humanizer) (MIT, Siqi Chen). The 29 patterns, the personality/soul section, and the worked example are preserved verbatim; only the tool references were swapped for Claude Code (`Read`/`Edit`/`Write`). Original license lives in `skills/god-write/LICENSE`.
 
 ## License
 
-MIT — see `LICENSE`. The bundled God Write skill retains its own MIT license (Siqi Chen) in `skills/god-write/LICENSE`.
+MIT — see [`LICENSE`](LICENSE). God Write keeps its own MIT license (Siqi Chen) in [`skills/god-write/LICENSE`](skills/god-write/LICENSE).
