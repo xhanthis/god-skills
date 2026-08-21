@@ -11,6 +11,8 @@ const os = require("os");
 const path = require("path");
 const readline = require("readline");
 
+const { version } = require("../package.json");
+
 const SOURCE_DIR = path.join(__dirname, "..", "skills");
 const GLOBAL_TARGET = path.join(os.homedir(), ".claude", "skills");
 const PROJECT_TARGET = path.join(process.cwd(), ".claude", "skills");
@@ -64,9 +66,11 @@ function parseArgs(argv) {
     command: "install",
     skills: [],
     scope: null,
+    all: false,
     force: false,
     yes: false,
-    help: false
+    help: false,
+    version: false
   };
 
   for (const arg of argv) {
@@ -81,9 +85,11 @@ function parseArgs(argv) {
     } else if (arg === "--yes" || arg === "-y") {
       options.yes = true;
     } else if (arg === "--all" || arg === "-a") {
-      options.skills = [];
+      options.all = true;
     } else if (arg === "--help" || arg === "-h") {
       options.help = true;
+    } else if (arg === "--version" || arg === "-v") {
+      options.version = true;
     } else if (!arg.startsWith("-")) {
       options.skills.push(arg);
     }
@@ -110,6 +116,7 @@ function printHelp() {
     "  -f, --force     overwrite skills that already exist",
     "  -y, --yes       skip prompts, default to global",
     "  -h, --help      show this",
+    "  -v, --version   print the installed version",
     "",
     paint("Restart Claude Code after installing — skills load at session start.", "dim"),
     ""
@@ -171,7 +178,7 @@ async function install(options) {
   }
 
   const requested =
-    options.skills.length > 0
+    !options.all && options.skills.length > 0
       ? options.skills.map((name) => (all.includes(name) ? name : `god-${name}`))
       : all;
   const unknown = requested.filter((name) => !all.includes(name));
@@ -226,6 +233,11 @@ function list() {
 /** Entry point. */
 async function main() {
   const options = parseArgs(process.argv.slice(2));
+
+  if (options.version) {
+    console.log(version);
+    return;
+  }
 
   if (options.help) {
     printHelp();
