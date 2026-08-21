@@ -24,6 +24,13 @@ Principle: the right problem, the right expert, the right sequence, with the lea
 - **Research:** context → researcher → (data) → pm/strategist/cmo → da → god
 - **Operations:** context → pm → ops → simplifier → (architect/dev/tester) → police
 
+## Route
+
+Entry from **god-context** (problem statement) or **god-scout** (opportunity). Dispatch to the
+specialists the problem actually needs. Significant decisions → **god-da**, then **god**. Every
+major output → **god-police** before done. Rework loops go back to the failing specialist, not
+around it.
+
 ## Output rules
 
 - **Lead with the finding or the answer.** No preamble, no restating the request.
