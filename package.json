@@ -5,6 +5,9 @@
   "bin": {
     "god-skills": "bin/god-skills.js"
   },
+  "scripts": {
+    "prepublishOnly": "node bin/god-skills.js --version && node bin/god-skills.js list > /dev/null"
+  },
   "files": [
     "bin",
     "skills",
