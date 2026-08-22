@@ -17,7 +17,7 @@ const fs = require("fs");
 const port = Number(process.argv[2] || 4747);
 const stateFile = process.argv[3];
 
-const db = { issues: [], comments: [], counter: 0 };
+const db = { issues: [], comments: [], labels: [], counter: 0, labelCounter: 0 };
 
 const STATES = [
   { id: "state-unstarted", type: "unstarted" },
@@ -49,6 +49,17 @@ function handle({ query, variables = {} }) {
     };
   }
 
+  if (query.includes("issueLabels")) {
+    return { data: { issueLabels: { nodes: db.labels } } };
+  }
+
+  if (query.includes("issueLabelCreate")) {
+    db.labelCounter += 1;
+    const label = { id: `label-${db.labelCounter}`, name: variables.n };
+    db.labels.push(label);
+    return { data: { issueLabelCreate: { success: true, issueLabel: { id: label.id } } } };
+  }
+
   if (query.includes("issueCreate")) {
     db.counter += 1;
     const issue = {
@@ -57,6 +68,9 @@ function handle({ query, variables = {} }) {
       title: variables.t,
       description: variables.d,
       teamId: variables.team,
+      labelIds: variables.labels || [],
+      createAsUser: variables.actor || null,
+      displayIconUrl: variables.icon || null,
       stateType: "unstarted",
       url: `https://linear.app/mock/issue/GOD-${db.counter}`
     };
@@ -72,7 +86,7 @@ function handle({ query, variables = {} }) {
   }
 
   if (query.includes("commentCreate")) {
-    db.comments.push({ issueId: variables.i, body: variables.b });
+    db.comments.push({ issueId: variables.i, body: variables.b, createAsUser: variables.actor || null });
     return { data: { commentCreate: { success: true } } };
   }
 

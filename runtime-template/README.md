@@ -132,6 +132,25 @@ Then delete the test issue.
 
 ## Linear setup
 
-Create a dedicated **God Agents** team before the first run. Agent findings in
-your normal team will bury your human backlog within a week. Put its id in
-`config.sh` as `LINEAR_TEAM_ID`.
+Agents file into your **existing team**, alongside human work. Two things keep
+that from turning into noise:
+
+**Authorship.** Every issue and comment is written as `God` (configurable via
+`GOD_ACTOR_NAME`), so agent findings are distinguishable at a glance. This needs
+an OAuth app token authorized with `actor=app` — Linear does not let a personal
+API key set the author. Create an OAuth application in your Linear settings,
+authorize it with `actor=app`, and use its access token as `LINEAR_API_KEY`.
+
+**A label.** Every issue gets the `god` label (created on first use), so you can
+exclude agent findings from your own views with one filter, or build a saved
+view that shows only them.
+
+Check which mode you are in before the first live run — this is the difference
+between issues authored by God and issues authored by you:
+
+```bash
+./linear/client.sh whoami
+```
+
+With a personal key it says so plainly rather than pretending. The runtime still
+works; only the authorship differs.
