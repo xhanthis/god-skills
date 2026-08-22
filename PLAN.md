@@ -58,7 +58,7 @@ M4 and it must work before the nightly runner (M5) ever executes.
 | v1 scope | Engineering chain: architect → dev → tester → security (+ cos router, police gate, scout) |
 | Orchestrator | Hybrid: `god-cos` returns a JSON plan; the main session executes the chain |
 | Autonomous runtime | Mac, `launchd` (fires on wake; cron misses sleeping Macs) |
-| Findings store | Linear, dedicated **God Agents** team |
+| Findings store | Linear, **existing team**; agent writes authored as `God` via OAuth actor=app and tagged with the `god` label |
 | Headless autonomy | Fix + open PR (never touches `main`) |
 | Target repos | SaffronStays (Go backend + admin_app): nightly tester. Ownspce (React Native): scout only, read-only — no cheap headless E2E path exists |
 | Repo split | Public layer (agents, hooks, installer, templates) lives in **this repo**. Private runtime (`~/.god-agents`: prompts with business context, launchd, Linear config) lives in a separate **private** repo `xhanthis/god-agents-runtime`, seeded from `runtime-template/` shipped here |
@@ -371,10 +371,11 @@ would break dedup instantly. Scout fingerprints on `module + pattern` so
 
 **`client.sh` subcommands** (each a thin GraphQL call):
 - `search <fingerprint>` → issue ID + state, or empty
-- `create <title> <body-file> <label...>` → creates in the God Agents team
+- `create <title> <body-file> [label...]` → creates in the team, authored as `God`, always carrying the `god` label
 - `comment <issue-id> <text>` → recurrence comment
 - `reopen <issue-id>` → reopen + add `regression` label
 - `runner-failure <message> <log-file>` → failure issue with log tail
+- `whoami` → reports whether writes will actually be authored as `God` or as the token owner
 - `list-scout-titles` → titles of all open scout issues (for conceptual dedup)
 
 **Write protocol — the agent MUST follow in order:**
@@ -383,9 +384,11 @@ would break dedup instantly. Scout fingerprints on `module + pattern` so
 3. Found + closed → `reopen`, label `regression`.
 4. No match → `create`.
 
-**Issue shape:** title `[god-tester] <one line, no jargon>`; labels `god-agent`,
-`<agent-name>`, severity; team **God Agents** (never pollutes the human backlog);
-body = finding, evidence (test output or file:line), suggested fix, fingerprint.
+**Issue shape:** title `[god-tester] <one line, no jargon>`; labels `god` plus
+any extra passed to `file`; team = the existing human team, with agent findings
+separated by authorship (`createAsUser: God`) and the `god` label rather than by
+a dedicated team; body = finding, evidence (test output or file:line), suggested
+fix, fingerprint.
 
 ---
 
