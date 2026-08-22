@@ -25,13 +25,19 @@ you can diff when a run misbehaves.
    git clone git@github.com:{{USER}}/god-agents-runtime.git ~/.god-agents
    ```
 
-2. Fill the placeholders:
+2. Create your config. All settings live in `config.sh`, separate from the
+   runner logic, so pulling template updates never clobbers them:
+
+   ```bash
+   cd ~/.god-agents && cp config.example.sh config.sh && $EDITOR config.sh
+   ```
 
    | Placeholder | Where | Value |
    |---|---|---|
-   | `{{REPO_PATHS}}` | `run.sh` | space-separated quoted paths, e.g. `"$HOME/code/backend" "$HOME/code/admin_app"` |
-   | `{{SCOUT_REPO_PATHS}}` | `run-scout.sh` | same, plus read-only repos with no test harness |
-   | `{{DEFAULT_BRANCH}}` | `run.sh`, `prompts/nightly-tester.md` | usually `main` |
+   | `{{REPO_PATHS}}` | `config.sh` | quoted paths, e.g. `("$HOME/code/backend" "$HOME/code/admin_app")` |
+   | `{{SCOUT_REPO_PATHS}}` | `config.sh` | same, plus read-only repos with no test harness |
+   | `{{DEFAULT_BRANCH}}` | `config.sh`, `prompts/nightly-tester.md` | usually `main` |
+   | `{{LINEAR_TEAM_ID}}` | `config.sh` | the God Agents team id |
    | `{{REPO_CONTEXT}}` | `prompts/nightly-tester.md` | stack, how to run the suite, what matters |
    | `{{KRA_CONTEXT}}` | `prompts/weekly-scout.md` | current KRAs and owned metrics with baselines |
    | `{{USER}}`, `{{HOME}}` | both plists | macOS username, absolute home path |
@@ -93,13 +99,39 @@ tail ~/.god-agents/logs/failures.log
 A crash notifies via macOS notification and files a `[god-runner]` Linear issue.
 A stale `last-success` is how you catch a silent death that never reached either.
 
+## Dry run before you schedule anything
+
+`GOD_DRY_RUN=1` runs the entire flow with the model call stubbed out — no spend,
+no PRs, no Linear writes — so you can prove the guardrails behave against your
+real repo paths first:
+
+```bash
+GOD_DRY_RUN=1 ./run.sh          # branches, checks caps, writes logs, calls nothing
+GOD_DRY_RUN=1 ./run-scout.sh
+```
+
+Verify afterwards that each repo sits on a `god/nightly-<date>` branch and that
+`logs/failures.log` is empty.
+
 ## Order of operations
 
-Do not schedule the nightly runner before the Linear dedup layer works. Test it
-by hand first: file the same finding twice and confirm the second call produces a
-comment on the first issue, not a new issue.
+Do not schedule the nightly runner before the Linear dedup layer works. A runner
+without dedup floods Linear on night one.
+
+The protocol itself is covered by the package's test suite (`npm test` in the
+god-skills repo runs it against a mock Linear server). Against your real
+workspace, confirm it once by hand — the same finding filed twice must produce
+one issue and one comment:
 
 ```bash
 ./linear/client.sh file "<!-- god-fingerprint: test:a:b:c -->" "[god-tester] dedup test" body.md
 ./linear/client.sh file "<!-- god-fingerprint: test:a:b:c -->" "[god-tester] dedup test" body.md
 ```
+
+Then delete the test issue.
+
+## Linear setup
+
+Create a dedicated **God Agents** team before the first run. Agent findings in
+your normal team will bury your human backlog within a week. Put its id in
+`config.sh` as `LINEAR_TEAM_ID`.

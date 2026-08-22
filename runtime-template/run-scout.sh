@@ -1,41 +1,79 @@
 #!/usr/bin/env bash
-# Weekly scout runner. Read-only by construction: no branch is created, no push
-# is possible, and the prompt forbids writes. Scout files Linear issues only.
+# Weekly scout runner.
+#
+# Read-only by construction: no branch is created, nothing is committed, and the
+# prompt forbids writes. Scout's only output is Linear issues and a summary.
+#
+# GOD_DRY_RUN=1 stubs the model call so the guardrails can be tested for free.
 set -uo pipefail
 
-ROOT="$HOME/.god-agents"
+ROOT="${GOD_ROOT:-$HOME/.god-agents}"
 DATE=$(date +%F)
 LOG="$ROOT/logs/scout-$DATE.jsonl"
-COST_CAP="${GOD_SCOUT_COST_CAP:-8}"
-REPOS=({{SCOUT_REPO_PATHS}})          # includes read-only repos with no test harness
 
 mkdir -p "$ROOT/logs"
-[ -f "$ROOT/PAUSE" ] && { echo "PAUSE present — exiting."; exit 0; }
+
+if [ ! -f "$ROOT/config.sh" ]; then
+  echo "missing $ROOT/config.sh — copy config.example.sh and fill it in" >&2
+  exit 1
+fi
+# shellcheck source=/dev/null
+. "$ROOT/config.sh"
+
+if [ -f "$ROOT/PAUSE" ]; then
+  echo "PAUSE present — exiting."
+  exit 0
+fi
 
 notify() {
   command -v osascript >/dev/null 2>&1 &&
     osascript -e "display notification \"$1\" with title \"god-scout\"" >/dev/null 2>&1
   echo "$(date -Iseconds) $1" >> "$ROOT/logs/failures.log"
-  "$ROOT/linear/client.sh" runner-failure "$1" "$LOG" >/dev/null 2>&1 || true
+  if [ -x "$ROOT/linear/client.sh" ] && [ "${GOD_DRY_RUN:-0}" != "1" ]; then
+    "$ROOT/linear/client.sh" runner-failure "$1" "$LOG" >/dev/null 2>&1 || true
+  fi
 }
 trap 'notify "weekly scout crashed (line $LINENO)"' ERR
 
-TOTAL=0
-for repo in "${REPOS[@]}"; do
-  cd "$repo" || { notify "repo missing: $repo"; continue; }
-  git fetch --all --quiet || true      # read latest, but never switch branches
+run_model() {
+  if [ "${GOD_DRY_RUN:-0}" = "1" ]; then
+    printf '{"result":"dry run — model not called","total_cost_usd":%s}' "${GOD_FAKE_COST:-0.5}"
+    return 0
+  fi
+  claude -p "$(cat "$ROOT/prompts/weekly-scout.md")" --output-format json
+}
 
-  OUT=$(claude -p "$(cat "$ROOT/prompts/weekly-scout.md")" \
-          --output-format json 2>>"$ROOT/logs/scout-$DATE.stderr")
+TOTAL=0
+CAPPED=0
+
+for repo in "${SCOUT_REPOS[@]}"; do
+  if ! cd "$repo" 2>/dev/null; then
+    notify "repo missing: $repo"
+    continue
+  fi
+
+  BEFORE=$(git rev-parse --abbrev-ref HEAD 2>/dev/null)
+  git fetch --all --quiet 2>/dev/null || true   # read latest, never switch branches
+
+  OUT=$(run_model 2>>"$ROOT/logs/scout-$DATE.stderr")
   printf '%s\n' "$OUT" >> "$LOG"
 
+  # Scout must leave the checkout exactly as it found it.
+  AFTER=$(git rev-parse --abbrev-ref HEAD 2>/dev/null)
+  if [ "$BEFORE" != "$AFTER" ]; then
+    notify "scout changed branch in $repo ($BEFORE -> $AFTER) — investigate"
+  fi
+
   COST=$(printf '%s' "$OUT" | jq -r '.total_cost_usd // 0' 2>/dev/null || echo 0)
-  TOTAL=$(awk -v a="$TOTAL" -v b="$COST" 'BEGIN{print a+b}')
-  if awk -v t="$TOTAL" -v c="$COST_CAP" 'BEGIN{exit !(t>c)}'; then
-    notify "scout cost cap \$$COST_CAP hit at \$$TOTAL — remaining repos skipped"
+  TOTAL=$(awk -v a="$TOTAL" -v b="$COST" 'BEGIN{printf "%.4f", a+b}')
+  if awk -v t="$TOTAL" -v c="$GOD_SCOUT_COST_CAP" 'BEGIN{exit !(t>c)}'; then
+    notify "scout cost cap \$$GOD_SCOUT_COST_CAP hit at \$$TOTAL — remaining repos skipped"
+    CAPPED=1
     break
   fi
 done
 
 date +%s > "$ROOT/logs/last-scout-success"
-echo "scout done: \$$TOTAL spent"
+SUFFIX=""
+[ "$CAPPED" = "1" ] && SUFFIX=" (cost cap hit)"
+echo "scout done: \$$TOTAL spent across ${#SCOUT_REPOS[@]} repo(s)$SUFFIX"

@@ -8,7 +8,9 @@
 # Requires: LINEAR_API_KEY, jq. Team is set by LINEAR_TEAM_ID.
 set -uo pipefail
 
-API="https://api.linear.app/graphql"
+# LINEAR_API_URL is overridable so the dedup protocol can be tested against a
+# mock server without touching the real workspace. Defaults to Linear.
+API="${LINEAR_API_URL:-https://api.linear.app/graphql}"
 : "${LINEAR_API_KEY:?set LINEAR_API_KEY}"
 : "${LINEAR_TEAM_ID:?set LINEAR_TEAM_ID (the God Agents team)}"
 

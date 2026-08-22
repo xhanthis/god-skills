@@ -6,7 +6,8 @@
     "god-skills": "bin/god-skills.js"
   },
   "scripts": {
-    "prepublishOnly": "node bin/god-skills.js --version && node bin/god-skills.js list > /dev/null && node bin/god-skills.js --agents --dry-run > /dev/null"
+    "prepublishOnly": "node bin/god-skills.js --version && node bin/god-skills.js list > /dev/null && node bin/god-skills.js --agents --dry-run > /dev/null && bash test/run.sh",
+    "test": "bash test/run.sh"
   },
   "files": [
     "bin",
