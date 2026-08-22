@@ -134,12 +134,20 @@ cannot:
 - `PostToolUse` on Edit/Write → every edit is logged to `.claude/logs/chain.jsonl`,
   which is what god-police samples.
 
+**`npx god-skills doctor`** verifies an install: agents present and not drifted
+from their skills, hooks wired and executable, gate events registered.
+
 **Unattended runs** use `runtime-template/` — a sanitized seed for a private repo
 cloned to `~/.god-agents`: launchd schedules, cost and PR caps enforced in shell,
 a `PAUSE` kill switch, and a Linear client whose `file` subcommand searches by
 fingerprint before every write so a nightly run cannot flood the backlog with
-duplicates. See `PLAN.md` for the full design and `runtime-template/README.md`
-for setup.
+duplicates. `GOD_DRY_RUN=1 ./run.sh` exercises the whole flow with the model call
+stubbed, so the guardrails can be proven before anything spends money.
+
+`npm test` runs 93 assertions covering the gates, the installer, the dedup
+protocol (against a mock Linear server) and the runner guardrails — no
+credentials or network needed. See `PLAN.md` for the design and phase status,
+and `runtime-template/README.md` for setup.
 
 ## The rules every God obeys
 

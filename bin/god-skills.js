@@ -85,7 +85,7 @@ function parseArgs(argv) {
   };
 
   for (const arg of argv) {
-    if (arg === "list" || arg === "install") {
+    if (arg === "list" || arg === "install" || arg === "doctor") {
       options.command = arg;
     } else if (arg === "--global" || arg === "-g") {
       options.scope = "global";
@@ -127,6 +127,7 @@ function printHelp() {
     "  npx god-skills list                show every available skill",
     "  npx god-skills --agents            generate + install the God subagents",
     "  npx god-skills --hooks             install the hook gates (global only)",
+    "  npx god-skills doctor              verify an existing install",
     "",
     paint("Options", "bold"),
     "  -g, --global    install to ~/.claude (all projects)",
@@ -427,6 +428,91 @@ function installHooks(options) {
   console.log("");
 }
 
+/**
+ * Verifies an existing install: agents present and current, hooks wired,
+ * scripts executable. Prints one line per check and exits non-zero on failure.
+ */
+function doctor() {
+  const base = fs.existsSync(path.join(PROJECT_BASE, "agents")) ? PROJECT_BASE : GLOBAL_BASE;
+  const results = [];
+  const check = (ok, label, hint) => results.push({ ok, label, hint });
+
+  const manifest = JSON.parse(fs.readFileSync(MANIFEST_FILE, "utf8"));
+  const agentsDir = path.join(base, "agents");
+
+  for (const name of Object.keys(manifest)) {
+    const file = path.join(agentsDir, `${name}.md`);
+    if (!fs.existsSync(file)) {
+      check(false, `agent ${name}`, "run: npx god-skills --agents");
+      continue;
+    }
+    // Regenerating and comparing is how drift between a skill and its installed
+    // agent gets caught — the whole point of generating rather than copying.
+    const current = generateAgents([name])[0].content;
+    const onDisk = fs.readFileSync(file, "utf8");
+    check(onDisk === current, `agent ${name}`, "stale — run: npx god-skills --agents --force");
+  }
+
+  check(
+    fs.existsSync(path.join(base, "commands", "god.md")),
+    "/god command",
+    "run: npx god-skills --agents"
+  );
+
+  const hooksDir = path.join(GLOBAL_BASE, "hooks", "god");
+  const expectedHooks = fs.readdirSync(HOOKS_SOURCE_DIR);
+  for (const script of expectedHooks) {
+    const installed = path.join(hooksDir, script);
+    if (!fs.existsSync(installed)) {
+      check(false, `hook ${script}`, "run: npx god-skills --hooks");
+      continue;
+    }
+    const mode = fs.statSync(installed).mode & 0o111;
+    check(mode !== 0, `hook ${script}`, "not executable — run: npx god-skills --hooks --force");
+  }
+
+  const settingsPath = path.join(GLOBAL_BASE, "settings.json");
+  if (!fs.existsSync(settingsPath)) {
+    check(false, "hooks registered in settings.json", "run: npx god-skills --hooks");
+  } else {
+    let settings = null;
+    try {
+      settings = JSON.parse(fs.readFileSync(settingsPath, "utf8"));
+    } catch (error) {
+      check(false, "settings.json parses", "fix the JSON by hand");
+    }
+    if (settings) {
+      const snippet = JSON.parse(fs.readFileSync(SNIPPET_FILE, "utf8"));
+      for (const event of Object.keys(snippet.hooks)) {
+        const groups = (settings.hooks || {})[event] || [];
+        const wanted = snippet.hooks[event][0].hooks[0].command;
+        const present = groups.some((group) =>
+          (group.hooks || []).some((hook) => hook.command === wanted)
+        );
+        check(present, `hook event ${event}`, "run: npx god-skills --hooks");
+      }
+    }
+  }
+
+  console.log("");
+  console.log(paint(`Checking ${base}`, "bold"));
+  console.log("");
+  for (const result of results) {
+    const mark = result.ok ? paint("✓", "green") : paint("✗", "red");
+    const hint = result.ok ? "" : paint(`  → ${result.hint}`, "dim");
+    console.log(`  ${mark} ${result.label}${hint}`);
+  }
+  const failed = results.filter((result) => !result.ok).length;
+  console.log("");
+  if (failed === 0) {
+    console.log(`${paint("✓", "green")} ${results.length} checks passed.`);
+  } else {
+    console.log(paint(`${failed} of ${results.length} checks failed.`, "red"));
+    process.exitCode = 1;
+  }
+  console.log("");
+}
+
 /** Prints every available skill with its one-line description. */
 function list() {
   const all = availableSkills();
@@ -458,6 +544,11 @@ async function main() {
 
   if (options.command === "list") {
     list();
+    return;
+  }
+
+  if (options.command === "doctor") {
+    doctor();
     return;
   }
 

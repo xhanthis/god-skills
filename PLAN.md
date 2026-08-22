@@ -1,5 +1,28 @@
 # God Agents — v1 Build Plan (final)
 
+# Status
+
+| Milestone | State | Evidence |
+|---|---|---|
+| M1 Manifest + generator | **built, tested** | 7 agents generated from skills; YAML validity, tool boundaries and model pinning covered by `test/install.test.sh` |
+| M2 Router | **built** | `/god` + cos JSON contract. Chain execution is verified by reading the command; a live end-to-end delegation run is yours to do |
+| M3 Hooks | **built, tested** | 4 gates, 24 assertions in `test/hooks.test.sh`, including the python3 fallback and fail-open behaviour |
+| M4 Linear layer | **built, tested against a mock** | `test/linear.test.sh` proves search-then-write: duplicate → comment, closed → reopen+regression, never a second issue. One confirmation against the real workspace still needed |
+| M5 Nightly runner | **built, tested dry** | `test/runner.test.sh` proves PAUSE, cost caps, PR cap, never-on-main, missing-repo tolerance, scout branch safety. Needs a Mac, real repo paths and launchd to go live |
+| M6 Scout | **built** | Full spec in `runtime-template/prompts/weekly-scout.md`; fingerprint dedup shares the tested M4 client. Quotas are prompt-enforced and only provable by running it for four weeks |
+
+`npm test` runs all 93 assertions. Nothing in the suite needs credentials or
+network access.
+
+**What is inherently not automatable here:** M2's "spawns architect → dev
+unprompted", M4's real-workspace confirmation, M5's three-consecutive-night run,
+and M6's four-week quota check are acceptance criteria about live behaviour over
+time. The code and its guardrails are done and proven; those runs are the
+remaining work, and they happen on your machine.
+
+---
+
+
 This document is the complete, self-contained spec for converting the `god-skills`
 package (29 reactive Claude Code skills) into an agent system: isolated subagents
 with triggers and tool restrictions, deterministic hook enforcement, and a scheduled
