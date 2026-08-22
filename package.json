@@ -1,16 +1,20 @@
 {
   "name": "god-skills",
   "version": "2.0.0",
-  "description": "29 Claude Code agent skills that behave like one organization — product, business, engineering, validation and personal performance.",
+  "description": "29 Claude Code agent skills that behave like one organization, plus generated subagents, hook gates and a headless runner template.",
   "bin": {
     "god-skills": "bin/god-skills.js"
   },
   "scripts": {
-    "prepublishOnly": "node bin/god-skills.js --version && node bin/god-skills.js list > /dev/null"
+    "prepublishOnly": "node bin/god-skills.js --version && node bin/god-skills.js list > /dev/null && node bin/god-skills.js --agents --dry-run > /dev/null"
   },
   "files": [
     "bin",
     "skills",
+    "agents",
+    "commands",
+    "hooks",
+    "runtime-template",
     "README.md",
     "LICENSE"
   ],
