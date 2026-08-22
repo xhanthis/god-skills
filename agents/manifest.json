@@ -1,0 +1,37 @@
+{
+  "god-cos": {
+    "description": "Router for the God ecosystem. Use PROACTIVELY on any multi-step or multi-domain request to decide which specialists run and in what order. Returns a strict JSON plan only — it never implements anything itself.",
+    "tools": "Agent, Read, Grep, Glob",
+    "model": "haiku"
+  },
+  "god-architect": {
+    "description": "System design before implementation. MUST BE USED before god-dev for any change involving a new module, schema change, new endpoint, or cross-service behavior. Writes design docs only — never source code.",
+    "tools": "Read, Grep, Glob, Write",
+    "model": "opus"
+  },
+  "god-dev": {
+    "description": "Implements code to senior-engineer standards. Use PROACTIVELY whenever code will be written, modified, refactored, or optimized. Work is not done until god-tester has returned PASS.",
+    "tools": "Read, Write, Edit, Grep, Glob, Bash",
+    "model": "opus"
+  },
+  "god-tester": {
+    "description": "Senior QA. MUST BE USED after god-dev completes any implementation, and whenever code needs verification. Writes and actually executes tests, auto-fixes failures up to 3 cycles, returns PASS / FAIL / UNVERIFIED.",
+    "tools": "Read, Write, Edit, Bash, Grep, Glob",
+    "model": "opus"
+  },
+  "god-security": {
+    "description": "Security review. MUST BE USED after god-tester whenever changes touch auth, payments, PII, secrets handling, or external input. Read-only: reports findings, never edits the code it audits.",
+    "tools": "Read, Grep, Glob",
+    "model": "opus"
+  },
+  "god-police": {
+    "description": "Integrity audit. Use before any final PASS or SHIP verdict to detect shortcuts, fabricated evidence, false test claims, and gamed objectives. Re-runs one test and re-checks one citation.",
+    "tools": "Read, Grep, Bash",
+    "model": "sonnet"
+  },
+  "god-scout": {
+    "description": "Weekly opportunity intelligence. Use for evidence-first scanning of the codebase, analytics, and backlog for extraction, compounding, repetition, and abandonment patterns. Read-only; never writes code or opens PRs.",
+    "tools": "Read, Grep, Glob, WebSearch",
+    "model": "opus"
+  }
+}
