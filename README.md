@@ -96,6 +96,59 @@ Failure loops: `tester → dev → tester` · `security → dev → tester → s
 | **god-health** | Is this pace sustainable? |
 | **god-write** | Does this read like a human wrote it? |
 
+## Agents, gates, and autonomy
+
+The skills above are the knowledge layer. Three commands turn them into an agent
+system — skills stay the single source of truth; agents are generated from them.
+
+```bash
+npx god-skills --agents     # generate + install 7 subagents and the /god command
+npx god-skills --hooks      # install the hook gates (global)
+```
+
+**Subagents** (`~/.claude/agents/`) are built at install time from
+`skills/<name>/SKILL.md` plus `agents/manifest.json`, so an agent can never drift
+from its skill. The manifest is where tool access and model are set:
+
+| Agent | Tools | Model |
+|---|---|---|
+| god-cos | Agent, Read, Grep, Glob | haiku |
+| god-architect | Read, Grep, Glob, Write | opus |
+| god-dev | Read, Write, Edit, Grep, Glob, Bash | opus |
+| god-tester | Read, Write, Edit, Bash, Grep, Glob | opus |
+| god-security | Read, Grep, Glob | opus |
+| god-police | Read, Grep, Bash | sonnet |
+| god-scout | Read, Grep, Glob, WebSearch | opus |
+
+`tools` is a security boundary, not a convenience: god-security cannot edit the
+code it audits.
+
+**`/god <request>`** asks god-cos for a chain, then runs each specialist from the
+main session so their output stays visible instead of buried in a router summary.
+
+**Hook gates** are what make the rules real — a prompt can be ignored, a hook
+cannot:
+
+- `Stop` → the session cannot finish while god-dev edits lack a god-tester PASS.
+- `PreToolUse` on Edit/Write → string-built SQL is blocked outright.
+- `PostToolUse` on Edit/Write → every edit is logged to `.claude/logs/chain.jsonl`,
+  which is what god-police samples.
+
+**`npx god-skills doctor`** verifies an install: agents present and not drifted
+from their skills, hooks wired and executable, gate events registered.
+
+**Unattended runs** use `runtime-template/` — a sanitized seed for a private repo
+cloned to `~/.god-agents`: launchd schedules, cost and PR caps enforced in shell,
+a `PAUSE` kill switch, and a Linear client whose `file` subcommand searches by
+fingerprint before every write so a nightly run cannot flood the backlog with
+duplicates. `GOD_DRY_RUN=1 ./run.sh` exercises the whole flow with the model call
+stubbed, so the guardrails can be proven before anything spends money.
+
+`npm test` runs 93 assertions covering the gates, the installer, the dedup
+protocol (against a mock Linear server) and the runner guardrails — no
+credentials or network needed. See `PLAN.md` for the design and phase status,
+and `runtime-template/README.md` for setup.
+
 ## The rules every God obeys
 
 **No fabrication.** Numbers come from the repo, your analytics, or a named public source. Unknown impact is reported as unknown, plus what to instrument to find out. Legal sections and citations are verified, never remembered.
