@@ -1,11 +1,11 @@
 {
   "god-cos": {
-    "description": "Router for the God ecosystem. Use PROACTIVELY on any multi-step or multi-domain request to decide which specialists run and in what order. Returns a strict JSON plan only — it never implements anything itself.",
+    "description": "Router for the God ecosystem. Use PROACTIVELY on any multi-step or multi-domain request to decide which specialists run and in what order. Returns a strict JSON plan only \u2014 it never implements anything itself.",
     "tools": "Agent, Read, Grep, Glob",
     "model": "haiku"
   },
   "god-architect": {
-    "description": "System design before implementation. MUST BE USED before god-dev for any change involving a new module, schema change, new endpoint, or cross-service behavior. Writes design docs only — never source code.",
+    "description": "System design before implementation. MUST BE USED before god-dev for any change involving a new module, schema change, new endpoint, or cross-service behavior. Writes design docs only \u2014 never source code.",
     "tools": "Read, Grep, Glob, Write",
     "model": "opus"
   },
@@ -32,6 +32,11 @@
   "god-scout": {
     "description": "Weekly opportunity intelligence. Use for evidence-first scanning of the codebase, analytics, and backlog for extraction, compounding, repetition, and abandonment patterns. Read-only; never writes code or opens PRs.",
     "tools": "Read, Grep, Glob, WebSearch",
+    "model": "opus"
+  },
+  "god-reverse": {
+    "description": "Product reverse-engineering. Use to reconstruct how an existing product works end to end from the outside \u2014 frontend, APIs, data model, backend, infra, third-party stack \u2014 and produce a concrete rebuild plan. Read-only investigation from public surfaces; writes the plan, never the product's source.",
+    "tools": "Read, Grep, Glob, Bash, WebSearch, WebFetch, Write",
     "model": "opus"
   }
 }
