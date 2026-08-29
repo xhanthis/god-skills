@@ -12,7 +12,7 @@ trap 'rm -rf "$WORK"' EXIT
 # --- generation is faithful to the manifest -------------------------------
 HOME="$WORK/h1" node "$CLI" --agents -g -y >/dev/null
 AGENTS="$WORK/h1/.claude/agents"
-assert_eq "$(ls "$AGENTS" | grep -c '^god-')" "7" "all seven agents are generated"
+assert_eq "$(ls "$AGENTS" | grep -c '^god-')" "8" "all eight agents are generated"
 
 # Frontmatter must be parseable YAML. A description containing ': ' silently
 # breaks the agent unless quoted, which is exactly how this bug first appeared.
@@ -110,7 +110,7 @@ assert_eq "$(cat "$WORK/h8/.claude/settings.json")" "{invalid json" "the corrupt
 
 # --- the original skill install still works -------------------------------
 HOME="$WORK/h9" node "$CLI" -g -y >/dev/null
-assert_eq "$(ls "$WORK/h9/.claude/skills" | wc -l | tr -d ' ')" "29" "all 29 skills still install"
+assert_eq "$(ls "$WORK/h9/.claude/skills" | wc -l | tr -d ' ')" "30" "all 30 skills still install"
 
 # --- doctor ---------------------------------------------------------------
 assert_exit 1 "doctor fails on an install that isn't there" -- env HOME="$WORK/d1" node "$CLI" doctor
