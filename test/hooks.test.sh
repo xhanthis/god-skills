@@ -6,7 +6,7 @@ set -uo pipefail
 cd "$(dirname "$0")/.."
 . test/harness.sh
 
-H="$(pwd)/hooks/god"
+H="$(pwd)/god-agents/hooks/god"
 WORK=$(mktemp -d)
 trap 'rm -rf "$WORK"' EXIT
 

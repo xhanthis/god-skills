@@ -29,8 +29,8 @@ mk_repo beta
 # --- a runtime root wired to those repos ----------------------------------
 ROOT="$WORK/.god-agents"
 mkdir -p "$ROOT/logs" "$ROOT/prompts" "$ROOT/linear"
-cp runtime-template/run.sh runtime-template/run-scout.sh "$ROOT/"
-cp runtime-template/linear/client.sh "$ROOT/linear/"
+cp god-agents/runtime-template/run.sh god-agents/runtime-template/run-scout.sh "$ROOT/"
+cp god-agents/runtime-template/linear/client.sh "$ROOT/linear/"
 echo "test prompt" > "$ROOT/prompts/nightly-tester.md"
 echo "test prompt" > "$ROOT/prompts/weekly-scout.md"
 chmod +x "$ROOT"/*.sh "$ROOT/linear/client.sh"

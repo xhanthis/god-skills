@@ -1,0 +1,46 @@
+{
+  "name": "god-agents",
+  "version": "1.0.0",
+  "description": "Claude Code subagents generated from the god-skills skills, plus the hook gates that enforce them and a headless runner template.",
+  "bin": {
+    "god-agents": "bin/god-agents.js"
+  },
+  "scripts": {
+    "prepublishOnly": "node bin/god-agents.js --version && node bin/god-agents.js list > /dev/null && node bin/god-agents.js --dry-run > /dev/null && bash ../test/run.sh",
+    "test": "bash ../test/run.sh"
+  },
+  "files": [
+    "bin",
+    "agents",
+    "commands",
+    "hooks",
+    "runtime-template",
+    "README.md",
+    "LICENSE"
+  ],
+  "dependencies": {
+    "god-skills": "^2.1.0"
+  },
+  "keywords": [
+    "claude",
+    "claude-code",
+    "agents",
+    "subagents",
+    "hooks",
+    "ai"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/xhanthis/god-skills.git",
+    "directory": "god-agents"
+  },
+  "homepage": "https://github.com/xhanthis/god-skills/tree/main/god-agents#readme",
+  "bugs": {
+    "url": "https://github.com/xhanthis/god-skills/issues"
+  },
+  "license": "MIT",
+  "author": "xhanthis",
+  "engines": {
+    "node": ">=18"
+  }
+}

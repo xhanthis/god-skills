@@ -7,7 +7,7 @@ cd "$(dirname "$0")/.."
 . test/harness.sh
 
 PORT=${MOCK_PORT:-4747}
-CLIENT="runtime-template/linear/client.sh"
+CLIENT="god-agents/runtime-template/linear/client.sh"
 
 export LINEAR_API_URL="http://127.0.0.1:$PORT"
 export LINEAR_API_KEY="lin_oauth_mock"   # oauth prefix => actor mode, see client.sh
