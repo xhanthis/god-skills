@@ -1,7 +1,7 @@
 # God Skills
 
 [Claude Code](https://claude.com/claude-code) skills I use every day, turned into
-an agent system. What started as two skills is now 29 specialists that behave
+an agent system. What started as two skills is now 30 specialists that behave
 like one organization instead of one assistant guessing outside its expertise —
 plus subagents with real tool boundaries, hooks that enforce the rules, and an
 unattended runner that files what it finds.
@@ -22,7 +22,7 @@ npx god-skills doctor     # verify the install
 
 ```bash
 npx god-skills dev tester security --global   # just these three
-npx god-skills list                           # see all 29
+npx god-skills list                           # see all 30
 npx god-skills --project --force              # overwrite in this repo
 ```
 
@@ -90,6 +90,7 @@ so nothing can drift; `doctor` regenerates and compares to prove it.
 | god-security | Read, Grep, Glob | opus |
 | god-police | Read, Grep, Bash | sonnet |
 | god-scout | Read, Grep, Glob, WebSearch | opus |
+| god-reverse | Read, Grep, Glob, Bash, WebSearch, WebFetch, Write | opus |
 
 `tools` is a security boundary, not a convenience: god-security physically
 cannot edit the code it audits, and god-scout cannot run commands. Models are
@@ -182,12 +183,13 @@ for unattended setup.
 | **god-editor** | Can this be clearer and shorter? |
 | **god-simplifier** | What can we remove? |
 | **god-scout** | What opportunity are we missing? |
+| **god-reverse** | How is this product built, and how would we rebuild it? |
 | **god-historian** | Why did we get here? |
 | **god-plan** | Highest-leverage use of the day? |
 | **god-health** | Is this pace sustainable? |
 | **god-write** | Does this read like a human wrote it? |
 
-Seven of these have agent counterparts today; the rest run as skills. Adding one
+Eight of these have agent counterparts today; the rest run as skills. Adding one
 is a manifest entry, not a rewrite.
 
 ## How a request flows
