@@ -1,13 +1,18 @@
 # God Skills
 
-[Claude Code](https://claude.com/claude-code) skills I use every day, turned into
-an agent system. What started as two skills is now 30 specialists that behave
-like one organization instead of one assistant guessing outside its expertise —
-plus subagents with real tool boundaries, hooks that enforce the rules, and an
-unattended runner that files what it finds.
+[Claude Code](https://claude.com/claude-code) skills I use every day. What
+started as two skills is now 30 specialists that behave like one organization
+instead of one assistant guessing outside its expertise.
 
 Each God owns a domain, knows what it should not do, and hands work to the next
 God rather than winging it.
+
+Two packages ship from this repo:
+
+| Package | What it installs |
+|---|---|
+| **[`god-skills`](https://www.npmjs.com/package/god-skills)** | the 30 skills — knowledge, loaded into your session |
+| **[`god-agents`](https://www.npmjs.com/package/god-agents)** | subagents generated from those skills, hook gates that enforce them, and an unattended runner ([docs](god-agents/README.md)) |
 
 ## Install
 
@@ -15,14 +20,12 @@ One command, no clone:
 
 ```bash
 npx god-skills            # every skill, asks global or project
-npx god-skills --agents   # generate + install the subagents and /god
-npx god-skills --hooks    # install the hook gates
+npx god-skills list       # see all 30
 npx god-skills doctor     # verify the install
 ```
 
 ```bash
 npx god-skills dev tester security --global   # just these three
-npx god-skills list                           # see all 30
 npx god-skills --project --force              # overwrite in this repo
 ```
 
@@ -33,11 +36,17 @@ npx god-skills --project --force              # overwrite in this repo
 | `-a, --all` | every skill, no prompt |
 | `-f, --force` | overwrite files already there |
 | `-y, --yes` | no prompts, defaults to global |
-| `--agents` | generate subagents from skills + manifest, install `/god` |
-| `--hooks` | install the gate scripts and merge them into `settings.json` |
-| `--dry-run` | with `--agents`/`--hooks`: print what would happen, write nothing |
 
 Short names work: `npx god-skills dev` installs `god-dev`.
+
+`doctor` compares every installed skill against the packaged copy, so a skill
+that drifted after a hand-edit gets named rather than silently used.
+
+Want the subagents, the hook gates and the nightly runner too:
+
+```bash
+npx god-agents --all      # agents, /god and the gates
+```
 
 <details>
 <summary>Manual install</summary>
@@ -58,101 +67,7 @@ curl -sL https://raw.githubusercontent.com/xhanthis/god-skills/main/skills/god-d
 
 </details>
 
-Restart Claude Code after installing — skills and agents load at session start.
-
-## Three layers
-
-Each layer does something the one above it can't.
-
-```
-skills/          knowledge      what good work looks like
-  ↓ generated
-agents/          isolation      own context, own tools, own model
-  ↓ enforced by
-hooks/           rules          a prompt can be ignored; a hook cannot
-  ↓ driven by
-runtime-template/ autonomy      scheduled runs, caps, findings filed
-```
-
-### 1. Skills → agents, generated not copied
-
-`agents/manifest.json` holds only frontmatter — tools and model. The installer
-glues it to `skills/<name>/SKILL.md` at install time, so an agent is that skill
-running in its own context window with a tool allowlist. Nothing is duplicated,
-so nothing can drift; `doctor` regenerates and compares to prove it.
-
-| Agent | Tools | Model |
-|---|---|---|
-| god-cos | Agent, Read, Grep, Glob | haiku |
-| god-architect | Read, Grep, Glob, Write | opus |
-| god-dev | Read, Write, Edit, Grep, Glob, Bash | opus |
-| god-tester | Read, Write, Edit, Bash, Grep, Glob | opus |
-| god-security | Read, Grep, Glob | opus |
-| god-police | Read, Grep, Bash | sonnet |
-| god-scout | Read, Grep, Glob, WebSearch | opus |
-| god-reverse | Read, Grep, Glob, Bash, WebSearch, WebFetch, Write | opus |
-
-`tools` is a security boundary, not a convenience: god-security physically
-cannot edit the code it audits, and god-scout cannot run commands. Models are
-pinned explicitly, because an unpinned subagent inherits the lead's model and
-silently burns Opus on triage.
-
-**`/god <request>`** asks god-cos for a chain as JSON, then runs each specialist
-from the main session — so their findings stay visible instead of buried in a
-router's summary. Tester FAIL loops back to dev, up to three times.
-
-### 2. Hooks, because prompts get ignored
-
-| Event | Gate |
-|---|---|
-| `Stop` | the session cannot finish while god-dev edits lack a god-tester PASS |
-| `PreToolUse` on Edit/Write | string-built SQL is blocked outright |
-| `PostToolUse` on Edit/Write | every edit is logged to `.claude/logs/chain.jsonl` |
-| `SubagentStop` on god-tester | the verdict is recorded, so the Stop gate has ground truth |
-
-That is the difference between "god-dev should call god-tester" and god-dev being
-unable to finish without one. `FAIL` and `UNVERIFIED` don't unblock it either.
-
-Every gate falls back to `python3` when `jq` is absent, and exits 0 on its own
-parse failure — a bug in a gate must never block your work.
-
-### 3. Autonomy, with the caps in shell
-
-`runtime-template/` is a sanitized seed for a private repo cloned to
-`~/.god-agents`. Your repo paths, KRAs, and Linear config live there, never in
-this public package.
-
-- `launchd` schedules a nightly tester and a weekly scout.
-- Every run starts on a fresh `god/nightly-<date>` branch. Never `main`.
-- Cost caps, a PR cap, and a `PAUSE` kill switch are enforced in the shell around
-  the model call — a prompt can be argued out of a limit, a script cannot.
-- `GOD_DRY_RUN=1 ./run.sh` runs the whole flow with the model stubbed, so the
-  guardrails can be proven before anything spends money.
-
-**Findings go to Linear, deduplicated.** Every finding carries a fingerprint
-(`repo:file:rule:symbol` — no line numbers, they shift on unrelated edits). The
-client searches for it before every write: already open, it comments; closed, it
-reopens as a regression; new, it creates. That is why a nightly run doesn't file
-the same twelve issues every night.
-
-Issues are authored as **God** and labelled `god`, so agent findings sit in your
-normal team without burying it. Authorship needs an OAuth app token authorized
-with `actor=app` — Linear does not let a personal key set the author, and
-`client.sh whoami` tells you which you have rather than pretending.
-
-## Proof
-
-`npm test` runs 103 assertions — no credentials, no network:
-
-| Suite | Covers |
-|---|---|
-| `hooks.test.sh` | every gate, both jq and python3 paths, fail-open behaviour |
-| `install.test.sh` | generation, tool boundaries, settings-merge safety, doctor |
-| `linear.test.sh` | the dedup protocol against a mock Linear server |
-| `runner.test.sh` | runner guardrails against real throwaway git repos |
-
-See `PLAN.md` for the design and per-phase status, `runtime-template/README.md`
-for unattended setup.
+Restart Claude Code after installing — skills load at session start.
 
 ## The skills
 
@@ -189,8 +104,8 @@ for unattended setup.
 | **god-health** | Is this pace sustainable? |
 | **god-write** | Does this read like a human wrote it? |
 
-Eight of these have agent counterparts today; the rest run as skills. Adding one
-is a manifest entry, not a rewrite.
+Eight of these have agent counterparts in `god-agents` today; the rest run as
+skills. Adding one is a manifest entry, not a rewrite.
 
 ## How a request flows
 
@@ -230,6 +145,20 @@ Owns every rupee: booking bifurcation, revenue-share slabs, partner splits, comm
 
 ### god-write
 Strips AI-isms from prose and puts a human voice back in, built on the 29 tells from Wikipedia's [Signs of AI writing](https://en.wikipedia.org/wiki/Wikipedia:Signs_of_AI_writing) — significance inflation, copula avoidance, the rule of three, em-dash overuse, chatbot artifacts, cutoff hedging.
+
+## Proof
+
+`npm test` runs 131 assertions across both packages — no credentials, no network:
+
+| Suite | Covers |
+|---|---|
+| `skills.test.sh` | the skill installer, force semantics, doctor, tarball contents |
+| `agents.test.sh` | generation, tool boundaries, settings-merge safety, doctor |
+| `hooks.test.sh` | every gate, both jq and python3 paths, fail-open behaviour |
+| `linear.test.sh` | the dedup protocol against a mock Linear server |
+| `runner.test.sh` | runner guardrails against real throwaway git repos |
+
+See `PLAN.md` for the design and per-phase status.
 
 ## License
 

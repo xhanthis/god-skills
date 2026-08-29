@@ -4,12 +4,12 @@
 
 | Milestone | State | Evidence |
 |---|---|---|
-| M1 Manifest + generator | **built, tested** | 7 agents generated from skills; YAML validity, tool boundaries and model pinning covered by `test/install.test.sh` |
+| M1 Manifest + generator | **built, tested** | 7 agents generated from skills; YAML validity, tool boundaries and model pinning covered by `test/agents.test.sh` |
 | M2 Router | **built** | `/god` + cos JSON contract. Chain execution is verified by reading the command; a live end-to-end delegation run is yours to do |
 | M3 Hooks | **built, tested** | 4 gates, 24 assertions in `test/hooks.test.sh`, including the python3 fallback and fail-open behaviour |
 | M4 Linear layer | **built, tested against a mock** | `test/linear.test.sh` proves search-then-write: duplicate → comment, closed → reopen+regression, never a second issue. One confirmation against the real workspace still needed |
 | M5 Nightly runner | **built, tested dry** | `test/runner.test.sh` proves PAUSE, cost caps, PR cap, never-on-main, missing-repo tolerance, scout branch safety. Needs a Mac, real repo paths and launchd to go live |
-| M6 Scout | **built** | Full spec in `runtime-template/prompts/weekly-scout.md`; fingerprint dedup shares the tested M4 client. Quotas are prompt-enforced and only provable by running it for four weeks |
+| M6 Scout | **built** | Full spec in `god-agents/runtime-template/prompts/weekly-scout.md`; fingerprint dedup shares the tested M4 client. Quotas are prompt-enforced and only provable by running it for four weeks |
 
 `npm test` runs all 93 assertions. Nothing in the suite needs credentials or
 network access.
@@ -34,11 +34,13 @@ The builder needs no prior conversation context. Everything to build is in this 
 
 ## What exists today
 
-- `skills/` — 29 skill folders, each a single `SKILL.md` with YAML frontmatter
+- `skills/` — 30 skill folders, each a single `SKILL.md` with YAML frontmatter
   (`name`, `description`) and a prompt body. The bodies are good; do not rewrite them.
 - `bin/god-skills.js` — zero-dependency Node installer (`npx god-skills`), with
   scope prompts (`--global`/`--project`), `--force`, `--all`, `list`.
-- Published npm package `god-skills` v2.x, public repo, MIT.
+- `god-agents/` — the second package: manifest, `/god` command, hook gates, runner
+  template and `bin/god-agents.js`. It depends on `god-skills` for agent bodies.
+- Published npm packages `god-skills` v2.x and `god-agents` v1.x, public repo, MIT.
 
 ## The core problem this system solves
 
@@ -61,8 +63,8 @@ M4 and it must work before the nightly runner (M5) ever executes.
 | Findings store | Linear, **existing team**; agent writes authored as `God` via OAuth actor=app and tagged with the `god` label |
 | Headless autonomy | Fix + open PR (never touches `main`) |
 | Target repos | SaffronStays (Go backend + admin_app): nightly tester. Ownspce (React Native): scout only, read-only — no cheap headless E2E path exists |
-| Repo split | Public layer (agents, hooks, installer, templates) lives in **this repo**. Private runtime (`~/.god-agents`: prompts with business context, launchd, Linear config) lives in a separate **private** repo `xhanthis/god-agents-runtime`, seeded from `runtime-template/` shipped here |
-| Agent authoring | Agents are **generated** from `skills/*/SKILL.md` + `agents/manifest.json` at install time. One source of truth, zero drift. Never hand-maintain duplicate bodies |
+| Repo split | Public layer (agents, hooks, installer, templates) lives in **this repo**. Private runtime (`~/.god-agents`: prompts with business context, launchd, Linear config) lives in a separate **private** repo `xhanthis/god-agents-runtime`, seeded from `god-agents/runtime-template/` shipped here |
+| Agent authoring | Agents are **generated** from `skills/*/SKILL.md` + `god-agents/agents/manifest.json` at install time. One source of truth, zero drift. Never hand-maintain duplicate bodies |
 | Skills | Keep shipping unchanged. Skills remain the knowledge layer; agents are a thin execution wrapper |
 
 ### Previously open questions — now resolved
@@ -91,7 +93,8 @@ LAYER 1  Subagents        ~/.claude/agents/*.md      generated; isolated context
 LAYER 2  Hooks            ~/.claude/settings.json    deterministic enforcement
 LAYER 3  Headless runner  launchd + claude -p        scheduled, unattended
 
-PUBLIC   xhanthis/god-skills          skills/ agents/ hooks/ commands/ runtime-template/ bin/
+PUBLIC   xhanthis/god-skills          npm god-skills:  skills/ bin/
+                                      npm god-agents:  god-agents/{agents,commands,hooks,runtime-template,bin}
 PRIVATE  xhanthis/god-agents-runtime  → cloned to ~/.god-agents (user creates from template)
 ```
 
@@ -99,7 +102,7 @@ PRIVATE  xhanthis/god-agents-runtime  → cloned to ~/.god-agents (user creates 
 
 # Part A — changes to this repo (everything the builder implements)
 
-## A1. `agents/manifest.json`
+## A1. `god-agents/agents/manifest.json`
 
 Per-agent frontmatter that the installer merges with the corresponding
 `skills/<name>/SKILL.md` body. The manifest is the **only** place agent frontmatter
@@ -159,7 +162,7 @@ Notes:
 
 Extend the existing installer. Keep zero dependencies and existing behavior intact.
 
-**`npx god-skills --agents [names...]`**
+**`npx god-agents [names...]`**
 - For each requested agent in the manifest (all, if none named; short names resolve
   like skills): generate `<name>.md` =
   1. YAML frontmatter: `name` + manifest fields.
@@ -170,8 +173,8 @@ Extend the existing installer. Keep zero dependencies and existing behavior inta
 - Also installs `commands/god.md` → `<scope>/.claude/commands/god.md`.
 - `--dry-run` prints generated files to stdout without writing.
 
-**`npx god-skills --hooks`**
-- Copies `hooks/god/*.sh` → `~/.claude/hooks/god/` (chmod +x).
+**`npx god-agents --hooks`**
+- Copies `god-agents/hooks/god/*.sh` → `~/.claude/hooks/god/` (chmod +x).
 - Merges `hooks/settings-snippet.json` into `~/.claude/settings.json`:
   back up to `settings.json.bak` first; add only entries not already present
   (match on command path); if the existing file fails to parse, do NOT write —
@@ -210,15 +213,15 @@ from stdin (fields include `tool_input`, `transcript_path`, `agent_type`,
 `stop_hook_active`); use `jq` if present, else `python3 -c`. Exit 2 = block, with
 the reason on stderr.
 
-**`hooks/god/log-edits.sh`** — Gate 3, audit trail. `PostToolUse` on `Edit|Write`.
+**`god-agents/hooks/god/log-edits.sh`** — Gate 3, audit trail. `PostToolUse` on `Edit|Write`.
 Appends `{ts, agent_type, tool, file}` to `.claude/logs/chain.jsonl` in the project
 (`mkdir -p` first). This log is what god-police samples and what Gate 1 reads.
 
-**`hooks/god/record-verdict.sh`** — `SubagentStop` matched to `god-tester`.
+**`god-agents/hooks/god/record-verdict.sh`** — `SubagentStop` matched to `god-tester`.
 Greps the transcript at `transcript_path` for the last `Result: PASS|FAIL|UNVERIFIED`
 and appends `{ts, agent_type: "god-tester", verdict}` to `chain.jsonl`.
 
-**`hooks/god/require-tester-pass.sh`** — Gate 1: dev cannot self-declare done.
+**`god-agents/hooks/god/require-tester-pass.sh`** — Gate 1: dev cannot self-declare done.
 **Design change from the draft plan, deliberate:** this runs on the lead session's
 `Stop` event, NOT on god-dev's `SubagentStop`. Blocking god-dev's stop would
 deadlock — tester runs *after* dev finishes, and dev has no Agent tool to spawn it.
@@ -227,7 +230,7 @@ god-tester PASS entry newer than the newest of them → exit 2 with
 `"god-dev changes lack a god-tester PASS. Run god-tester before finishing."`
 Loop guard: if `stop_hook_active` is true in the hook input, exit 0.
 
-**`hooks/god/block-raw-sql.sh`** — Gate 2. `PreToolUse` on `Edit|Write`.
+**`god-agents/hooks/god/block-raw-sql.sh`** — Gate 2. `PreToolUse` on `Edit|Write`.
 Scans `tool_input.content` / `new_string` for string-concatenated or interpolated
 SQL (`"SELECT/INSERT/UPDATE/DELETE ..."` adjacent to `+`, `%`, f-string/template
 interpolation, `fmt.Sprintf` with a SQL verb). Keep the regex conservative — a
@@ -275,7 +278,7 @@ A slash command (`/god <request>`) instructing the lead session:
 4. If any agent issued a verdict, run god-police last.
 5. Fallback: if cos returns unparseable output, retry once, then ask the user.
 
-## A6. `runtime-template/` — sanitized seed for the private repo
+## A6. `god-agents/runtime-template/` — sanitized seed for the private repo
 
 Everything here uses `{{PLACEHOLDERS}}` — **no business context** (no KRAs, repo
 paths, Linear team IDs) may appear in this public repo.
@@ -341,7 +344,7 @@ date +%s > "$ROOT/logs/last-success"
 
 # Part B — private repo (user performs; builder ships the template)
 
-1. Create private repo `xhanthis/god-agents-runtime`; copy `runtime-template/` in.
+1. Create private repo `xhanthis/god-agents-runtime`; copy `god-agents/runtime-template/` in.
 2. Fill placeholders: repo paths (SaffronStays backend, admin_app, Ownspce),
    default branches, Linear team ID for the **God Agents** team, FY27 KRA context
    in `weekly-scout.md`, macOS username in plists.
@@ -459,7 +462,7 @@ creates branches. Model: Opus — reasoning quality is the entire product here.
 
 # Build order (do not reorder M4/M5)
 
-**M1 — Manifest + generator.** A1 + A2 + A3. *Done when:* `npx god-skills --agents
+**M1 — Manifest + generator.** A1 + A2 + A3. *Done when:* `npx god-agents
 --dry-run` emits 7 valid agent files, `--agents -g` installs them, and in a scratch
 project a code-change request spawns architect → dev **unprompted** (by description
 alone, without naming them).
