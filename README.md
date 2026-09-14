@@ -116,6 +116,7 @@ USER → god-context → god-cos → specialists → god-da → god → god-poli
 - **Vague request** ("order amount is wrong") → **god-context** investigates the codebase and reconstructs the real problem before anyone writes code.
 - **god-cos** picks the minimum set of specialists and the order they run in.
 - **Writing code** → **god-architect** → **god-dev** → **god-tester** (auto-chained) → **god-security**.
+- **Engineering habits:** god-dev ships every PR with Problem / Approach / Alternatives rejected / Rollout-rollback / Test evidence, timeouts + jittered retries + idempotency on every external call, expand → migrate → contract for schema and API changes, flags with kill switches, owned TODOs; god-tester writes table-driven tests and fails a perf claim with no before/after number.
 - **Ship gate:** god-dev writes to, and god-tester fails on, the org PR auto-reviewer's own blocker list (raw errors in responses, unindexed or unbounded SQL, PII in logs/URLs/third parties, missing authz, XSS, secrets, credential-shaped fixtures, red CI) — so a god-skills PR is meant to pass review the first time.
 - **Any significant decision** → **god-da** attacks it → **god** decides → **god-police** checks nobody cheated to get there.
 

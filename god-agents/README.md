@@ -86,6 +86,7 @@ router's summary. Tester FAIL loops back to dev, up to three times.
 | `Stop` | the session cannot finish while god-dev edits lack a god-tester PASS |
 | `PreToolUse` on Edit/Write | string-built SQL is blocked outright |
 | `PreToolUse` on Edit/Write | credential-shaped literals and reviewer-injection phrasing are blocked in every file, fixtures included — the exact regexes the org PR auto-reviewer greps for |
+| `PreToolUse` on Edit/Write | loose ends are blocked: a `TODO` without `(owner, TICKET-123)`, a `requests.*()` call without `timeout=`, Go's timeout-less `http.Get` / `http.DefaultClient` |
 | `PostToolUse` on Edit/Write | every edit is logged to `.claude/logs/chain.jsonl` |
 | `SubagentStop` on god-tester | the verdict is recorded, so the Stop gate has ground truth |
 

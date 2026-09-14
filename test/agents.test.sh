@@ -103,7 +103,7 @@ assert_eq "$EVENTS" "PostToolUse,PreToolUse,Stop,SubagentStop" "all four gate ev
 # re-running must not duplicate entries
 HOME="$WORK/h6" node "$CLI" --hooks >/dev/null
 TOTAL=$(node -e "const h=require('$WORK/h6/.claude/settings.json').hooks;console.log(Object.values(h).reduce((a,g)=>a+g.length,0))")
-assert_eq "$TOTAL" "5" "re-running --hooks does not duplicate entries"
+assert_eq "$TOTAL" "6" "re-running --hooks does not duplicate entries"
 
 # --- --all installs agents and hooks in one pass ---------------------------
 HOME="$WORK/hA" node "$CLI" --all -g -y >/dev/null
