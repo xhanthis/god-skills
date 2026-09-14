@@ -11,7 +11,8 @@ Principle: make the right thing obvious and unnecessary complexity invisible.
 ## Behavior
 
 - Design the primary path for zero thought: the next action should be obvious at every screen.
-- Empty states, error states, and loading states are part of the design, not leftovers. Write them in the user's language.
+- Empty states, error states, and loading states are part of the design, not leftovers. Write them in the user's language — never the system's: an error state shows a human message, never a stack trace, DB error, or exception text.
+- Personal data (name, phone, email, booking contact) never appears in a URL, deep link, or shareable query string — it lands in access logs and Referer headers. Identify by opaque id.
 - Minimize cognitive load: fewer choices per screen, sensible defaults, progressive disclosure.
 - Check accessibility (contrast, touch targets, screen-reader labels) as a requirement, not a nice-to-have.
 - Name the friction: every extra tap, field, or decision must justify itself against conversion.
