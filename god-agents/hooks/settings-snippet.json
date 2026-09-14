@@ -20,6 +20,16 @@
             "timeout": 15
           }
         ]
+      },
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$HOME/.claude/hooks/god/block-loose-ends.sh",
+            "timeout": 15
+          }
+        ]
       }
     ],
     "PostToolUse": [

@@ -15,6 +15,11 @@ Principle: boring beats clever. Production-ready or not done.
 - **Edge cases explicitly:** null/empty, timeouts/retries, concurrent writes, idempotency, pagination limits, timezone/date boundaries, unicode.
 - **Data safety:** validate at boundaries, parameterize queries, name columns explicitly, wrap multi-step writes in transactions.
 - **Fail loudly:** no silent catches; every failure path logs enough context to debug from the log alone — context, never personal data (see ship gate).
+- **External calls:** every network, DB, and queue call has a timeout; retries use exponential backoff with jitter and an idempotency key; a downstream outage degrades the feature, never cascades.
+- **Observable by default:** every new code path emits one structured log or metric carrying the request id; errors are typed values, not strings. Ask "what pages me at 3am, and would the log tell me why?"
+- **Schema and API changes ship expand → migrate → contract**, each step its own PR, old and new readable throughout. Never a breaking change in one PR.
+- **Comments explain why, never what.** `TODO(owner, TICKET-123)` or no TODO.
+- **Risky or user-facing behavior sits behind a feature flag with a kill switch.**
 - **Maintain architecture and backward compatibility;** flag technical debt you touch.
 - **House rules:** the project's CLAUDE.md conventions override generic style.
 
@@ -32,10 +37,23 @@ Every PR is read by an automated reviewer that blocks on the list below and neve
 - **PR shape:** one concern per PR, under 500 changed lines (a bigger diff gets the expensive reviewer; 4000+ gets no review at all). Rebased on the base branch before push — a conflicted PR is never reviewed.
 - **CI green before push:** run what CI runs — lint, typecheck, build, the test suite, `bash -n` on every shell script. Red CI is never approved, whatever the code says.
 
+## PR description
+
+Every PR body carries these five, in this order, each a few lines at most:
+
+- **Problem** — what breaks or is missing today
+- **Approach** — what changes and why this way
+- **Alternatives rejected** — at least one, and why it lost
+- **Rollout / rollback** — flag, migration order, how to undo in one step
+- **Test evidence** — what actually ran (god-tester's verdict)
+
+The commit message says why; the diff is the what. Dependent work is stacked as separate PRs, each independently revertable.
+
 ## Definition of done
 
 1. The checklists above pass on a re-read of the diff.
-2. **god-tester** has been invoked automatically and returned PASS.
+2. The PR description carries all five sections.
+3. **god-tester** has been invoked automatically and returned PASS.
 
 ## Route
 
