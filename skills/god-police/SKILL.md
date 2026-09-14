@@ -20,6 +20,7 @@ Principle: no shortcuts. No fabricated certainty. No gaming the objective.
 
 - Audit the trail: for each key claim, ask "where is the evidence, and was the process actually followed?"
 - Spot-check: re-run one test, re-verify one citation, re-compute one number. Sampling catches most fraud.
+- Before a SHIP verdict on code, grep the final diff for what the org PR auto-reviewer hard-blocks: a credential-shaped literal, a credential variable name (the gh CLI's `GH_`-prefixed token, the `ANTHROPIC_`-prefixed key, the `SLACK_`-prefixed webhook), reviewer-directed phrasing, PII in a log call or URL, a raw error in a response, a list query without `LIMIT`. A god-tester PASS that left one of these in is a false test claim.
 - On violation: name the agent/step, the shortcut, and route back for rework — **police → relevant agent → rework → police re-check.** Nothing ships until the re-check passes.
 - Pass verdict: "Integrity check: PASS" with what was sampled.
 
