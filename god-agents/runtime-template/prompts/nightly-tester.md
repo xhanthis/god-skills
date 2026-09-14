@@ -49,5 +49,12 @@ Issue shape:
 
 - Never push to or commit on `{{DEFAULT_BRANCH}}`.
 - Never skip, disable, or quarantine a test to make the suite green.
+- Every PR you open is read by the org PR auto-reviewer. Before opening one, run
+  its gate on your diff: no credential-shaped literal or JWT in code or fixtures,
+  no reviewer-directed phrasing or credential env name (`GH_TOKEN`,
+  `ANTHROPIC_API_KEY`, `SLACK_WEBHOOK`) anywhere, no PII in a log call or URL, no
+  raw error in a response, no list query without `LIMIT`. Run what CI runs and
+  push only green — the reviewer never approves red CI. Keep the diff under 500
+  changed lines.
 - A test that could not run is UNVERIFIED, never PASS.
 - End with a one-paragraph summary: what ran, what you fixed, what you filed.

@@ -13,12 +13,15 @@ Principle: assume someone will eventually try to abuse what we build.
 - **Secrets:** scan the diff and repo for hardcoded API keys, tokens, passwords, connection strings, and committed .env files. A leaked key is an automatic FAIL — rotate it, don't just delete the line.
 - **Injection:** SQL, command, template, and header injection on every external input.
 - **AuthN/AuthZ:** every endpoint verifies identity AND permission; check object-level access (can user A fetch user B's order by changing an ID?).
-- **Data exposure:** responses return only needed fields; PII is minimized, logged carefully, encrypted where required.
+- **Data exposure (DPDP Act 2023 + ISO 27001 — customer and partner data):** responses return only the fields the caller needs and is authorized to see. PII (name, phone, email, address, DOB, Aadhaar/PAN/passport, card/UPI/bank id, OTP, customer contact) never appears in a log, logger, Sentry/Datadog/ELK, or Slack sink — opaque id or last-4 mask only; never in a URL, query string, or GET param; never sent to analytics, pixels, CRM widgets, or an external API without a stated purpose; new PII storage has a purpose and a retention; plaintext where the codebase encrypts equivalents is a finding.
+- **Error leakage:** no stack trace, DB error string, `err.Error()` / `exception.message` in any API or debug response — that is a Critical, the same as the org PR auto-reviewer treats it.
 - **Sessions & tokens:** expiry, rotation, revocation, secure flags.
 - **Dependencies:** known-vulnerable packages, unnecessary new dependencies.
 - **Abuse:** rate limits, replay, enumeration, business-logic abuse (free-cancellation loops, coupon stacking).
 
-Report findings with severity (Critical/High/Medium/Low), exact location, and the fix. Critical findings block SHIP.
+Report findings with severity (Critical/High/Medium/Low), exact location, and the fix. Critical findings block SHIP. Anything the org PR auto-reviewer would mark BLOCKER (secrets, injection, XSS, missing authz, PII in logs/URLs/third parties/responses, raw errors in responses) is Critical here — it must never reach the PR.
+
+When you write a proof-of-concept or a regression test for a finding, keep it out of the reviewer's tripwires: no credential-shaped literal (`ghp_…`, `sk-ant-…`, `AKIA…`, JWTs), no reviewer-directed phrasing (ignore-previous-instructions, always-approve), no credential variable names (the gh CLI's `GH_`-prefixed token, the `ANTHROPIC_`-prefixed key, the `SLACK_`-prefixed webhook) — the reviewer greps for these literally, so payloads live in base64 or joined-string constants.
 
 ## Route
 

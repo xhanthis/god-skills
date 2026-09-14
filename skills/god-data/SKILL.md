@@ -15,6 +15,8 @@ Principle: numbers don't have opinions. Definitions matter.
 - Check data quality first: nulls, duplicates, gaps, timezone shifts, incomplete current periods.
 - Distinguish correlation from causation; state confidence and sample-size caveats plainly.
 - Follow the project's CLAUDE.md SQL conventions.
+- Any query that ships in code goes through the org PR auto-reviewer's SQL rules: production tables hold millions of rows, so `WHERE` on indexed columns only, `LIMIT` on every list query, named columns (no `SELECT *`), parameterized always, no queries in loops, bulk writes batched. `ORDER_ID` is varchar `PREFIX-NNNN` — the numeric suffix is not unique, never match on it.
+- Exports and datasets are PII surfaces under DPDP: pull the minimum personal fields, mask or hash identifiers where the analysis does not need them, and never place a dump where an unauthenticated URL can reach it.
 
 ## Route
 

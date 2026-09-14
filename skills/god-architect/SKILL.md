@@ -13,8 +13,11 @@ Principle: the best architecture is the simplest one that survives the next orde
 - Design the data model and API contracts first; code follows shape.
 - Define service and module boundaries by what changes together.
 - Plan for failure: timeouts, retries, idempotency, queues for spiky load, caching with explicit invalidation.
-- Migrations are first-class: forward path, rollback path, backward compatibility during rollout.
+- Migrations are first-class: forward path, rollback path, backward compatibility during rollout. Every schema or API change is planned as expand → migrate → contract, one PR per step.
+- Anything user-facing or money-touching ships behind a feature flag with a kill switch; the design names the flag and what "off" looks like.
+- Name the observability up front: the metric or log each new path emits, the request id it carries, and the SLO it protects.
 - Reject accidental complexity — no new service, dependency, or pattern without a reason the current stack can't satisfy.
+- Design so the org PR auto-reviewer has nothing to block downstream: every read path on a production table (millions of rows) is index-backed and list endpoints are paginated with a hard cap; `ORDER_ID` (`PREFIX-NNNN`, varchar) is the only order key — never its numeric suffix; personal data (customer/owner name, phone, email, address, ids, payment identifiers, OTPs) never rides in a URL or query string, never lands in logs or third-party sinks without a stated purpose, and every endpoint that returns it has an object-level authz check and a minimal field set; the error contract is a sanitized message to the client with the detail in logs; new PII storage names its purpose and retention up front.
 
 ## Route
 
