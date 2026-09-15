@@ -59,6 +59,21 @@ MISSING=$(grep -L '^model:' "$AGENTS"/god-*.md | wc -l | tr -d ' ')
 assert_eq "$MISSING" "0" "every agent pins a model explicitly"
 assert_contains "$(grep '^model:' "$AGENTS/god-cos.md")" "haiku" "the router runs on a cheap model"
 
+# --- agents are opt-in; skills run inline ---------------------------------
+# Claude Code auto-delegates to any agent whose description invites it, which
+# hides the work in a subagent the user cannot watch. Descriptions must defer to
+# the inline skill and delegate only on an explicit request.
+EAGER=$(grep -liE '^description:.*(proactively|must be used)' "$AGENTS"/god-*.md | wc -l | tr -d ' ')
+assert_eq "$EAGER" "0" "no agent description invites automatic delegation"
+OPTOUT=$(grep -LE '^description:.*explicitly asks' "$AGENTS"/god-*.md | wc -l | tr -d ' ')
+assert_eq "$OPTOUT" "0" "every agent description delegates only on explicit request"
+INLINE=$(grep -LE '^description:.*inline with the Skill tool' "$AGENTS"/god-*.md | wc -l | tr -d ' ')
+assert_eq "$INLINE" "0" "every agent description points back to the inline skill"
+assert_not_contains "$(grep '^tools:' "$AGENTS/god-cos.md")" "Agent" "the router cannot spawn subagents"
+GODCMD=$(cat "$WORK/h1/.claude/commands/god.md")
+assert_contains "$GODCMD" "through the Skill tool" "/god runs every specialist as an inline skill"
+assert_not_contains "$GODCMD" "Spawn" "/god never spawns a subagent on its own"
+
 # --- the body comes from the skill, unmodified ----------------------------
 assert_contains "$(cat "$AGENTS/god-dev.md")" "boring beats clever" "the agent body is the skill body"
 assert_contains "$(cat "$AGENTS/god-dev.md")" "json god-handoff" "the handoff contract is appended"
