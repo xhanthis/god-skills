@@ -7,6 +7,11 @@ A skill is knowledge in your session. An agent is that same knowledge running in
 its own context window, with its own tool allowlist and its own model — and a
 hook is the part a prompt cannot talk its way out of.
 
+Agents are **opt-in**. Every agent description tells Claude Code to run the
+matching skill inline, in your session where you watch it work, and to use the
+subagent only when you explicitly ask for one: a subagent, a parallel fan-out,
+or the headless runner. Nothing is handed off behind your back.
+
 ## Install
 
 ```bash
@@ -61,7 +66,7 @@ compares to prove it.
 
 | Agent | Tools | Model |
 |---|---|---|
-| god-cos | Agent, Read, Grep, Glob | haiku |
+| god-cos | Read, Grep, Glob | haiku |
 | god-architect | Read, Grep, Glob, Write | opus |
 | god-dev | Read, Write, Edit, Grep, Glob, Bash | opus |
 | god-tester | Read, Write, Edit, Bash, Grep, Glob | opus |
@@ -75,15 +80,16 @@ cannot edit the code it audits, and god-scout cannot run commands. Models are
 pinned explicitly, because an unpinned subagent inherits the lead's model and
 silently burns Opus on triage.
 
-**`/god <request>`** asks god-cos for a chain as JSON, then runs each specialist
-from the main session — so their findings stay visible instead of buried in a
-router's summary. Tester FAIL loops back to dev, up to three times.
+**`/god <request>`** has god-cos plan a chain as JSON, then runs each specialist
+as an inline skill, one after another in the main session. Nothing goes to a
+subagent, so every step stays visible. Tester FAIL loops back to dev, up to three
+times.
 
 ### 2. Hooks, because prompts get ignored
 
 | Event | Gate |
 |---|---|
-| `Stop` | the session cannot finish while god-dev edits lack a god-tester PASS |
+| `Stop` | the session cannot finish while god-dev edits lack a god-tester PASS, whether god-dev ran as a subagent (read from the chain log) or inline as a skill (read from the session transcript) |
 | `PreToolUse` on Edit/Write | string-built SQL is blocked outright |
 | `PreToolUse` on Edit/Write | credential-shaped literals and reviewer-injection phrasing are blocked in every file, fixtures included — the exact regexes the org PR auto-reviewer greps for |
 | `PreToolUse` on Edit/Write | loose ends are blocked: a `TODO` without `(owner, TICKET-123)`, a `requests.*()` call without `timeout=`, Go's timeout-less `http.Get` / `http.DefaultClient` |
@@ -133,7 +139,7 @@ that is the whole point of generating instead of copying.
 
 ## Proof
 
-`npm test` runs the repo's full suite — 131 assertions, no credentials, no
+`npm test` runs the repo's full suite — 168 assertions, no credentials, no
 network. `agents.test.sh` covers generation, YAML validity, tool boundaries,
 model pinning, settings-merge safety and doctor's drift detection.
 
