@@ -64,6 +64,50 @@ CLEAN="$WORK/clean"; mkdir -p "$CLEAN"
 CODE=$(run_gate require-tester-pass.sh "{\"cwd\":\"$CLEAN\",\"stop_hook_active\":false}")
 assert_eq "$CODE" "0" "a session that changed nothing is not blocked"
 
+# --- Gate 1, inline skill mode --------------------------------------------
+# god-dev run through the Skill tool leaves no agent_type on its edits and no
+# SubagentStop for the verdict, so the gate reads the session transcript. The
+# fixture lines mirror Claude Code's JSONL: one message per line.
+SKILLPROJ="$WORK/skillproj"; mkdir -p "$SKILLPROJ"
+T="$WORK/session.jsonl"
+DEV_CALL='{"isSidechain":false,"message":{"role":"assistant","content":[{"type":"tool_use","id":"toolu_1","name":"Skill","input":{"skill":"god-dev"}}]}}'
+EDIT_CALL='{"isSidechain":false,"message":{"role":"assistant","content":[{"type":"tool_use","id":"toolu_2","name":"Edit","input":{"file_path":"/x/y.go"}}]}}'
+say() { printf '{"isSidechain":false,"message":{"role":"assistant","content":[{"type":"text","text":"%s"}]}}\n' "$1"; }
+skill_gate() { run_gate require-tester-pass.sh "{\"cwd\":\"$SKILLPROJ\",\"transcript_path\":\"$1\",\"stop_hook_active\":false}"; }
+
+printf '%s\n%s\n' "$DEV_CALL" "$EDIT_CALL" > "$T"
+assert_eq "$(skill_gate "$T")" "2" "inline god-dev edits without a PASS block the session"
+
+say '**Result: PASS**' >> "$T"
+assert_eq "$(skill_gate "$T")" "0" "an inline god-tester PASS unblocks the session"
+
+printf '%s\n' "$EDIT_CALL" >> "$T"
+assert_eq "$(skill_gate "$T")" "2" "an edit after the inline PASS blocks again"
+
+say '**Result: PASS**' >> "$T"
+say '**Result: FAIL**' >> "$T"
+assert_eq "$(skill_gate "$T")" "2" "an inline FAIL after a PASS blocks the session"
+
+T2="$WORK/quoted.jsonl"
+printf '%s\n%s\n' "$DEV_CALL" "$EDIT_CALL" > "$T2"
+printf '{"isSidechain":false,"message":{"role":"user","content":"**Result: PASS**"}}\n' >> "$T2"
+assert_eq "$(skill_gate "$T2")" "2" "a PASS quoted in a user message is not a verdict"
+
+T3="$WORK/nodev.jsonl"
+printf '%s\n' "$EDIT_CALL" > "$T3"
+assert_eq "$(skill_gate "$T3")" "0" "edits in a session that never ran god-dev are not gated"
+
+T4="$WORK/sidechain.jsonl"
+printf '%s\n%s\n' "$DEV_CALL" "$EDIT_CALL" > "$T4"
+say '**Result: PASS**' >> "$T4"
+printf '{"isSidechain":true,"message":{"role":"assistant","content":[{"type":"tool_use","id":"toolu_3","name":"Write","input":{"file_path":"/x/z.go"}}]}}\n' >> "$T4"
+assert_eq "$(skill_gate "$T4")" "0" "subagent edits are left to the chain log, not the transcript"
+
+T5="$WORK/tooldefs.jsonl"
+printf '%s\n' "$DEV_CALL" > "$T5"
+printf '{"type":"attachment","tools":[{"name":"Edit","input":{"type":"object"}}]}\n' >> "$T5"
+assert_eq "$(skill_gate "$T5")" "0" "tool definitions in the transcript are not mistaken for edits"
+
 # --- Gate 2: string-built SQL --------------------------------------------
 sql_case() { run_gate block-raw-sql.sh "$1"; }
 

@@ -24,9 +24,9 @@ Principle: the right problem, the right expert, the right sequence, with the lea
 - **Research:** context → researcher → (data) → pm/strategist/cmo → da → god
 - **Operations:** context → pm → ops → simplifier → (architect/dev/tester) → police
 
-## Output contract (when invoked as an agent)
+## Output contract (when planning a chain)
 
-When invoked as a subagent to plan a chain, return ONLY this JSON — no prose:
+When asked to plan a chain (for example by `/god`), return ONLY this JSON — no prose:
 
 ```json
 {"chain": ["god-architect", "god-dev", "god-tester"], "reason": "<one line>"}
