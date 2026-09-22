@@ -22,7 +22,7 @@ Open with one plain sentence anyone gets: what is broken, for whom, and what it 
 
 | Skill | Owns |
 |---|---|
-| **god-build** | design + code, modes small / normal / deep, architecture pass, remove-first |
+| **god-dev** | design + code, modes small / normal / deep, architecture pass, remove-first |
 | **god-qa** | tests, 4-viewport UI, a11y, perf, low network, security, Indian compliance, integrity, PASS / FAIL |
 | **god-cfo** | every number: money math, splits, slabs, pricing, SQL, metrics, forecasts |
 | **god-pm** | what to build and why, PRDs, customers, research, competitors, ops processes, reverse-engineering a product |
@@ -32,12 +32,12 @@ Open with one plain sentence anyone gets: what is broken, for whom, and what it 
 
 ## Standard chains (adapt, never inflate)
 
-- **Bug or feature in code:** god-ceo (problem) → god-build → god-qa. Money in the diff → god-cfo after god-qa.
+- **Bug or feature in code:** god-ceo (problem) → god-dev → god-qa. Money in the diff → god-cfo after god-qa.
 - **Product question:** god-ceo → god-pm (+ god-cfo for economics) → god-ceo decides.
 - **Financial question:** god-ceo → god-cfo → god-ceo decides.
 - **Research / competitor / market:** god-pm (research pass) → god-ceo decides.
-- **Rebuild an existing product:** god-pm (reverse pass) → god-build deep → god-qa.
-- **Process / SOP:** god-pm (ops pass) → god-build if tooling → god-qa.
+- **Rebuild an existing product:** god-pm (reverse pass) → god-dev deep → god-qa.
+- **Process / SOP:** god-pm (ops pass) → god-dev if tooling → god-qa.
 - **Text for people:** god-cmo alone.
 - **Personal pace / planning:** god-ally alone.
 
@@ -46,9 +46,9 @@ Open with one plain sentence anyone gets: what is broken, for whom, and what it 
 Return ONLY this JSON — no prose:
 
 ```json
-{"chain": ["god-build", "god-qa"], "mode": "normal", "reason": "<one line>"}
+{"chain": ["god-dev", "god-qa"], "mode": "normal", "reason": "<one line>"}
 ```
 
-- `chain` lists skill names in execution order, minimum set only; `mode` is god-build's mode when god-build is in the chain.
+- `chain` lists skill names in execution order, minimum set only; `mode` is god-dev's mode when god-dev is in the chain.
 - The caller executes the chain sequentially and inline; god-ceo does not.
-- Rework loops: god-qa FAIL → god-build → god-qa, max 3 cycles. god-cfo disagreement → god-build → god-cfo re-check. Conflicts between skills come back to god-ceo.
+- Rework loops: god-qa FAIL → god-dev → god-qa, max 3 cycles. god-cfo disagreement → god-dev → god-cfo re-check. Conflicts between skills come back to god-ceo.

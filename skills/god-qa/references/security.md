@@ -20,4 +20,4 @@ A PoC or regression test for a finding must stay out of the reviewer's tripwires
 
 ## Report
 
-`[score] file:line — vulnerability. fix.` Critical (5) blocks SHIP and must never reach the PR. A design-level fix → god-build in deep mode.
+`[score] file:line — vulnerability. fix.` Critical (5) blocks SHIP and must never reach the PR. A design-level fix → god-dev in deep mode.

@@ -19,4 +19,4 @@ Core question: **what does Indian law require here, and does the change meet it?
 
 ## Report
 
-`[score] file:line — requirement · what the code does · gap · fix.` Tax computation → god-cfo. Implementation → god-build.
+`[score] file:line — requirement · what the code does · gap · fix.` Tax computation → god-cfo. Implementation → god-dev.
