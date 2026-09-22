@@ -1,3 +1,5 @@
+> **Historical.** This is the original 30-skill design (2.x). 3.0 consolidated it to seven skills with a shared learning loop — see [README.md](README.md). Skill names below (god-tester, god-cos, …) no longer exist.
+
 # God Agents — v1 Build Plan (final)
 
 # Status
