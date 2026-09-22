@@ -18,8 +18,10 @@ case "$EVENT" in
   Stop) KIND=stop ;;
   *) KIND=other ;;
 esac
-CWD=$(hook_field .cwd)
-printf '{"ts":%s,"event":"%s","cwd":"%s"}\n' "$NOW" "$KIND" "${CWD//\"/}" >> "$DIR/activity.jsonl" 2>/dev/null
+CWD=$(hook_field .cwd | tr -d '\n\r\t')
+CWD=${CWD//\\/\\\\}
+CWD=${CWD//\"/\\\"}
+printf '{"ts":%s,"event":"%s","cwd":"%s"}\n' "$NOW" "$KIND" "$CWD" >> "$DIR/activity.jsonl" 2>/dev/null
 
 [ "$KIND" = "prompt" ] || exit 0
 NEXT="$DIR/next.json"

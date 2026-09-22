@@ -242,6 +242,8 @@ GOD_ZEN_DIR="$ZEN" hook zen-activity.sh "{\"hook_event_name\":\"UserPromptSubmit
 GOD_ZEN_DIR="$ZEN" hook zen-activity.sh "{\"hook_event_name\":\"Stop\",\"cwd\":\"$PROJ\"}" >/dev/null
 assert_eq "$(wc -l < "$ZEN/activity.jsonl" | tr -d ' ')" "3" "zen logs one line per session event"
 assert_contains "$(cat "$ZEN/activity.jsonl")" '"event":"prompt"' "zen records prompt events"
+GOD_ZEN_DIR="$ZEN" hook zen-activity.sh '{"hook_event_name":"Stop","cwd":"/tmp/we\\ird \"dir\""}' >/dev/null
+assert_eq "$(node -e "require('fs').readFileSync('$ZEN/activity.jsonl','utf8').trim().split('\n').forEach(l=>JSON.parse(l));console.log('valid')")" "valid" "zen escapes backslashes and quotes in the cwd so every log line is valid JSON"
 assert_eq "$(GOD_ZEN_DIR="$ZEN" hook zen-activity.sh "{\"hook_event_name\":\"UserPromptSubmit\",\"cwd\":\"$PROJ\"}")" "" "zen stays silent with no next.json"
 SOON=$(( $(date +%s) + 300 ))
 printf '{"next_meeting_ts":%s}' "$SOON" > "$ZEN/next.json"
