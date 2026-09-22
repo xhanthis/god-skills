@@ -2,13 +2,13 @@
 "use strict";
 
 /**
- * God Zen's daily wellbeing report.
+ * God Ally's daily wellbeing report.
  *
  * Collects timestamps and counts — never content — from three local sources: git commits
  * authored by the user, Claude Code token usage, and Apple Health sleep exported to iCloud.
  * Timestamps gathered from MCP tools (calendar, Slack, Gmail, Linear, Notion) are passed in
  * by the skill with --mcp. Everything is scored by scripts/zen-score.js and printed as one
- * terminal report. Nothing is ever uploaded and nothing leaves ~/.god-zen.
+ * terminal report. Nothing is ever uploaded and nothing leaves ~/.god-ally.
  *
  * Usage:
  *   node zen-report.js [--mcp '<json>'] [--mcp-file <path>] [--date YYYY-MM-DD] [--json] [--rebuild]
@@ -21,7 +21,7 @@ const { execFileSync } = require("child_process");
 const score = require("./zen-score");
 
 const HOME = os.homedir();
-const DIR = path.join(HOME, ".god-zen");
+const DIR = path.join(HOME, ".god-ally");
 const CONFIG_FILE = path.join(DIR, "config.json");
 const HISTORY_FILE = path.join(DIR, "history.jsonl");
 const SEEN_FILE = path.join(DIR, "quotes-seen.json");
@@ -30,7 +30,7 @@ const QUOTE_COOLDOWN_DAYS = 21;
 const QUOTE_RATE = 0.05;
 const QUOTE_GAP_DAYS = 3;
 const QUOTE_SCORE_CEILING = 6;
-const HOOK_ACTIVITY = path.join(HOME, ".claude", "god", "god-zen", "activity.jsonl");
+const HOOK_ACTIVITY = path.join(HOME, ".claude", "god", "god-ally", "activity.jsonl");
 const CLAUDE_PROJECTS = path.join(HOME, ".claude", "projects");
 const DAY_MS = 86400000;
 const HISTORY_DAYS = 30;
@@ -52,7 +52,7 @@ const DEFAULT_CONFIG = {
   authorEmails: [],
   timezone: "Asia/Kolkata",
   dayStartHour: 5,
-  healthFolder: "~/Library/Mobile Documents/com~apple~CloudDocs/GodZen/sleep",
+  healthFolder: "~/Library/Mobile Documents/com~apple~CloudDocs/GodAlly/sleep",
   stopBy: "21:00",
   useCcusage: true,
 };
@@ -71,7 +71,7 @@ function expandHome(target) {
 }
 
 /**
- * Reads ~/.god-zen/config.json, writing it with defaults on first run.
+ * Reads ~/.god-ally/config.json, writing it with defaults on first run.
  * Args: none
  * Returns: config object merged over the defaults
  * Handles: a missing directory, a corrupt file (falls back to defaults without throwing),
@@ -424,7 +424,7 @@ function collectSleep(folder) {
 }
 
 /**
- * Reads the timestamps the god-zen hook appends on every session, prompt and stop.
+ * Reads the timestamps the god-ally hook appends on every session, prompt and stop.
  * Args: sinceEpoch (number)
  * Returns: array of epoch milliseconds
  * Handles: the hook never having run, partially written lines
@@ -719,7 +719,7 @@ function blankDay(date) {
 }
 
 /**
- * Reads ~/.god-zen/history.jsonl.
+ * Reads ~/.god-ally/history.jsonl.
  * Args: none
  * Returns: Map of date to stored record
  * Handles: no history yet, lines corrupted by an interrupted write
@@ -1057,7 +1057,7 @@ function render(days, config, sourcesUsed, sourcesMissing) {
   const boundary = String(config.dayStartHour).padStart(2, "0");
   const out = [""];
   const rule = "─".repeat(66);
-  out.push(`  🧘 ${bold("God Zen")}  ·  ${today.date}  ·  ${config.timezone}, day runs ${boundary}:00 → ${boundary}:00`);
+  out.push(`  🧘 ${bold("God Ally")}  ·  ${today.date}  ·  ${config.timezone}, day runs ${boundary}:00 → ${boundary}:00`);
   out.push(`  ${rule}`);
   out.push("");
   out.push(`  ${"Zen Score".padEnd(11)}${bold(today.score == null ? "—" : `${today.score} / 10`)}   ${bold(today.band)}`);

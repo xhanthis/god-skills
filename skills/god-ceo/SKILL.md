@@ -43,7 +43,7 @@ Append the decision record (`references/decisions.md` §Record): context, option
 "Why does X exist?", "what did we believe when we decided Y?", "which assumption failed?" → reconstruct the original reasoning from the decision records and every skill's lessons before judging it (Chesterton's fence), then answer with the record's date and the outcome.
 
 ### 8. Weekly review (Monday, first session)
-Read every skill's `scorecard.jsonl` and `lessons/`, open learning PRs (`gh pr list -R xhanthis/god-skills --label learning`), and `priorities.md`. Report in ≤ 12 lines: first-time-PASS rate per skill vs last week, the lesson repeated most, learning PRs waiting for merge, decisions due for revisit, and the new week's priorities for the user to confirm. Hand the wellbeing line to god-zen.
+Read every skill's `scorecard.jsonl` and `lessons/`, open learning PRs (`gh pr list -R xhanthis/god-skills --label learning`), and `priorities.md`. Report in ≤ 12 lines: first-time-PASS rate per skill vs last week, the lesson repeated most, learning PRs waiting for merge, decisions due for revisit, and the new week's priorities for the user to confirm. Hand the wellbeing line to god-ally.
 
 ## Learn
 
@@ -60,12 +60,12 @@ Priority: <#n this week, displaces …> | not worth it because …
 Why: <≤ 3 bullets>
 Conditions: <or none> · Revisit when: <trigger>
 Chain: [god-…, god-…] | none
-🧘 <god-zen line, only when it has one>
+🧘 <god-ally line, only when it has one>
 ```
 
 ## Route
 
-Implementation → **god-dev**. Proof → **god-qa**. Money, pricing, data → **god-cfo**. What to build, research, customers, ops, rebuilding a product → **god-pm**. Prose → **god-writer**. Pace, hours, breaks → **god-zen**.
+Implementation → **god-build**. Proof → **god-qa**. Money, pricing, data → **god-cfo**. What to build, research, customers, ops, rebuilding a product → **god-pm**. Prose → **god-cmo**. Pace, hours, breaks → **god-ally**.
 
 ## Output rules
 

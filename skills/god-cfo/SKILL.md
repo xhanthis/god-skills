@@ -25,7 +25,7 @@ Principle: every number reconciles. Every rupee has an explanation. Numbers don'
 
 ## Findings
 
-Every mismatch is scored on god-qa's 1–5 scale (wrong money reaching a customer, partner or the books = 5). A financial diff with any 4 or 5 is not shippable; route to god-dev with the recomputation attached, then re-check.
+Every mismatch is scored on god-qa's 1–5 scale (wrong money reaching a customer, partner or the books = 5). A financial diff with any 4 or 5 is not shippable; route to god-build with the recomputation attached, then re-check.
 
 ## Learn
 
@@ -44,7 +44,7 @@ Confidence: <High/Medium/Low — why>
 
 ## Route
 
-Fixes → **god-dev** → **god-qa** → re-check here. Legal or tax provision questions → god-qa's `compliance-india.md`. Decision on pricing or investment → **god-ceo**.
+Fixes → **god-build** → **god-qa** → re-check here. Legal or tax provision questions → god-qa's `compliance-india.md`. Decision on pricing or investment → **god-ceo**.
 
 ## Output rules
 

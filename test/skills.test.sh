@@ -18,29 +18,29 @@ assert_eq "$(node "$CLI" --version)" "$(node -e "console.log(require('./package.
 # --- install --------------------------------------------------------------
 HOME="$WORK/h1" node "$CLI" -g -y >/dev/null
 assert_eq "$(ls "$WORK/h1/.claude/skills" | wc -l | tr -d ' ')" "$COUNT" "every skill installs"
-assert_file "$WORK/h1/.claude/skills/god-zen/SKILL.md" "the newest skill ships"
+assert_file "$WORK/h1/.claude/skills/god-ally/SKILL.md" "the newest skill ships"
 
 # --- installs are idempotent without --force ------------------------------
 OUT=$(HOME="$WORK/h1" node "$CLI" -g -y)
 assert_contains "$OUT" "already present" "a second install leaves existing skills alone"
 
 # --- selective install, short names, unknown names ------------------------
-HOME="$WORK/h2" node "$CLI" dev qa -g -y >/dev/null
+HOME="$WORK/h2" node "$CLI" build qa -g -y >/dev/null
 assert_eq "$(ls "$WORK/h2/.claude/skills" | wc -l | tr -d ' ')" "2" "short names install just those skills"
-assert_file "$WORK/h2/.claude/skills/god-dev/SKILL.md" "short name 'dev' resolves to god-dev"
+assert_file "$WORK/h2/.claude/skills/god-build/SKILL.md" "short name 'build' resolves to god-build"
 assert_exit 1 "an unknown skill name fails loudly" -- env HOME="$WORK/h3" node "$CLI" nope -g -y
 
-# --all beats a named argument, so `--all dev` is still a full install.
-HOME="$WORK/h4" node "$CLI" --all dev -g -y >/dev/null
+# --all beats a named argument, so `--all build` is still a full install.
+HOME="$WORK/h4" node "$CLI" --all build -g -y >/dev/null
 assert_eq "$(ls "$WORK/h4/.claude/skills" | wc -l | tr -d ' ')" "$COUNT" "--all overrides named skills"
 
 # --- --force overwrites, plain install does not ---------------------------
-echo "tampered" >> "$WORK/h2/.claude/skills/god-dev/SKILL.md"
-HOME="$WORK/h2" node "$CLI" dev -g -y >/dev/null
-assert_contains "$(cat "$WORK/h2/.claude/skills/god-dev/SKILL.md")" "tampered" \
+echo "tampered" >> "$WORK/h2/.claude/skills/god-build/SKILL.md"
+HOME="$WORK/h2" node "$CLI" build -g -y >/dev/null
+assert_contains "$(cat "$WORK/h2/.claude/skills/god-build/SKILL.md")" "tampered" \
   "a plain re-install does not clobber local edits"
-HOME="$WORK/h2" node "$CLI" dev -g -y -f >/dev/null
-assert_not_contains "$(cat "$WORK/h2/.claude/skills/god-dev/SKILL.md")" "tampered" \
+HOME="$WORK/h2" node "$CLI" build -g -y -f >/dev/null
+assert_not_contains "$(cat "$WORK/h2/.claude/skills/god-build/SKILL.md")" "tampered" \
   "--force restores the packaged skill"
 
 # --- retired skills are removed, foreign folders are not -------------------
@@ -60,7 +60,7 @@ assert_contains "$OUT" "share_learnings" "install tells the user how to opt out 
 # --- other CLIs: --codex / --gemini / --agents-md ---------------------------
 CX="$WORK/codex"; mkdir -p "$CX"; printf '# My repo\n\nKeep this.\n' > "$CX/AGENTS.md"
 (cd "$CX" && node "$CLI" --codex >/dev/null)
-assert_file "$CX/.god-skills/god-dev/SKILL.md" "--codex copies the skills next to AGENTS.md"
+assert_file "$CX/.god-skills/god-build/SKILL.md" "--codex copies the skills next to AGENTS.md"
 assert_file "$CX/.god-skills/god-qa/references/frontend.md" "--codex copies skill references too"
 AG=$(cat "$CX/AGENTS.md")
 assert_contains "$AG" "Keep this." "--codex preserves the existing AGENTS.md content"
@@ -77,7 +77,7 @@ assert_file "$CX/.cursor/rules/god.md" "--agents-md writes any instruction file"
 # --- list -----------------------------------------------------------------
 LIST=$(node "$CLI" list)
 assert_contains "$LIST" "$COUNT skills available" "list counts every skill"
-assert_contains "$LIST" "god-zen" "list names the newest skill"
+assert_contains "$LIST" "god-ally" "list names the newest skill"
 
 # --- the agent system moved out of this package ---------------------------
 HELP=$(node "$CLI" --help)
@@ -88,7 +88,7 @@ assert_contains "$HELP" "npx god-agents" "help points at the god-agents package"
 assert_exit 1 "doctor fails on an install that isn't there" -- env HOME="$WORK/d1" node "$CLI" doctor
 assert_exit 0 "doctor passes on a complete install" -- env HOME="$WORK/h1" node "$CLI" doctor
 
-echo "tampered" >> "$WORK/h1/.claude/skills/god-dev/SKILL.md"
+echo "tampered" >> "$WORK/h1/.claude/skills/god-build/SKILL.md"
 assert_exit 1 "doctor detects a skill that drifted from the package" -- env HOME="$WORK/h1" node "$CLI" doctor
 OUT=$(HOME="$WORK/h1" node "$CLI" doctor 2>&1 || true)
 assert_contains "$OUT" "stale" "doctor names the fix for a stale skill"
@@ -140,24 +140,24 @@ for REF in frontend security compliance-india integrity docs; do
 done
 assert_contains "$(cat skills/god-qa/SKILL.md)" "integrity.md\` runs before **every** PASS" "god-qa runs the integrity pass before any PASS"
 
-# --- god-dev contract ------------------------------------------------------
-DEV=$(cat skills/god-dev/SKILL.md)
+# --- god-build contract ------------------------------------------------------
+DEV=$(cat skills/god-build/SKILL.md)
 for MODE in small normal deep; do
-  assert_contains "$DEV" "| **$MODE** |" "god-dev defines the $MODE mode"
+  assert_contains "$DEV" "| **$MODE** |" "god-build defines the $MODE mode"
 done
-assert_contains "$DEV" "User override wins" "god-dev lets the user override the mode"
-assert_contains "$DEV" "Self-score before handoff" "god-dev scores its own diff before god-qa"
-assert_contains "$DEV" "returned \`Result: PASS\`" "god-dev's done requires god-qa's hook verdict token"
+assert_contains "$DEV" "User override wins" "god-build lets the user override the mode"
+assert_contains "$DEV" "Self-score before handoff" "god-build scores its own diff before god-qa"
+assert_contains "$DEV" "returned \`Result: PASS\`" "god-build's done requires god-qa's hook verdict token"
 for MEM in "profiles/<repo-slug>.json" "lessons/<repo-slug>.md" "scorecard.jsonl"; do
-  assert_contains "$DEV" "$MEM" "god-dev keeps $MEM"
+  assert_contains "$DEV" "$MEM" "god-build keeps $MEM"
 done
-assert_contains "$DEV" "**🧪 Manual checks**" "god-dev's final message carries the manual-checks link"
-assert_contains "$DEV" "https://github.com/<owner>/<repo>/pull/<n>" "god-dev lists PRs as plain URLs"
-assert_contains "$DEV" "run god-qa yourself" "god-dev tests by default by running god-qa itself"
-assert_contains "$DEV" "never type a verdict god-qa did not return" "god-dev may only relay god-qa's real verdict"
-assert_contains "$DEV" "## Mode"  "god-dev calls it mode, not size"
-assert_contains "$DEV" "](https://www.npmjs.com/package/god-skills)" "god-dev signs PRs with the god-skills signature"
-SNIP=$(awk '/^     set -- /{f=1} f{l=$0; sub(/^     /,"",l); print l} /^     echo /{exit}' skills/god-dev/SKILL.md)
+assert_contains "$DEV" "**🧪 Manual checks**" "god-build's final message carries the manual-checks link"
+assert_contains "$DEV" "https://github.com/<owner>/<repo>/pull/<n>" "god-build lists PRs as plain URLs"
+assert_contains "$DEV" "run god-qa yourself" "god-build tests by default by running god-qa itself"
+assert_contains "$DEV" "never type a verdict god-qa did not return" "god-build may only relay god-qa's real verdict"
+assert_contains "$DEV" "## Mode"  "god-build calls it mode, not size"
+assert_contains "$DEV" "](https://www.npmjs.com/package/god-skills)" "god-build signs PRs with the god-skills signature"
+SNIP=$(awk '/^     set -- /{f=1} f{l=$0; sub(/^     /,"",l); print l} /^     echo /{exit}' skills/god-build/SKILL.md)
 SIG=$(bash -c "$SNIP" 2>&1)
 if printf '%s' "$SIG" | grep -qE '^.+ .+ \[[^]]+\]\(https://www\.npmjs\.com/package/god-skills\)$'; then
   _ok "the signature snippet runs and prints one credit line"
@@ -180,12 +180,12 @@ if command -v zsh >/dev/null; then
   LAST_PICK=$(zsh -c "$(printf '%s\n' "$SNIP" | sed 's/RANDOM % \$# + 1/\$#/; s/(( RANDOM % 2 )) \&\&/((1)) \&\&/')" 2>&1)
   assert_contains "$LAST_PICK" "$LAST_NAME" "zsh can address the last name in the list ($LAST_NAME)"
 fi
-assert_contains "$DEV" "boring beats clever" "god-dev keeps the body line the agent test pins"
-assert_file "skills/god-dev/references/architecture.md" "god-dev ships the architecture pass"
-assert_contains "$DEV" "Remove first" "god-dev removes before it adds"
-assert_contains "$DEV" "learning-loop.md" "god-dev closes with the shared learning loop"
+assert_contains "$DEV" "boring beats clever" "god-build keeps the body line the agent test pins"
+assert_file "skills/god-build/references/architecture.md" "god-build ships the architecture pass"
+assert_contains "$DEV" "Remove first" "god-build removes before it adds"
+assert_contains "$DEV" "learning-loop.md" "god-build closes with the shared learning loop"
 
-# --- god-ceo / god-cfo / god-writer contracts --------------------------------
+# --- god-ceo / god-cfo / god-cmo contracts --------------------------------
 CEO=$(cat skills/god-ceo/SKILL.md skills/god-ceo/references/*.md)
 assert_contains "$CEO" '"chain"' "god-ceo declares the JSON chain contract"
 for V in BUILD "DO NOT BUILD" DEFER SHIP STOP; do
@@ -199,24 +199,24 @@ CFO=$(cat skills/god-cfo/SKILL.md)
 assert_contains "$CFO" "Pin the definition" "god-cfo pins metric definitions first"
 assert_contains "$CFO" "Recompute independently" "god-cfo recomputes money a second way"
 for REF in pricing sql-metrics; do assert_file "skills/god-cfo/references/$REF.md" "god-cfo ships references/$REF.md"; done
-WRITER=$(cat skills/god-writer/SKILL.md)
-assert_contains "$WRITER" "## Editor pass" "god-writer runs the editor pass"
-assert_contains "$WRITER" "references/ai-patterns.md" "god-writer loads the pattern catalog on demand"
-assert_file "skills/god-writer/references/ai-patterns.md" "the AI-pattern catalog ships"
-assert_contains "$(cat skills/god-writer/references/ai-patterns.md)" "## Full Example" "the catalog keeps the worked example"
+WRITER=$(cat skills/god-cmo/SKILL.md)
+assert_contains "$WRITER" "## Editor pass" "god-cmo runs the editor pass"
+assert_contains "$WRITER" "references/ai-patterns.md" "god-cmo loads the pattern catalog on demand"
+assert_file "skills/god-cmo/references/ai-patterns.md" "the AI-pattern catalog ships"
+assert_contains "$(cat skills/god-cmo/references/ai-patterns.md)" "## Full Example" "the catalog keeps the worked example"
 PM=$(cat skills/god-pm/SKILL.md)
 for REF in research ops reverse; do assert_file "skills/god-pm/references/$REF.md" "god-pm ships references/$REF.md"; done
 assert_contains "$PM" "filed only after the user says yes" "god-pm files scouted ideas only on a yes"
 assert_contains "$PM" "WHO** hits **WHAT** pain **WHEN" "god-pm starts from a problem statement"
-ZEN=$(cat skills/god-zen/SKILL.md)
-assert_contains "$ZEN" "never leaves the machine, never a PR" "god-zen data stays local"
-assert_contains "$ZEN" "ask before continuing" "god-zen asks before work on a strong signal"
-assert_contains "$ZEN" "zen-activity.sh" "god-zen names its collector hook"
-assert_contains "$ZEN" "Never** diagnoses" "god-zen never diagnoses"
-assert_file "skills/god-zen/scripts/zen-report.js" "god-zen ships its daily report script"
-assert_file "skills/god-zen/scripts/zen-score.js" "god-zen ships its scoring module"
-assert_file "$WORK/h1/.claude/skills/god-zen/scripts/zen-report.js" "the installer copies skill scripts"
-for S in god-ceo god-cfo god-writer god-qa god-dev god-pm god-zen; do
+ZEN=$(cat skills/god-ally/SKILL.md)
+assert_contains "$ZEN" "never leaves the machine, never a PR" "god-ally data stays local"
+assert_contains "$ZEN" "ask before continuing" "god-ally asks before work on a strong signal"
+assert_contains "$ZEN" "zen-activity.sh" "god-ally names its collector hook"
+assert_contains "$ZEN" "Never** diagnoses" "god-ally never diagnoses"
+assert_file "skills/god-ally/scripts/zen-report.js" "god-ally ships its daily report script"
+assert_file "skills/god-ally/scripts/zen-score.js" "god-ally ships its scoring module"
+assert_file "$WORK/h1/.claude/skills/god-ally/scripts/zen-report.js" "the installer copies skill scripts"
+for S in god-ceo god-cfo god-cmo god-qa god-build god-pm god-ally; do
   L=$(wc -l < skills/$S/SKILL.md | tr -d ' ')
   [ "$L" -le 150 ] && _ok "$S core stays under 150 lines ($L)" || _fail "$S core stays under 150 lines" "$L lines"
 done

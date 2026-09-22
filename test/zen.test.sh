@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
-# God Zen's daily report: its own node:test suite, plus the contract the skill depends on.
+# God Ally's daily report: its own node:test suite, plus the contract the skill depends on.
 set -uo pipefail
 cd "$(dirname "$0")/.."
 . test/harness.sh
 
-printf 'god-zen daily report\n'
+printf 'god-ally daily report\n'
 
-SCRIPTS=skills/god-zen/scripts
+SCRIPTS=skills/god-ally/scripts
 assert_file "$SCRIPTS/zen-report.js" "the report script ships with the skill"
 assert_file "$SCRIPTS/zen-score.js" "the scoring module ships with the skill"
 assert_file "$SCRIPTS/zen-report.test.js" "the report's own suite ships"
@@ -24,8 +24,8 @@ assert_contains "$OUT" "with every source missing" "a run with no sources at all
 
 # --- it degrades instead of crashing ---------------------------------------
 HOME_DIR=$(mktemp -d)
-mkdir -p "$HOME_DIR/.god-zen" "$HOME_DIR/empty"
-cat > "$HOME_DIR/.god-zen/config.json" <<JSON
+mkdir -p "$HOME_DIR/.god-ally" "$HOME_DIR/empty"
+cat > "$HOME_DIR/.god-ally/config.json" <<JSON
 {"repoRoots":["$HOME_DIR/empty"],"maxDepth":2,"authorEmails":["nobody@example.invalid"],"timezone":"Asia/Kolkata","dayStartHour":5,"healthFolder":"$HOME_DIR/nope","useCcusage":false}
 JSON
 REPORT=$(HOME="$HOME_DIR" node "$SCRIPTS/zen-report.js" --mcp 'not json' 2>&1)
@@ -35,23 +35,23 @@ assert_contains "$REPORT" "apple health sleep" "a missing Health folder is named
 assert_not_contains "$REPORT" "🧘 \"" "the report itself carries no quote"
 assert_contains "$REPORT" "taller is better" "the chart says which direction is good"
 assert_contains "$REPORT" "Last 7 days" "the chart covers seven days"
-assert_file "$HOME_DIR/.god-zen/history.jsonl" "the first run writes history"
-NUMBERS_ONLY=$(grep -c '"date"' "$HOME_DIR/.god-zen/history.jsonl" 2>/dev/null || echo 0)
+assert_file "$HOME_DIR/.god-ally/history.jsonl" "the first run writes history"
+NUMBERS_ONLY=$(grep -c '"date"' "$HOME_DIR/.god-ally/history.jsonl" 2>/dev/null || echo 0)
 [ "$NUMBERS_ONLY" -ge 30 ] && _ok "the first run backfills 30 days" || _fail "the first run backfills 30 days" "$NUMBERS_ONLY lines"
-assert_not_contains "$(cat "$HOME_DIR/.god-zen/history.jsonl")" "message" "history holds numbers, never content"
+assert_not_contains "$(cat "$HOME_DIR/.god-ally/history.jsonl")" "message" "history holds numbers, never content"
 JSON_OUT=$(HOME="$HOME_DIR" node "$SCRIPTS/zen-report.js" --json 2>&1)
 assert_contains "$JSON_OUT" '"sources"' "--json returns the same run as data"
 rm -rf "$HOME_DIR"
 
 # --- what the skill promises -----------------------------------------------
-ZEN=$(cat skills/god-zen/SKILL.md)
+ZEN=$(cat skills/god-ally/SKILL.md)
 assert_contains "$ZEN" "zen-report.js" "the skill names the report script"
 assert_contains "$ZEN" "Never ask the user anything" "the report stays passive"
 assert_contains "$ZEN" '"meetings"' "the skill documents the MCP payload"
 assert_contains "$ZEN" "never message or event content" "MCP gathering is timestamps only"
 assert_contains "$ZEN" "fenced code block" "the report is printed as a code block so it stays aligned"
 assert_contains "$ZEN" "zen-report.js --quote" "the skill can fetch just the motivational line"
-assert_contains "$ZEN" "never carries a quote" "/god-zen itself stays free of quotes"
+assert_contains "$ZEN" "never carries a quote" "/god-ally itself stays free of quotes"
 assert_contains "$ZEN" "Never write a quote yourself" "quotes may only come from the script"
 assert_file "$SCRIPTS/quotes.json" "the quote bank ships"
 
@@ -62,7 +62,7 @@ assert_contains "$QUOTE" "🧘" "--quote returns one marked line"
 assert_contains "$QUOTE" "—" "--quote attributes the quote"
 AGAIN=$(HOME="$QUOTE_HOME" node "$SCRIPTS/zen-report.js" --quote --force 2>&1)
 assert_eq "$AGAIN" "$QUOTE" "the same day returns the same quote"
-assert_file "$QUOTE_HOME/.god-zen/quotes-seen.json" "the pick is remembered so it is not repeated"
+assert_file "$QUOTE_HOME/.god-ally/quotes-seen.json" "the pick is remembered so it is not repeated"
 GATED=$(HOME="$QUOTE_HOME" node "$SCRIPTS/zen-report.js" --quote 2>&1)
 assert_eq "$GATED" "" "without --force a quote just shown is withheld"
 rm -rf "$QUOTE_HOME"

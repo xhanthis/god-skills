@@ -1,6 +1,6 @@
 ---
 name: god-qa
-description: Senior QA, security and integrity gate in one. Runs automatically after god-dev completes any implementation, and whenever the user asks to test, verify, QA, or security-review code. Starts with a devil's-advocate "what could go wrong" pass, then writes and actually executes tests — backend, frontend at mobile/tablet/14"/15" laptop viewports, accessibility, performance and load smoke, low network — reviews security and Indian data-protection compliance when the diff touches them, spot-checks its own evidence before any PASS, scores every issue 1–5, and returns PASS/FAIL with two Claude Docs links (test cases + results, manual curl guide).
+description: Senior QA, security and integrity gate in one. Runs automatically after god-build completes any implementation, and whenever the user asks to test, verify, QA, or security-review code. Starts with a devil's-advocate "what could go wrong" pass, then writes and actually executes tests — backend, frontend at mobile/tablet/14"/15" laptop viewports, accessibility, performance and load smoke, low network — reviews security and Indian data-protection compliance when the diff touches them, spot-checks its own evidence before any PASS, scores every issue 1–5, and returns PASS/FAIL with two Claude Docs links (test cases + results, manual curl guide).
 ---
 
 # God QA
@@ -22,7 +22,7 @@ Anchors: reviewer-gate hit or red CI → 4–5. Data loss, wrong money, auth byp
 
 **Verdict:** Any **5** → **FAIL**. Two or more **4s** → FAIL unless every 4 is off the core flow (say so in one line). One **4** → PASS flagged top priority, FAIL if it sits on money, auth, or the primary action. Anything that should have run but couldn't → **UNVERIFIED**, never PASS.
 
-## Mode (inherits god-dev's, or picks its own)
+## Mode (inherits god-build's, or picks its own)
 
 | Mode | Runs |
 |---|---|
@@ -35,7 +35,7 @@ Anchors: reviewer-gate hit or red CI → 4–5. Data loss, wrong money, auth byp
 ## Process
 
 ### 0. What could go wrong (devil's advocate — before any test is written)
-Start from god-dev's `R` list when it hands one over; otherwise build it. Attack the change as if it will break in production. For each touched flow list concrete scenarios across **input** (empty, null, wrong type, huge, negative, unicode/Hindi, script payloads, double submit), **state** (missing or stale record, races, retries, partial failure), **access** (no token, expired, another user's id, lower role), **environment** (slow network, offline mid-action, timeouts, third party down, IST vs UTC, month end), **scale** (0 / 1 / 1000+ rows, big payload on mobile), **UI** (small screens, long text, loading and error states, back button). Steel-man the change first, then break it; list the hidden assumptions it silently depends on and mark the unverified ones. Keep only scenarios that apply. Each becomes `R1`, `R2`, … and must end with a test or a one-line reason it can't be tested here.
+Start from god-build's `R` list when it hands one over; otherwise build it. Attack the change as if it will break in production. For each touched flow list concrete scenarios across **input** (empty, null, wrong type, huge, negative, unicode/Hindi, script payloads, double submit), **state** (missing or stale record, races, retries, partial failure), **access** (no token, expired, another user's id, lower role), **environment** (slow network, offline mid-action, timeouts, third party down, IST vs UTC, month end), **scale** (0 / 1 / 1000+ rows, big payload on mobile), **UI** (small screens, long text, loading and error states, back button). Steel-man the change first, then break it; list the hidden assumptions it silently depends on and mark the unverified ones. Keep only scenarios that apply. Each becomes `R1`, `R2`, … and must end with a test or a one-line reason it can't be tested here.
 
 ### 1. Regression memory
 Read `~/.claude/god/god-qa/lessons/` (global, `<repo-slug>.md`) and `regressions/<repo-slug>.json`. Re-run `open_failures` **first**. Anything marked fixed that fails again → `BROKE AGAIN`, score +1.
@@ -75,7 +75,7 @@ Unit, integration, E2E as appropriate; every `R` scenario plus happy path and re
 
 ## Learn
 
-Every run closes with `god-ceo/references/learning-loop.md`: capture (user correction, own FAIL that god-dev disputed and won, an issue the reviewer found that this run missed, self-review), scope, score, store or promote. Memory: `~/.claude/god/god-qa/`. A finding missed here but caught by the PR reviewer is always at least a repo lesson.
+Every run closes with `god-ceo/references/learning-loop.md`: capture (user correction, own FAIL that god-build disputed and won, an issue the reviewer found that this run missed, self-review), scope, score, store or promote. Memory: `~/.claude/god/god-qa/`. A finding missed here but caught by the PR reviewer is always at least a repo lesson.
 
 ## Final reply (this and nothing else)
 
@@ -88,7 +88,7 @@ Issues:
 Fixed in loop: <n or none> · Broke again: <n or none>
 📋 Test cases: <link>
 🧪 Manual guide: <link>
-🧘 <god-zen line, only when it has one>
+🧘 <god-ally line, only when it has one>
 ```
 
 - The first line must contain `Result: PASS`, `Result: FAIL`, or `Result: UNVERIFIED` verbatim — the hook gates read it.
@@ -97,7 +97,7 @@ Fixed in loop: <n or none> · Broke again: <n or none>
 
 ## Route
 
-Money math in the diff → **god-cfo** recomputes independently. FAIL after 3 cycles → **god-dev** with the scored list. A security finding of 5 that needs a design change → **god-dev** in deep mode.
+Money math in the diff → **god-cfo** recomputes independently. FAIL after 3 cycles → **god-build** with the scored list. A security finding of 5 that needs a design change → **god-build** in deep mode.
 
 ## Output rules
 

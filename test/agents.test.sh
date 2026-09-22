@@ -69,8 +69,8 @@ assert_contains "$GODCMD" "through the Skill tool" "/god runs every specialist a
 assert_not_contains "$GODCMD" "Spawn" "/god never spawns a subagent on its own"
 
 # --- the body comes from the skill, unmodified ----------------------------
-assert_contains "$(cat "$AGENTS/god-dev.md")" "boring beats clever" "the agent body is the skill body"
-assert_contains "$(cat "$AGENTS/god-dev.md")" "json god-handoff" "the handoff contract is appended"
+assert_contains "$(cat "$AGENTS/god-build.md")" "boring beats clever" "the agent body is the skill body"
+assert_contains "$(cat "$AGENTS/god-build.md")" "json god-handoff" "the handoff contract is appended"
 
 # --- skills remain the single source of truth -----------------------------
 SKILL_LINE=$(grep -c "Core question" skills/god-qa/SKILL.md)
@@ -113,9 +113,9 @@ OUT=$(HOME="$WORK/h1" node "$CLI" -g -y)
 assert_contains "$OUT" "already present" "a second install leaves existing agents alone"
 
 # --- selective install, short names, unknown names ------------------------
-HOME="$WORK/h2" node "$CLI" dev qa -g -y >/dev/null
+HOME="$WORK/h2" node "$CLI" build qa -g -y >/dev/null
 assert_eq "$(ls "$WORK/h2/.claude/agents" | grep -c '^god-')" "2" "short names install just those agents"
-assert_file "$WORK/h2/.claude/agents/god-dev.md" "short name 'dev' resolves to god-dev"
+assert_file "$WORK/h2/.claude/agents/god-build.md" "short name 'build' resolves to god-build"
 assert_exit 1 "an unknown agent name fails loudly" -- env HOME="$WORK/h3" node "$CLI" nope -g -y
 
 # --- dry run writes nothing -----------------------------------------------
@@ -142,7 +142,7 @@ assert_eq "$TOTAL" "$EXPECT" "re-running --hooks does not duplicate entries"
 
 # --- --all installs agents and hooks in one pass ---------------------------
 HOME="$WORK/hA" node "$CLI" --all -g -y >/dev/null
-assert_file "$WORK/hA/.claude/agents/god-dev.md" "--all installs the agents"
+assert_file "$WORK/hA/.claude/agents/god-build.md" "--all installs the agents"
 assert_file "$WORK/hA/.claude/hooks/god/require-qa-pass.sh" "--all installs the hook gates"
 
 # --- existing user settings survive ---------------------------------------
@@ -179,7 +179,7 @@ HOME="$WORK/d2" node "$CLI" --all -g -y >/dev/null
 assert_exit 0 "doctor passes on a complete install" -- env HOME="$WORK/d2" node "$CLI" doctor
 
 # Drift is the failure mode generation exists to prevent, so doctor must catch it.
-echo "tampered" >> "$WORK/d2/.claude/agents/god-dev.md"
+echo "tampered" >> "$WORK/d2/.claude/agents/god-build.md"
 assert_exit 1 "doctor detects an agent that drifted from its skill" -- env HOME="$WORK/d2" node "$CLI" doctor
 OUT=$(HOME="$WORK/d2" node "$CLI" doctor 2>&1 || true)
 assert_contains "$OUT" "stale" "doctor names the fix for a stale agent"

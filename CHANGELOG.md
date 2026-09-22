@@ -2,6 +2,13 @@
 
 All notable changes to `god-skills` and `god-agents`. Dates are release dates.
 
+## Unreleased
+
+### Changed
+- **Renamed three skills and their subagents.** `god-dev` → `god-build`, `god-writer` → `god-cmo`, `god-zen` → `god-ally`. The team is now god-ceo, god-pm, god-build, god-qa, god-cfo, god-cmo and god-ally. Short names follow (`npx god-skills build`).
+- Install removes the old `god-dev`, `god-writer` and `god-zen` skill folders and agent files it once wrote.
+- god-ally keeps its data in `~/.god-ally/` and `~/.claude/god/god-ally/`; move the old `god-zen` folders there to keep your history.
+
 ## 3.1.0 — 2026-09-22
 
 ### Added

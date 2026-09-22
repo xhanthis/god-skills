@@ -1,6 +1,6 @@
 # AI writing patterns — the catalog
 
-Loaded by god-writer when rewriting anything longer than a paragraph. Voice calibration, personality and soul, the 29 content / language / style / communication / filler patterns, and a full worked example.
+Loaded by god-cmo when rewriting anything longer than a paragraph. Voice calibration, personality and soul, the 29 content / language / style / communication / filler patterns, and a full worked example.
 
 ## Voice Calibration (optional)
 

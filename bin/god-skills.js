@@ -24,11 +24,11 @@ const SOURCE_DIR = path.join(PACKAGE_ROOT, "skills");
  * as that skill, never a user's own folder that happens to share the name.
  */
 const RETIRED = [
-  "god", "god-architect", "god-cmo", "god-context", "god-cos", "god-customer", "god-da",
-  "god-data", "god-designer", "god-editor", "god-growth", "god-health", "god-historian",
+  "god", "god-architect", "god-context", "god-cos", "god-customer", "god-da",
+  "god-data", "god-designer", "god-dev", "god-editor", "god-growth", "god-health", "god-historian",
   "god-ops", "god-pl", "god-plan", "god-police", "god-pricer", "god-researcher",
   "god-reverse", "god-sales", "god-scout", "god-security", "god-simplifier",
-  "god-strategist", "god-tester", "god-write"
+  "god-strategist", "god-tester", "god-write", "god-writer", "god-zen"
 ];
 
 /** True when <dir>/SKILL.md exists and its frontmatter names exactly this skill. */
@@ -155,7 +155,7 @@ function printHelp() {
     "",
     paint("Usage", "bold"),
     "  npx god-skills                     install every skill (asks where)",
-    "  npx god-skills god-dev god-qa      install only these skills",
+    "  npx god-skills god-build god-qa      install only these skills",
     "  npx god-skills list                show every available skill",
     "  npx god-skills doctor              verify an existing install",
     "  npx god-skills --codex             write the skills into ./AGENTS.md for Codex CLI",
@@ -224,7 +224,7 @@ async function resolveBase(options) {
   return answer === "2" ? PROJECT_BASE : GLOBAL_BASE;
 }
 
-/** Resolves short names (dev -> god-dev) against a list, exiting on unknowns. */
+/** Resolves short names (build -> god-build) against a list, exiting on unknowns. */
 function resolveNames(requested, available, kind) {
   const resolved = requested.map((name) => (available.includes(name) ? name : `god-${name}`));
   const unknown = resolved.filter((name) => !available.includes(name));

@@ -20,8 +20,8 @@ Repo slug = `owner-repo` from `git remote get-url origin`, else the folder name.
 Caps: 30 lines per lessons file; a lesson unseen for 20 runs is dropped. Lessons files are
 read in full at the start of every run; every lesson touching the task's area is a hard rule.
 
-Old layouts (`~/.claude/god-dev/`, `~/.claude/god-tester/`) → move the contents into
-`~/.claude/god/god-dev/` and `~/.claude/god/god-qa/` on first use, then delete the old dir.
+Old layouts (`~/.claude/god-build/`, `~/.claude/god-tester/`) → move the contents into
+`~/.claude/god/god-build/` and `~/.claude/god/god-qa/` on first use, then delete the old dir.
 
 ## What counts as a learning (capture triggers)
 
