@@ -20,7 +20,7 @@
     "LICENSE"
   ],
   "dependencies": {
-    "god-skills": "^2.1.0"
+    "god-skills": "^3.0.0"
   },
   "keywords": [
     "claude",
