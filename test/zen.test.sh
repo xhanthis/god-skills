@@ -32,6 +32,9 @@ REPORT=$(HOME="$HOME_DIR" node "$SCRIPTS/zen-report.js" --mcp 'not json' 2>&1)
 assert_contains "$REPORT" "Zen Score" "the report prints without a single source"
 assert_contains "$REPORT" "missing " "the footer names the missing sources"
 assert_contains "$REPORT" "apple health sleep" "a missing Health folder is named, not fatal"
+assert_not_contains "$REPORT" "🧘 \"" "the report itself carries no quote"
+assert_contains "$REPORT" "taller is better" "the chart says which direction is good"
+assert_contains "$REPORT" "Last 7 days" "the chart covers seven days"
 assert_file "$HOME_DIR/.god-zen/history.jsonl" "the first run writes history"
 NUMBERS_ONLY=$(grep -c '"date"' "$HOME_DIR/.god-zen/history.jsonl" 2>/dev/null || echo 0)
 [ "$NUMBERS_ONLY" -ge 30 ] && _ok "the first run backfills 30 days" || _fail "the first run backfills 30 days" "$NUMBERS_ONLY lines"
@@ -48,16 +51,20 @@ assert_contains "$ZEN" '"meetings"' "the skill documents the MCP payload"
 assert_contains "$ZEN" "never message or event content" "MCP gathering is timestamps only"
 assert_contains "$ZEN" "fenced code block" "the report is printed as a code block so it stays aligned"
 assert_contains "$ZEN" "zen-report.js --quote" "the skill can fetch just the motivational line"
+assert_contains "$ZEN" "never carries a quote" "/god-zen itself stays free of quotes"
+assert_contains "$ZEN" "Never write a quote yourself" "quotes may only come from the script"
 assert_file "$SCRIPTS/quotes.json" "the quote bank ships"
 
 # --- the motivational line, on a home with no history at all ----------------
 QUOTE_HOME=$(mktemp -d)
-QUOTE=$(HOME="$QUOTE_HOME" node "$SCRIPTS/zen-report.js" --quote 2>&1)
+QUOTE=$(HOME="$QUOTE_HOME" node "$SCRIPTS/zen-report.js" --quote --force 2>&1)
 assert_contains "$QUOTE" "🧘" "--quote returns one marked line"
 assert_contains "$QUOTE" "—" "--quote attributes the quote"
-AGAIN=$(HOME="$QUOTE_HOME" node "$SCRIPTS/zen-report.js" --quote 2>&1)
+AGAIN=$(HOME="$QUOTE_HOME" node "$SCRIPTS/zen-report.js" --quote --force 2>&1)
 assert_eq "$AGAIN" "$QUOTE" "the same day returns the same quote"
 assert_file "$QUOTE_HOME/.god-zen/quotes-seen.json" "the pick is remembered so it is not repeated"
+GATED=$(HOME="$QUOTE_HOME" node "$SCRIPTS/zen-report.js" --quote 2>&1)
+assert_eq "$GATED" "" "without --force a quote just shown is withheld"
 rm -rf "$QUOTE_HOME"
 
 README=$(cat README.md)

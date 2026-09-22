@@ -93,17 +93,30 @@ Any activity past midnight, or a night under five hours, caps the score at 5. **
 3. Add **Calculate Statistics** (or **Get Numbers from Input**) to total the asleep minutes, then **Text** to build the JSON above — the sample's start is your bedtime, its end your wake time.
 4. Add **Save File**, destination **iCloud Drive → GodZen → sleep**, filename `<today's date, yyyy-MM-dd>.json`, *Overwrite if file exists* on.
 
-Skip it and the report still works: sleep is then scored on when you stopped working alone, and the footer says `missing: apple health sleep`.
+Skip it and the report still works: sleep is then scored on when you stopped working alone, and the footer lists `apple health sleep` as missing.
 
-**The graph** is a bar per day over the last 30, with the 7-day average as a sparkline beneath it, guide rows at 5 and 8, and a gap wherever you took a day off. It is drawn by the script itself — nothing to install.
+**The graph** is the last seven days, one bar per day: the y-axis is the score out of ten, so taller is a better day, and the date and that day's score sit under every bar. A day off has no bar. It is drawn by the script itself — nothing to install.
 
-**One line at the end.** Every report closes with a quote chosen for how the day actually went, not at random: a long day or a short night pulls from rest, a burnout-risk band from comeback, a scattered day from focus. The same quote holds all day and none repeats for 21 days. Other skills can borrow just that line when their own closing 🧘 has nothing specific to say:
+**A rare word of encouragement.** The report itself is numbers and one action, never a quote. But at the close of *another* skill's reply, `--quote` will occasionally return a single line — only when the day scored under 6, none has been shown in three days, and a one-in-twenty draw lands. Most calls print nothing, which is the point.
 
 ```
 node ~/.claude/skills/god-zen/scripts/zen-report.js --quote
 ```
 
-It reads the stored history only, so it returns instantly.
+**Keep enough history.** Claude Code deletes its logs after 30 days. Raise it in `~/.claude/settings.json` so the baseline has something to stand on:
+
+```json
+{ "cleanupPeriodDays": 120 }
+```
+
+**Sleep, from your watch.** The script reads `~/Library/Mobile Documents/com~apple~CloudDocs/GodZen/sleep/YYYY-MM-DD.json`, each holding `{"date":"2026-09-22","asleep_minutes":412,"bedtime":"01:10","wake":"08:02"}`. Build it once with an iOS Shortcut, on the iPhone that has your Health data:
+
+1. **Shortcuts → Automation → + → Time of Day.** Pick a time after you normally wake (09:00 works), *Daily*, and turn on **Run Immediately** so it never asks.
+2. Add **Find Health Samples** → type **Sleep Analysis**, *Sort by* Start Date, and set the date range to today.
+3. Add **Calculate Statistics** (or **Get Numbers from Input**) to total the asleep minutes, then **Text** to build the JSON above — the sample's start is your bedtime, its end your wake time.
+4. Add **Save File**, destination **iCloud Drive → GodZen → sleep**, filename `<today's date, yyyy-MM-dd>.json`, *Overwrite if file exists* on.
+
+Skip it and the report still works: sleep is then scored on when you stopped working alone, and the footer lists `apple health sleep` as missing.
 
 ## How a request flows
 
@@ -159,7 +172,7 @@ Memory lives in `~/.claude/god/<skill>/` — lessons, scorecards, god-dev's repo
 
 ## Proof
 
-`npm test` runs 312 assertions across both packages — no credentials, no network — and CI runs them on every pull request:
+`npm test` runs 319 assertions across both packages — no credentials, no network — and CI runs them on every pull request:
 
 | Suite | Covers |
 |---|---|
