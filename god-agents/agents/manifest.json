@@ -1,41 +1,41 @@
 {
   "god-cos": {
-    "description": "Router for the God ecosystem. Use PROACTIVELY on any multi-step or multi-domain request to decide which specialists run and in what order. Returns a strict JSON plan only \u2014 it never implements anything itself.",
-    "tools": "Agent, Read, Grep, Glob",
+    "description": "Subagent form of the god-cos skill — opt-in only. By default invoke the god-cos skill inline with the Skill tool so the user watches the routing. Use this subagent only when the user explicitly asks for a subagent, a parallel fan-out, or a headless run. Returns a strict JSON chain plan and never implements anything.",
+    "tools": "Read, Grep, Glob",
     "model": "haiku"
   },
   "god-architect": {
-    "description": "System design before implementation. MUST BE USED before god-dev for any change involving a new module, schema change, new endpoint, or cross-service behavior. Writes design docs only \u2014 never source code.",
+    "description": "Subagent form of the god-architect skill — opt-in only. By default invoke the god-architect skill inline with the Skill tool so the user watches the design work. Use this subagent only when the user explicitly asks for a subagent, a parallel fan-out, or a headless run. Writes design docs only — never source code.",
     "tools": "Read, Grep, Glob, Write",
     "model": "opus"
   },
   "god-dev": {
-    "description": "Implements code to senior-engineer standards. Use PROACTIVELY whenever code will be written, modified, refactored, or optimized. Work is not done until god-tester has returned PASS.",
-    "tools": "Read, Write, Edit, Grep, Glob, Bash",
+    "description": "Subagent form of the god-dev skill — opt-in only. By default invoke the god-dev skill inline with the Skill tool so the user watches the implementation. Use this subagent only when the user explicitly asks for a subagent, a parallel fan-out, or a headless run. Sizes the task (small / normal / deep), syncs git, loads repo profile + lessons, plans with a shared risk list, self-scores 1–5, hands to god-tester, learns a lesson per finding, closes with a formatted summary and a flowchart doc. Work is not done until god-tester has returned PASS.",
+    "tools": "Read, Write, Edit, Grep, Glob, Bash, Skill, ToolSearch, mcp__claude_ai_Claude_Docs__guide, mcp__claude_ai_Claude_Docs__batch, mcp__claude_ai_Claude_Docs__update, mcp__claude_ai_Claude_Docs__read",
     "model": "opus"
   },
   "god-tester": {
-    "description": "Senior QA. MUST BE USED after god-dev completes any implementation, and whenever code needs verification. Writes and actually executes tests, auto-fixes failures up to 3 cycles, returns PASS / FAIL / UNVERIFIED.",
-    "tools": "Read, Write, Edit, Bash, Grep, Glob",
+    "description": "Subagent form of the god-tester skill — opt-in only. By default invoke the god-tester skill inline with the Skill tool so the user watches the tests run. Use this subagent only when the user explicitly asks for a subagent, a parallel fan-out, or a headless run. Devil's-advocate risk pass, backend + 4-viewport frontend + a11y + perf + low-network tests, 1–5 issue scores, auto-fixes up to 3 cycles, returns PASS / FAIL / UNVERIFIED with two Claude Docs links.",
+    "tools": "Read, Write, Edit, Bash, Grep, Glob, Skill, ToolSearch, mcp__claude_ai_Claude_Docs__guide, mcp__claude_ai_Claude_Docs__batch, mcp__claude_ai_Claude_Docs__update, mcp__claude_ai_Claude_Docs__read",
     "model": "opus"
   },
   "god-security": {
-    "description": "Security review. MUST BE USED after god-tester whenever changes touch auth, payments, PII, secrets handling, or external input. Read-only: reports findings, never edits the code it audits.",
+    "description": "Subagent form of the god-security skill — opt-in only. By default invoke the god-security skill inline with the Skill tool so the user watches the review. Use this subagent only when the user explicitly asks for a subagent, a parallel fan-out, or a headless run. Read-only — reports findings, never edits the code it audits.",
     "tools": "Read, Grep, Glob",
     "model": "opus"
   },
   "god-police": {
-    "description": "Integrity audit. Use before any final PASS or SHIP verdict to detect shortcuts, fabricated evidence, false test claims, and gamed objectives. Re-runs one test and re-checks one citation.",
+    "description": "Subagent form of the god-police skill — opt-in only. By default invoke the god-police skill inline with the Skill tool so the user watches the audit. Use this subagent only when the user explicitly asks for a subagent, a parallel fan-out, or a headless run. Re-runs one test and re-checks one citation.",
     "tools": "Read, Grep, Bash",
     "model": "sonnet"
   },
   "god-scout": {
-    "description": "Weekly opportunity intelligence. Use for evidence-first scanning of the codebase, analytics, and backlog for extraction, compounding, repetition, and abandonment patterns. Read-only; never writes code or opens PRs.",
+    "description": "Subagent form of the god-scout skill — opt-in only. By default invoke the god-scout skill inline with the Skill tool so the user watches the scan. Use this subagent only when the user explicitly asks for a subagent, a parallel fan-out, or a headless run such as the weekly scout. Read-only; never writes code or opens PRs.",
     "tools": "Read, Grep, Glob, WebSearch",
     "model": "opus"
   },
   "god-reverse": {
-    "description": "Product reverse-engineering. Use to reconstruct how an existing product works end to end from the outside \u2014 frontend, APIs, data model, backend, infra, third-party stack \u2014 and produce a concrete rebuild plan. Read-only investigation from public surfaces; writes the plan, never the product's source.",
+    "description": "Subagent form of the god-reverse skill — opt-in only. By default invoke the god-reverse skill inline with the Skill tool so the user watches the investigation. Use this subagent only when the user explicitly asks for a subagent, a parallel fan-out, or a headless run. Read-only investigation from public surfaces; writes the rebuild plan, never the product's source.",
     "tools": "Read, Grep, Glob, Bash, WebSearch, WebFetch, Write",
     "model": "opus"
   }

@@ -94,4 +94,29 @@ process.stdin.on("end", () => {
 ')
 assert_eq "$MANIFEST" "OK" "the tarball ships skills and excludes the god-agents package"
 
+# --- god-tester contract ---------------------------------------------------
+# The hook gates grep the lead transcript for `Result: PASS|FAIL|UNVERIFIED`;
+# the reply template must keep that token or every session stays blocked.
+TESTER=$(cat skills/god-tester/SKILL.md)
+assert_contains "$TESTER" "Result: PASS | FAIL | UNVERIFIED" "god-tester's reply template carries the hook verdict token"
+for VP in 390x844 820x1180 1512x982 1440x900; do
+  assert_contains "$TESTER" "$VP" "god-tester tests the $VP viewport"
+done
+assert_contains "$TESTER" "Any **5** → **FAIL**" "god-tester fails the module on a score-5 issue"
+assert_contains "$TESTER" "Manual Test Guide" "god-tester produces the manual curl guide"
+
+# --- god-dev contract ------------------------------------------------------
+DEV=$(cat skills/god-dev/SKILL.md)
+for SIZE in small normal deep; do
+  assert_contains "$DEV" "| **$SIZE** |" "god-dev defines the $SIZE size"
+done
+assert_contains "$DEV" "User override wins" "god-dev lets the user override the size"
+assert_contains "$DEV" "Self-score before handoff" "god-dev scores its own diff before god-tester"
+assert_contains "$DEV" "returned \`Result: PASS\`" "god-dev's done requires god-tester's hook verdict token"
+for MEM in "profiles/<repo-slug>.json" "lessons/<repo-slug>.md" "scorecard.jsonl"; do
+  assert_contains "$DEV" "$MEM" "god-dev keeps $MEM"
+done
+assert_contains "$DEV" "## ⚠️ Needs you" "god-dev's final message carries the needs-you section"
+assert_contains "$DEV" "boring beats clever" "god-dev keeps the body line the agent test pins"
+
 finish
