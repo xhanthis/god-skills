@@ -110,7 +110,7 @@ function printHelp() {
     "",
     paint("Usage", "bold"),
     "  npx god-skills                     install every skill (asks where)",
-    "  npx god-skills god-dev god-tester  install only these skills",
+    "  npx god-skills god-dev god-qa      install only these skills",
     "  npx god-skills list                show every available skill",
     "  npx god-skills doctor              verify an existing install",
     "",

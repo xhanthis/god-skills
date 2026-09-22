@@ -18,7 +18,7 @@ Invoke the `god-cos` skill with the request verbatim and produce its plan as
 strict JSON:
 
 ```json
-{"chain": ["god-architect", "god-dev", "god-tester"], "reason": "<one line>"}
+{"chain": ["god-architect", "god-dev", "god-qa"], "reason": "<one line>"}
 ```
 
 Show the plan to the user before executing it.
@@ -36,15 +36,14 @@ Surface each specialist's findings as they land — never summarize them away.
 
 ## 3. Failure loop
 
-If god-tester returns FAIL, invoke the god-dev skill again with the failure
-report, then god-tester again. Maximum 3 dev↔tester cycles; after that, stop and
+If god-qa returns FAIL, invoke the god-dev skill again with the failure
+report, then god-qa again. Maximum 3 dev↔qa cycles; after that, stop and
 report exactly what is still broken.
 
 ## 4. Integrity gate
 
-If any specialist issued a verdict during this run, invoke the `god-police` skill
-last with those findings and the chain log at `.claude/logs/chain.jsonl` if it
-exists.
+god-qa runs its integrity pass (`references/integrity.md`) before any PASS it
+issues; no separate step is needed.
 
 ## 5. Report
 

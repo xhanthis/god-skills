@@ -69,14 +69,12 @@ compares to prove it.
 | god-cos | Read, Grep, Glob | haiku |
 | god-architect | Read, Grep, Glob, Write | opus |
 | god-dev | Read, Write, Edit, Grep, Glob, Bash, Skill, ToolSearch, Claude Docs (guide, batch, update, read) | opus |
-| god-tester | Read, Write, Edit, Bash, Grep, Glob, Skill, ToolSearch, Claude Docs (guide, batch, update, read) | opus |
-| god-security | Read, Grep, Glob | opus |
-| god-police | Read, Grep, Bash | sonnet |
+| god-qa | Read, Write, Edit, Bash, Grep, Glob, Skill, ToolSearch, Claude Docs (guide, batch, update, read) | opus |
 | god-scout | Read, Grep, Glob, WebSearch | opus |
 | god-reverse | Read, Grep, Glob, Bash, WebSearch, WebFetch, Write | opus |
 
-`tools` is a security boundary, not a convenience: god-security physically
-cannot edit the code it audits, and god-scout cannot run commands. Models are
+`tools` is a security boundary, not a convenience: god-qa's security pass runs with the same tools as its tests; the router
+cannot spawn agents, and god-scout cannot run commands. Models are
 pinned explicitly, because an unpinned subagent inherits the lead's model and
 silently burns Opus on triage.
 
@@ -89,14 +87,14 @@ times.
 
 | Event | Gate |
 |---|---|
-| `Stop` | the session cannot finish while god-dev edits lack a god-tester PASS, whether god-dev ran as a subagent (read from the chain log) or inline as a skill (read from the session transcript) |
+| `Stop` | the session cannot finish while god-dev edits lack a god-qa PASS, whether god-dev ran as a subagent (read from the chain log) or inline as a skill (read from the session transcript) |
 | `PreToolUse` on Edit/Write | string-built SQL is blocked outright |
 | `PreToolUse` on Edit/Write | credential-shaped literals and reviewer-injection phrasing are blocked in every file, fixtures included — the exact regexes the org PR auto-reviewer greps for |
 | `PreToolUse` on Edit/Write | loose ends are blocked: a `TODO` without `(owner, TICKET-123)`, a `requests.*()` call without `timeout=`, Go's timeout-less `http.Get` / `http.DefaultClient` |
 | `PostToolUse` on Edit/Write | every edit is logged to `.claude/logs/chain.jsonl` |
-| `SubagentStop` on god-tester | the verdict is recorded, so the Stop gate has ground truth |
+| `SubagentStop` on god-qa | the verdict is recorded, so the Stop gate has ground truth |
 
-That is the difference between "god-dev should call god-tester" and god-dev being
+That is the difference between "god-dev should call god-qa" and god-dev being
 unable to finish without one. `FAIL` and `UNVERIFIED` don't unblock it either.
 
 `--hooks` backs up `~/.claude/settings.json` before merging, skips any gate that
