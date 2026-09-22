@@ -97,7 +97,7 @@ Skip it and the report still works: sleep is then scored on when you stopped wor
 
 **The graph** is the last seven days, one bar per day: the y-axis is the score out of ten, so taller is a better day, and the date and that day's score sit under every bar. A day off has no bar. It is drawn by the script itself — nothing to install.
 
-**A rare word of encouragement.** The report itself is numbers and one action, never a quote. But at the close of *another* skill's reply, `--quote` will occasionally return a single line — only when the day scored under 6, none has been shown in three days, and a one-in-twenty draw lands. Most calls print nothing, which is the point.
+**A rare word of encouragement.** The report itself is numbers and one action, never a quote. But at the close of *another* skill's reply, `--quote` will occasionally return a single line — only when the day scored under 6, none has been shown in three days, and a one-in-twenty draw lands. Most calls print nothing, which is the point. There is no quote list: the script describes the moment, the skill writes a fresh line for it, and every line shown is remembered so none repeats.
 
 ```
 node ~/.claude/skills/god-ally/scripts/zen-report.js --quote
@@ -181,7 +181,7 @@ Memory lives in `~/.claude/god/<skill>/` — lessons, scorecards, god-build's re
 | `hooks.test.sh` | every gate incl. the god-ally collector, both jq and python3 paths, fail-open behaviour |
 | `linear.test.sh` | the dedup protocol against a mock Linear server |
 | `runner.test.sh` | runner guardrails against real throwaway git repos |
-| `zen.test.sh` | god-ally's scoring units, the 3.3 worked example, the day boundary, the caps, the quote bank, and a full run with every source missing |
+| `zen.test.sh` | god-ally's scoring units, the 3.3 worked example, the day boundary, the caps, the fresh-line brief, and a full run with every source missing |
 
 `PLAN.md` is the original 30-skill design and is kept for history.
 

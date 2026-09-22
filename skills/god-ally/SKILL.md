@@ -70,9 +70,18 @@ Elsewhere, at the end of **another skill's** reply, a single line of encourageme
 node ~/.claude/skills/god-ally/scripts/zen-report.js --quote
 ```
 
-It prints **nothing almost every time**. A line comes back only when the day scored under 6, none has been shown in the last 3 days, and a 1-in-20 draw lands — so roughly one closing message in twenty on a hard day, and none at all on a good one. Print exactly what comes back, or nothing.
+It prints **nothing almost every time**. It speaks only when the day scored under 6, none has been shown in the last 3 days, and a 1-in-20 draw lands — so roughly one closing message in twenty on a hard day, and none at all on a good one.
 
-- **Never write a quote yourself**, never re-use one you saw earlier in the session, and never print one the script did not return.
+There is no quote bank. When the script speaks it returns either:
+
+- `🧘 …` — the line already shown today. Print it exactly; never a second one.
+- `brief · mood <mood> · <score> · <what went wrong> · never reuse: "…"` — the moment to speak to. Write **one fresh line for exactly that moment**: your own words, or a real quote you are certain of, correctly attributed. It must fit the mood and the number in the brief, and must not match or echo any line under `never reuse`. Print it as `🧘 "<line>"` (add ` — <author>` for a real quote), then record it so it is never used again:
+
+```bash
+node ~/.claude/skills/god-ally/scripts/zen-report.js --quote-said '<the line exactly as printed>'
+```
+
+- Nothing back → print nothing. Never write a line the script did not ask for.
 - A specific signal always wins. If the 🧘 line has something real to say — third late night, meeting in 8 minutes, no lunch yet — say that and skip the quote entirely. Never both.
 - It reads stored history only, so it returns instantly and costs nothing.
 

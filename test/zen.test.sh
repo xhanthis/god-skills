@@ -52,19 +52,21 @@ assert_contains "$ZEN" "never message or event content" "MCP gathering is timest
 assert_contains "$ZEN" "fenced code block" "the report is printed as a code block so it stays aligned"
 assert_contains "$ZEN" "zen-report.js --quote" "the skill can fetch just the motivational line"
 assert_contains "$ZEN" "never carries a quote" "/god-ally itself stays free of quotes"
-assert_contains "$ZEN" "Never write a quote yourself" "quotes may only come from the script"
-assert_file "$SCRIPTS/quotes.json" "the quote bank ships"
+assert_contains "$ZEN" "Never write a line the script did not ask for" "a quote only when the script asks for one"
+assert_contains "$ZEN" "There is no quote bank" "lines are written fresh for the moment"
+assert_contains "$ZEN" "--quote-said" "a shown line is recorded so it is never reused"
+[ ! -e "$SCRIPTS/quotes.json" ] && _ok "no hardcoded quote bank ships" || _fail "no hardcoded quote bank ships" "quotes.json exists"
 
 # --- the motivational line, on a home with no history at all ----------------
 QUOTE_HOME=$(mktemp -d)
 QUOTE=$(HOME="$QUOTE_HOME" node "$SCRIPTS/zen-report.js" --quote --force 2>&1)
-assert_contains "$QUOTE" "🧘" "--quote returns one marked line"
-assert_contains "$QUOTE" "—" "--quote attributes the quote"
+assert_contains "$QUOTE" "brief · mood" "--quote returns a brief for a fresh line"
+HOME="$QUOTE_HOME" node "$SCRIPTS/zen-report.js" --quote-said '🧘 "Log off; tomorrow needs you rested."' >/dev/null
 AGAIN=$(HOME="$QUOTE_HOME" node "$SCRIPTS/zen-report.js" --quote --force 2>&1)
-assert_eq "$AGAIN" "$QUOTE" "the same day returns the same quote"
-assert_file "$QUOTE_HOME/.god-ally/quotes-seen.json" "the pick is remembered so it is not repeated"
+assert_eq "$AGAIN" '🧘 "Log off; tomorrow needs you rested."' "the same day repeats the line already shown"
+assert_file "$QUOTE_HOME/.god-ally/quotes-seen.json" "the line is remembered so it is not reused"
 GATED=$(HOME="$QUOTE_HOME" node "$SCRIPTS/zen-report.js" --quote 2>&1)
-assert_eq "$GATED" "" "without --force a quote just shown is withheld"
+assert_eq "$GATED" "" "without --force a line just shown is withheld"
 rm -rf "$QUOTE_HOME"
 
 README=$(cat README.md)

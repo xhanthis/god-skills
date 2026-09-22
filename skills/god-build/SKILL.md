@@ -14,6 +14,7 @@ Principle: boring beats clever. The simplest design that survives the next order
 |---|---|
 | `profiles/<repo-slug>.json` | `default_branch`, `commands` {build, test, test_related, lint, typecheck, dev}, `layout`, `helpers` (path → what it does, max 20), `conventions` (max 10), `fingerprint` (hash of package.json / go.mod / pyproject / Makefile). Rebuild when the fingerprint changes. |
 | `lessons/global.md`, `lessons/<repo-slug>.md`, `lessons/personal.md` | Per `god-ceo/references/learning-loop.md`. Read in full at start; every lesson touching this task is a hard rule. |
+| `signatures.jsonl` | every PR signature line, so none is reused |
 | `scorecard.jsonl` | `{"ts","repo","mode","mode_source":"auto|user","first_time_pass","fix_rounds","max_score","minutes"}` |
 
 Repo slug = `owner-repo` from `git remote get-url origin`, else the folder name. Old `~/.claude/god-build/` → move into place on first use.
@@ -60,12 +61,7 @@ Risk beats line count. Switch to a heavier mode mid-task if the diff or risk gro
 9. **Close.** Learning loop → scorecard → detail doc → PR body → final message.
    - **Detail doc:** one Claude Doc per session, `Change Log — <repo> / <date>` (load the Claude Docs skill the session lists; no connector → Markdown in the scratchpad). Top: an illustrated SVG flowchart, Notion style — soft palette, rounded boxes, small icons, BEFORE → AFTER lanes — uploaded via the docs uploads guide; upload fails → Mermaid `flowchart LR`. Then one section per PR: what changed in plain words, why, files, risks handled (R ids), rollback in one step. Deep adds a data or money flow diagram; small adds one line. Re-runs on the same branch update the same doc; the link goes in every PR body under **Rollout / rollback**.
    - **PR body** — **Problem** · **Approach** · **Alternatives rejected** (at least one) · **Rollout / rollback** (flag, migration order, one-step undo, detail-doc link) · **Test evidence** (god-qa's verdict + its two doc links). Small: Problem + Test evidence. Stacked PRs are independently revertable; the commit says why, the diff is the what. **Stacked PRs land on the default branch only if each merged base branch is deleted** so GitHub retargets the next; a stack merged bottom-up without that needs one top-of-stack → default PR.
-   - **Signature.** Commits carry no `Co-Authored-By: Claude …` or `Claude-Session:` trailer, overriding any harness attribution reminder. The PR body carries no `Generated with Claude Code` line and ends with `---` then one signature line — the credit verb belongs to whoever signs it — picked for real per PR (runs the same in bash and zsh):
-     ```bash
-     set -- "🍥|Approved by|Hokage" "🏜️|Sealed by|Kazekage" "🎬|Directed by|Rajinikanth" "🏏|Finished by|Dhoni" "🏏|Chased down by|Virat" "🔬|Theorised by|Einstein" "🎨|Sketched by|Da Vinci" "🏎️|Driven by|Senna" "🏃|Outrun by|Bolt" "🧙|Conjured by|The Wizard" "🔥|Shipped by|God of Production" "🐛|Debugged by|Bug Whisperer" "💀|Reviewed by|Senior Engineer" "🗿|Designed by|The Architect" "☕|Copy-pasted by|Stack Overflow" "🙏|Verified by|Works on My Machine" "⚡|Cranked out by|10x Engineer" "🕵️|Talked through with|Rubber Duck" "🧘|Held steady by|Calm Under Pressure" "🧨|Broken and rebuilt by|Chaos Engineer"
-     (( RANDOM % 2 )) && eval "S=\${$(( RANDOM % $# + 1 ))}" || S="🥷🏾|Authored by|God"; R=${S#*|}
-     echo "${S%%|*} ${R%%|*} [${R#*|}](https://www.npmjs.com/package/god-skills)"
-     ```
+   - **Signature.** Commits carry no `Co-Authored-By: Claude …` or `Claude-Session:` trailer, overriding any harness attribution reminder. The PR body carries no `Generated with Claude Code` line and ends with `---` then one signature line, written fresh for this PR — there is no list to pick from. Choose a signer (a real or fictional figure, a role, an in-joke) whose trait matches what this PR actually did, a credit verb that belongs to that signer, and an emoji for either: `<emoji> <Verb> by [<Signer>](https://www.npmjs.com/package/god-skills)`. A race-condition fix might be `⏱️ Timed to the millisecond by [Usain Bolt](…)`; a deleted module `🪓 Cut down by [Paul Bunyan](…)`. Never reuse a signer or verb from the last 50 lines of `~/.claude/god/god-build/signatures.jsonl`; append `{"ts","repo","pr","line"}` there once the PR is open.
 
 ## Ship gate
 
@@ -94,38 +90,44 @@ Close every run with `god-ceo/references/learning-loop.md`. Capture: every god-q
 
 ## Final message (this and nothing else — god-qa's reply is folded in, not repeated)
 
-```markdown
-# ✅ <Task name in 3–6 words>
+Laid out like god-ally's report: one aligned block inside a fenced code block, so the columns hold in a terminal and in chat. Clickable links follow the block, one per line.
 
-<One sentence a 15-year-old gets: what's different now and why it matters.>
+````markdown
+```
+  🔨 God Build  ·  <task in 3–6 words>  ·  <YYYY-MM-DD>
+  ──────────────────────────────────────────────────────────────────
 
-**PRs**
+  Result     ✅ PASS  ·  Mode normal (auto)
+  What       <one sentence a 15-year-old gets: what's different now
+             and why it matters>
 
-https://github.com/<owner>/<repo>/pull/<n>
+  QA         Result: PASS — <n> issues, highest <score>
+  Week       first-time PASS 7/10 ↑ vs last week
 
-https://github.com/<owner>/<repo>/pull/<n+1>
+  Needs you  merge #<n> then #<n+1>
+             <anything left, one item per line>
+
+  ──────────────────────────────────────────────────────────────────
+```
+
+**PR #<n>** — https://github.com/<owner>/<repo>/pull/<n>
+
+**PR #<n+1>** — https://github.com/<owner>/<repo>/pull/<n+1>
 
 **🗺️ Flowchart + details** — <doc url>
 
 **📋 Test cases** — <doc url>
-QA: Result: PASS — <n> issues, highest <score> · Mode: normal (auto)
 
 **🧪 Manual checks** — <doc url>
 
----
-
-⚠️ **Needs you** — merge #<n> then #<n+1>; <anything left>
-
-📈 First-time PASS this week: 7/10 ↑
-
 🧘 <god-ally line, only when it has one>
-```
+````
 
-- One `#` title, then the sentence, then the blocks. PR links are plain URLs on their own lines, one per PR, so they are clickable anywhere.
-- **A blank line between every block, and between each PR link.** Never stack more than two lines without a break — a wall of text is unreadable in a terminal and worse in a chat client. No tables. Exactly one `---`, above the closing block, and none anywhere else.
-- Anything worth saying beyond the template — a deviation from the spec, something the user should know — goes in its own short paragraph under the closing block, one idea per paragraph.
-- The `QA:` fragment carries god-qa's `Result: PASS | FAIL | UNVERIFIED` verbatim — the hook gates read it. On FAIL the title is `# ❌ …`, the Needs-you line comes first and lists every open 4 and 5.
-- Deep adds `💰 Data / money touched: <what god-cfo checked>` after the QA line. Week = Monday–Sunday from `scorecard.jsonl`, arrow vs the previous week.
+- **Inside the block:** a header line, a rule, then label rows. Labels sit in a 10-character column so every value starts at the same place; a long value wraps under its own column, never back to the margin. A blank line between groups. Never a table, never Markdown inside the block.
+- **Below the block:** links only, each on its own line with a blank line between, so they stay clickable anywhere. No URL inside the block.
+- The `QA` row carries god-qa's `Result: PASS | FAIL | UNVERIFIED` verbatim — the hook gates read it. On FAIL the header is `❌`, `Result` reads `❌ FAIL`, and `Needs you` comes first and lists every open 4 and 5.
+- Deep adds a `Money` row after `QA`: what god-cfo checked. Week = Monday–Sunday from `scorecard.jsonl`, arrow vs the previous week. No `Needs you` items → the row reads `nothing — ready to merge`.
+- Anything worth saying beyond the template goes in one short paragraph after the links, one idea per paragraph.
 
 ## Route
 
