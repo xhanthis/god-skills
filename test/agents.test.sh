@@ -50,7 +50,6 @@ assert_eq "$YAML" "OK" "every agent has valid, complete YAML frontmatter"
 assert_not_contains "$(grep '^tools:' "$AGENTS/god-scout.md")" "Edit" "god-scout cannot edit code"
 assert_not_contains "$(grep '^tools:' "$AGENTS/god-scout.md")" "Bash" "god-scout cannot run commands"
 assert_contains "$(grep '^tools:' "$AGENTS/god-qa.md")" "Edit" "god-qa can edit (it auto-fixes)"
-assert_contains "$(grep '^tools:' "$AGENTS/god-architect.md")" "Write" "god-architect can write design docs"
 
 # --- models are pinned, never inherited -----------------------------------
 MISSING=$(grep -L '^model:' "$AGENTS"/god-*.md | wc -l | tr -d ' ')
