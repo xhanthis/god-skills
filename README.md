@@ -95,7 +95,15 @@ Any activity past midnight, or a night under five hours, caps the score at 5. **
 
 Skip it and the report still works: sleep is then scored on when you stopped working alone, and the footer says `missing: apple health sleep`.
 
-The graph uses [asciichart](https://www.npmjs.com/package/asciichart) when it can resolve it and a built-in grid otherwise, so nothing needs installing.
+**The graph** is a bar per day over the last 30, with the 7-day average as a sparkline beneath it, guide rows at 5 and 8, and a gap wherever you took a day off. It is drawn by the script itself — nothing to install.
+
+**One line at the end.** Every report closes with a quote chosen for how the day actually went, not at random: a long day or a short night pulls from rest, a burnout-risk band from comeback, a scattered day from focus. The same quote holds all day and none repeats for 21 days. Other skills can borrow just that line when their own closing 🧘 has nothing specific to say:
+
+```
+node ~/.claude/skills/god-zen/scripts/zen-report.js --quote
+```
+
+It reads the stored history only, so it returns instantly.
 
 ## How a request flows
 
@@ -151,7 +159,7 @@ Memory lives in `~/.claude/god/<skill>/` — lessons, scorecards, god-dev's repo
 
 ## Proof
 
-`npm test` runs 305 assertions across both packages — no credentials, no network — and CI runs them on every pull request:
+`npm test` runs 312 assertions across both packages — no credentials, no network — and CI runs them on every pull request:
 
 | Suite | Covers |
 |---|---|
@@ -160,7 +168,7 @@ Memory lives in `~/.claude/god/<skill>/` — lessons, scorecards, god-dev's repo
 | `hooks.test.sh` | every gate incl. the god-zen collector, both jq and python3 paths, fail-open behaviour |
 | `linear.test.sh` | the dedup protocol against a mock Linear server |
 | `runner.test.sh` | runner guardrails against real throwaway git repos |
-| `zen.test.sh` | god-zen's scoring units, the 3.3 worked example, the day boundary, the caps, and a full run with every source missing |
+| `zen.test.sh` | god-zen's scoring units, the 3.3 worked example, the day boundary, the caps, the quote bank, and a full run with every source missing |
 
 `PLAN.md` is the original 30-skill design and is kept for history.
 

@@ -24,6 +24,9 @@ const HOME = os.homedir();
 const DIR = path.join(HOME, ".god-zen");
 const CONFIG_FILE = path.join(DIR, "config.json");
 const HISTORY_FILE = path.join(DIR, "history.jsonl");
+const SEEN_FILE = path.join(DIR, "quotes-seen.json");
+const QUOTES_FILE = path.join(__dirname, "quotes.json");
+const QUOTE_COOLDOWN_DAYS = 21;
 const HOOK_ACTIVITY = path.join(HOME, ".claude", "god", "god-zen", "activity.jsonl");
 const CLAUDE_PROJECTS = path.join(HOME, ".claude", "projects");
 const DAY_MS = 86400000;
@@ -32,6 +35,11 @@ const HISTORY_KEEP_DAYS = 365;
 const BASELINE_DAYS = 28;
 const SESSION_GAP_MS = 30 * 60000;
 const MAX_LOG_BYTES = 256 * 1024 * 1024;
+const CHART_MAX = 10;
+const CHART_STEP = 2;
+const CHART_GUIDES = [5, 8];
+const SPARKS = ["▁", "▂", "▃", "▄", "▅", "▆", "▇", "█"];
+const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 const SKIP_DIRS = new Set(["node_modules", "Library", "Applications", "Pictures", "Movies", "Music", ".Trash"]);
 
 const DEFAULT_CONFIG = {
@@ -681,6 +689,32 @@ function scoreDays(days, config) {
 }
 
 /**
+ * An empty day, used for dates the history has never seen.
+ * Args: date (string "YYYY-MM-DD")
+ * Returns: a day record marked as a day off with every count at zero
+ */
+function blankDay(date) {
+  return {
+    date,
+    first_ts: null,
+    last_ts: null,
+    commits: 0,
+    repos: [],
+    tokens: 0,
+    cost: null,
+    sessions: 0,
+    max_parallel_sessions: 0,
+    sleep_minutes: null,
+    bedtime: null,
+    wake: null,
+    meeting_minutes: null,
+    first_meeting: null,
+    last_meeting: null,
+    day_off: true,
+  };
+}
+
+/**
  * Reads ~/.god-zen/history.jsonl.
  * Args: none
  * Returns: Map of date to stored record
@@ -758,56 +792,54 @@ function rollingAverage(days, index, window) {
 }
 
 /**
- * Draws the 30-day chart, preferring asciichart when it can be resolved.
- * Args: daily (number[]), average (number[])
- * Returns: array of printable lines
- * Handles: asciichart not being installed (a built-in grid is drawn instead), series
- *          shorter than two points, days off (carried forward so the line stays unbroken)
+ * Draws the score history as vertical bars, with the 7-day average on its own row beneath.
+ * Bars beat a line here: a score is a level, not a path, and one column per day stays
+ * readable in a terminal and in any monospace renderer.
+ * Args: daily (number[]), average (number[]), labels (string[]) — one "YYYY-MM-DD" per point
+ * Returns: array of printable lines — y-axis 0–10, guides at 5 and 8, a sparkline row,
+ *          and the first and last date underneath
+ * Handles: days off (left as a gap, which the legend explains), an empty or single-point
+ *          series, labels being absent
  */
-function chart(daily, average) {
-  const fill = (series) => {
-    let last = 0;
-    return series.map((value) => {
-      if (value == null) {
-        return last;
-      }
-      last = value;
-      return value;
-    });
-  };
-  const points = fill(daily);
-  const smooth = fill(average);
-  if (points.length < 2) {
+function chart(daily, average, labels = []) {
+  if (!daily.length) {
     return ["  not enough history yet"];
   }
-  try {
-    const asciichart = require("asciichart");
-    const flat = (value) => points.map(() => value);
-    const options = { height: 10, min: 0, max: 10 };
-    if (process.stdout.isTTY) {
-      options.colors = [asciichart.blue, asciichart.green, asciichart.default, asciichart.default];
-    }
-    return asciichart.plot([points, smooth, flat(5), flat(8)], options).split("\n");
-  } catch (error) {
-    const lines = [];
-    for (let level = 10; level >= 0; level -= 1) {
-      let row = `  ${String(level).padStart(2, " ")} ┤`;
-      for (let index = 0; index < points.length; index += 1) {
-        if (Math.round(points[index]) === level) {
-          row += "●";
-        } else if (Math.round(smooth[index]) === level) {
-          row += "·";
-        } else if (level === 5 || level === 8) {
-          row += "┈";
-        } else {
-          row += " ";
+  const columns = CHART_STEP;
+  const width = daily.length * columns;
+  const lines = [];
+
+  for (let level = CHART_MAX; level >= 1; level -= 1) {
+    const tick = CHART_GUIDES.includes(level) ? "┼" : "┤";
+    let row = "";
+    for (const value of daily) {
+      let glyph = CHART_GUIDES.includes(level) ? "┄" : " ";
+      if (value != null) {
+        if (value >= level) {
+          glyph = "█";
+        } else if (value >= level - 0.5) {
+          glyph = "▄";
         }
       }
-      lines.push(row);
+      row += glyph.repeat(columns);
     }
-    lines.push(`     └${"─".repeat(points.length)}`);
-    return lines;
+    lines.push(`  ${String(level).padStart(2)} ${tick}${row.replace(/\s+$/, "")}`);
   }
+  lines.push(`     └${"─".repeat(width)}`);
+
+  let spark = "";
+  for (const value of average) {
+    spark += (value == null ? " " : SPARKS[Math.min(SPARKS.length - 1, Math.max(0, Math.round((value / CHART_MAX) * (SPARKS.length - 1))))]).repeat(columns);
+  }
+  lines.push(`  avg ${spark.replace(/\s+$/, "")}`);
+
+  const first = monthDay(labels[0]);
+  const last = monthDay(labels[labels.length - 1]);
+  if (first || last) {
+    const gap = Math.max(1, width - first.length - last.length);
+    lines.push(`      ${first}${" ".repeat(gap)}${last}`);
+  }
+  return lines;
 }
 
 /**
@@ -856,16 +888,16 @@ function duration(hours) {
 /**
  * Picks the one action worth taking, from the weakest component.
  * Args: day (dayRecord), config (object)
- * Returns: {action, guardrail}
+ * Returns: {action, guardrail, mood}
  * Handles: a day off (rest is the action), every component missing
  */
 function advise(day, config) {
   if (day.day_off) {
-    return { action: "Day off — nothing to fix.", guardrail: "Start tomorrow no earlier than 09:00." };
+    return { action: "Day off — nothing to fix.", guardrail: "Start tomorrow no earlier than 09:00.", mood: "rest" };
   }
   const entries = Object.entries(day.components).filter(([, value]) => value != null);
   if (!entries.length) {
-    return { action: "Not enough signal to advise yet.", guardrail: "Let the history build for a week." };
+    return { action: "Not enough signal to advise yet.", guardrail: "Let the history build for a week.", mood: "momentum" };
   }
   const [weakest] = entries.sort((a, b) => a[1] - b[1]);
   const stop = `${config.stopBy || "21:00"}`;
@@ -874,6 +906,7 @@ function advise(day, config) {
       return {
         action: `Day length is the weakest link — ${duration(day.work_hours)} from ${clock(day.first_ts, config)}.`,
         guardrail: `Tomorrow: stop at ${stop}, whatever is open.`,
+        mood: "stop",
       };
     case "sleep":
       return {
@@ -882,22 +915,87 @@ function advise(day, config) {
             ? `Last activity ${clock(day.last_ts, config)} — the night is being eaten from the front.`
             : `${duration(day.sleep_minutes / 60)} asleep, short of 7h30m.`,
         guardrail: `Tonight: last commit by ${stop}, lights out by 23:00.`,
+        mood: "rest",
       };
     case "intensity":
       return {
         action: `Volume is ${day.token_ratio ? `${day.token_ratio.toFixed(1)}×` : "well above"} your 28-day normal.`,
         guardrail: "Tomorrow: one repo, one task, no parallel sessions.",
+        mood: "focus",
       };
     default:
       return {
         action: `${day.days_off_last_7} day${day.days_off_last_7 === 1 ? "" : "s"} off in the last 7.`,
         guardrail: "This week: book one full day with zero commits.",
+        mood: "rest",
       };
   }
 }
 
 /**
- * Prints the whole report.
+ * Picks the one line worth reading, chosen for how the day actually went rather than at random.
+ * Args: mood (string) — from advise(); band (string) — today's band; date (string "YYYY-MM-DD")
+ * Returns: {id, text, author} or null when the bank cannot be read
+ * Handles: a missing or corrupt quotes file, a bank exhausted by the cooldown (it resets),
+ *          two runs on the same day (the same quote both times, never a reshuffle)
+ */
+function pickQuote(mood, band, date) {
+  let bank = [];
+  try {
+    bank = JSON.parse(fs.readFileSync(QUOTES_FILE, "utf8"));
+  } catch (error) {
+    return null;
+  }
+  if (!Array.isArray(bank) || !bank.length) {
+    return null;
+  }
+  let seen = {};
+  try {
+    seen = JSON.parse(fs.readFileSync(SEEN_FILE, "utf8"));
+  } catch (error) {
+    seen = {};
+  }
+  const cutoff = shiftKey(date, -QUOTE_COOLDOWN_DAYS);
+  const fresh = (quote) => !seen[quote.id] || seen[quote.id] < cutoff || seen[quote.id] === date;
+  const wanted = [mood, band === "Burnout risk" ? "comeback" : band === "Balanced" ? "balanced" : "momentum"];
+
+  let pool = bank.filter((quote) => fresh(quote) && quote.moods.some((tag) => wanted.includes(tag)));
+  if (!pool.length) {
+    pool = bank.filter(fresh);
+  }
+  if (!pool.length) {
+    pool = bank;
+  }
+  let hash = 0;
+  for (const character of date) {
+    hash = (hash * 31 + character.charCodeAt(0)) >>> 0;
+  }
+  const chosen = pool[hash % pool.length];
+  seen[chosen.id] = date;
+  try {
+    fs.mkdirSync(DIR, { recursive: true });
+    fs.writeFileSync(SEEN_FILE, JSON.stringify(seen));
+  } catch (error) {
+    return chosen;
+  }
+  return chosen;
+}
+
+/**
+ * Formats a "YYYY-MM-DD" key as "22 Sep" for the chart axis.
+ * Args: key (string|undefined)
+ * Returns: string, or "" when the key is missing or malformed
+ */
+function monthDay(key) {
+  if (!key || !/^\d{4}-\d{2}-\d{2}$/.test(key)) {
+    return "";
+  }
+  return `${Number(key.slice(8))} ${MONTHS[Number(key.slice(5, 7)) - 1]}`;
+}
+
+/**
+ * Prints the whole report: one block per idea, a blank line between blocks, and every
+ * value in the same column so the eye can run down it.
  * Args: days (dayRecord[] oldest first), config (object), sourcesUsed (string[]), sourcesMissing (string[])
  * Returns: nothing — writes to stdout
  * Handles: a today with no activity, an empty history, every optional source missing
@@ -907,43 +1005,55 @@ function render(days, config, sourcesUsed, sourcesMissing) {
   const index = days.length - 1;
   const week = rollingAverage(days, index, 7);
   const previousWeek = rollingAverage(days, index - 7, 7);
-  const arrow = week == null || previousWeek == null ? "→" : week > previousWeek + 0.1 ? "↑" : week < previousWeek - 0.1 ? "↓" : "→";
+  const trend =
+    week == null || previousWeek == null
+      ? ""
+      : week > previousWeek + 0.1
+        ? `↑ from ${previousWeek.toFixed(1)}`
+        : week < previousWeek - 0.1
+          ? `↓ from ${previousWeek.toFixed(1)}`
+          : `level with ${previousWeek.toFixed(1)}`;
 
-  const out = [];
+  const boundary = String(config.dayStartHour).padStart(2, "0");
+  const out = [""];
+  const rule = "─".repeat(66);
+  out.push(`  🧘 ${bold("God Zen")}  ·  ${today.date}  ·  ${config.timezone}, day runs ${boundary}:00 → ${boundary}:00`);
+  out.push(`  ${rule}`);
   out.push("");
-  out.push(`🧘 ${bold("God Zen")} — ${today.date} (${config.timezone}, day runs ${String(config.dayStartHour).padStart(2, "0")}:00→${String(config.dayStartHour).padStart(2, "0")}:00)`);
+  out.push(`  ${"Zen Score".padEnd(11)}${bold(today.score == null ? "—" : `${today.score} / 10`)}   ${bold(today.band)}`);
+  out.push(`  ${"".padEnd(11)}7-day avg ${week == null ? "—" : week.toFixed(1)}${trend ? `, ${trend}` : ""}`);
   out.push("");
-  out.push(
-    `   Zen Score ${bold(today.score == null ? "—" : `${today.score}/10`)}   ${bold(today.band)}   7-day avg ${bold(week == null ? "—" : week.toFixed(1))} ${arrow}${previousWeek == null ? "" : ` (prev ${previousWeek.toFixed(1)})`}`
-  );
-  out.push("");
+
   const rows = [
-    ["Day length", today.components.dayLength, `${duration(today.work_hours)}  ${clock(today.first_ts, config)} → ${clock(today.last_ts, config)}`],
+    ["Day length", today.components.dayLength, `${duration(today.work_hours)}  ·  ${clock(today.first_ts, config)} → ${clock(today.last_ts, config)}`],
     [
       "Sleep",
       today.components.sleep,
       today.sleep_minutes == null
-        ? `no Health data · last activity ${clock(today.last_ts, config)}`
-        : `${duration(today.sleep_minutes / 60)} asleep · ${today.bedtime || "—"} → ${today.wake || "—"}`,
+        ? `no Health data  ·  last activity ${clock(today.last_ts, config)}`
+        : `${duration(today.sleep_minutes / 60)} asleep  ·  ${today.bedtime || "—"} → ${today.wake || "—"}`,
     ],
     [
       "Intensity",
       today.components.intensity,
-      `tokens ${today.token_ratio ? `${today.token_ratio.toFixed(1)}×` : "—"} · commits ${today.commit_ratio ? `${today.commit_ratio.toFixed(1)}×` : "—"} vs ${today.baseline.days}d normal`,
+      `tokens ${today.token_ratio ? `${today.token_ratio.toFixed(1)}×` : "—"}  ·  commits ${today.commit_ratio ? `${today.commit_ratio.toFixed(1)}×` : "—"}  vs your ${today.baseline.days}-day normal`,
     ],
-    ["Recovery", today.components.recovery, `${today.days_off_last_7} day(s) off in last 7`],
+    ["Recovery", today.components.recovery, `${today.days_off_last_7} day${today.days_off_last_7 === 1 ? "" : "s"} off in the last 7`],
   ];
   for (const [label, value, raw] of rows) {
-    out.push(`   ${label.padEnd(11)} ${bold((value == null ? "—" : value.toFixed(1)).padStart(4))}   ${raw}`);
+    out.push(`  ${label.padEnd(11)}${bold((value == null ? "—" : value.toFixed(1)).padStart(4))}   ${raw}`);
   }
 
-  out.push("");
   const window = days.slice(-HISTORY_DAYS);
-  const daily = window.map((day) => day.score);
-  const average = window.map((day, position) => rollingAverage(window, position, 7));
-  out.push(`   ${bold(`Last ${window.length} days`)}  ● daily  · 7-day avg  ┈ 5 and 8`);
-  for (const line of chart(daily, average)) {
-    out.push(`  ${line}`);
+  out.push("");
+  out.push(`  ${bold(`Last ${window.length} days`)}${" ".repeat(Math.max(1, 22 - String(window.length).length))}█ daily    ▄ 7-day avg    ┄ guides at 5 and 8    gap = day off`);
+  out.push("");
+  for (const line of chart(
+    window.map((day) => day.score),
+    window.map((day, position) => rollingAverage(window, position, 7)),
+    window.map((day) => day.date)
+  )) {
+    out.push(line);
   }
 
   const month = today.date.slice(0, 7);
@@ -954,41 +1064,55 @@ function render(days, config, sourcesUsed, sourcesMissing) {
   const elapsed = Number(today.date.slice(8));
   const inMonth = new Date(Date.UTC(Number(month.slice(0, 4)), Number(month.slice(5, 7)), 0)).getUTCDate();
   const projected = elapsed ? (monthCost / elapsed) * inMonth : null;
-  const normalMonth = today.baseline.tokens && monthTokens ? (today.baseline.tokens * inMonth) : null;
-  const monthRatio = normalMonth ? (monthTokens / elapsed) * inMonth / normalMonth : null;
+  const normalMonth = today.baseline.tokens ? today.baseline.tokens * inMonth : null;
+  const monthRatio = normalMonth && elapsed ? ((monthTokens / elapsed) * inMonth) / normalMonth : null;
+  const money = (value) => (value == null ? "—" : `$${value.toFixed(2)}`);
 
   out.push("");
+  out.push(`  ${"Tokens".padEnd(11)}today       ${bold(shortNumber(today.tokens).padEnd(8))} ${bold(money(today.cost))}`);
+  out.push(`  ${"".padEnd(11)}month       ${shortNumber(monthTokens).padEnd(8)} ${money(monthCost)}`);
   out.push(
-    `   ${bold("Tokens")}  today ${bold(shortNumber(today.tokens))}${today.cost == null ? "" : ` ($${today.cost.toFixed(2)})`}  ·  month ${bold(shortNumber(monthTokens))} ($${monthCost.toFixed(2)})  ·  projected ${bold(`$${projected == null ? "—" : projected.toFixed(0)}`)}${monthRatio ? ` (${monthRatio.toFixed(1)}× a normal month)` : ""}  ·  $${monthCommits ? (monthCost / monthCommits).toFixed(2) : "—"}/commit`
+    `  ${"".padEnd(11)}projected            ${bold(projected == null ? "—" : `$${projected.toFixed(0)}`)}${monthRatio ? `  ·  ${monthRatio.toFixed(1)}× a normal month` : ""}  ·  ${monthCommits ? money(monthCost / monthCommits) : "—"} per commit`
   );
 
   let streak = 0;
   for (let back = days.length - 1; back >= 0 && !days[back].day_off; back -= 1) {
     streak += 1;
   }
-  let sinceOff = 0;
-  for (let back = days.length - 1; back >= 0; back -= 1) {
-    if (days[back].day_off) {
-      break;
-    }
-    sinceOff += 1;
-  }
+  const lastOff = days.filter((day) => day.day_off).pop();
   const fortnight = days.slice(-14).filter((day) => !day.day_off);
   const late = fortnight.filter((day) => day.last_activity_hours >= 23 - config.dayStartHour).length;
   const pastMidnight = fortnight.filter((day) => day.past_midnight).length;
+
+  out.push("");
   out.push(
-    `   ${bold("Pace")}    streak ${bold(`${streak}d`)}  ·  ${bold(`${sinceOff}d`)} since a day off  ·  last 14d: ${bold(late)} past 23:00, ${bold(pastMidnight)} past midnight`
+    `  ${"Pace".padEnd(11)}${bold(`${streak}-day streak`)}  ·  last day off ${bold(lastOff ? monthDay(lastOff.date) : `none in ${days.length} days`)}`
+  );
+  out.push(`  ${"".padEnd(11)}last 14 days: ${bold(late)} night${late === 1 ? "" : "s"} past 23:00  ·  ${bold(pastMidnight)} past midnight`);
+  out.push("");
+  out.push(
+    `  ${"Focus".padEnd(11)}${bold(`${today.repos.length} repo${today.repos.length === 1 ? "" : "s"}`)}${today.repos.length ? `: ${today.repos.slice(0, 4).join(", ")}` : ""}`
   );
   out.push(
-    `   ${bold("Focus")}   ${bold(today.repos.length)} repo(s)${today.repos.length ? ` (${today.repos.slice(0, 4).join(", ")})` : ""}  ·  ${bold(today.max_parallel_sessions)} parallel session(s)  ·  meetings ${bold(today.meeting_minutes == null ? "—" : duration(today.meeting_minutes / 60))}`
+    `  ${"".padEnd(11)}${bold(today.max_parallel_sessions)} parallel session${today.max_parallel_sessions === 1 ? "" : "s"}  ·  ${today.meeting_minutes ? `${duration(today.meeting_minutes / 60)} of meetings` : "no meetings"}`
   );
 
-  const { action, guardrail } = advise(today, config);
+  const { action, guardrail, mood } = advise(today, config);
   out.push("");
-  out.push(`   ${bold("Do this")}  ${action}`);
-  out.push(`             ${guardrail}`);
+  out.push(`  ${bold("Do this".padEnd(11))}${action}`);
+  out.push(`  ${"".padEnd(11)}${guardrail}`);
+  const quote = pickQuote(mood, today.band, today.date);
+  if (quote) {
+    out.push("");
+    out.push(`  ${"🧘".padEnd(11)}${bold(`"${quote.text}"`)}`);
+    out.push(`  ${"".padEnd(11)}— ${quote.author}`);
+  }
   out.push("");
-  out.push(`   sources: ${sourcesUsed.join(", ") || "none"}${sourcesMissing.length ? ` · missing: ${sourcesMissing.join(", ")}` : ""}`);
+  out.push(`  ${rule}`);
+  out.push(`  ${"sources".padEnd(11)}${sourcesUsed.join("  ·  ") || "none"}`);
+  if (sourcesMissing.length) {
+    out.push(`  ${"missing".padEnd(11)}${sourcesMissing.join("  ·  ")}`);
+  }
   out.push("");
   process.stdout.write(`${out.join("\n")}\n`);
 }
@@ -996,12 +1120,12 @@ function render(days, config, sourcesUsed, sourcesMissing) {
 /**
  * Parses the command line.
  * Args: argv (string[])
- * Returns: {mcp, date, json, rebuild}
+ * Returns: {mcp, date, json, rebuild, quote}
  * Handles: --mcp-file pointing nowhere, flags in any order, unknown flags (ignored),
  *          a --date that is not a real YYYY-MM-DD (dropped, so today is used)
  */
 function parseArgs(argv) {
-  const args = { mcp: null, date: null, json: false, rebuild: false };
+  const args = { mcp: null, date: null, json: false, rebuild: false, quote: false };
   for (let index = 0; index < argv.length; index += 1) {
     const flag = argv[index];
     if (flag === "--mcp") {
@@ -1018,6 +1142,8 @@ function parseArgs(argv) {
       args.date = /^\d{4}-\d{2}-\d{2}$/.test(value) && !Number.isNaN(Date.parse(`${value}T00:00:00Z`)) ? value : null;
     } else if (flag === "--json") {
       args.json = true;
+    } else if (flag === "--quote") {
+      args.quote = true;
     } else if (flag === "--rebuild") {
       args.rebuild = true;
     }
@@ -1042,6 +1168,15 @@ function main(argv) {
   for (let back = HISTORY_DAYS - 1; back >= 0; back -= 1) {
     keys.push(shiftKey(today, -back));
   }
+  if (args.quote) {
+    const known = scoreDays(keys.map((key) => history.get(key) || blankDay(key)), config);
+    const latest = known[known.length - 1];
+    const line = pickQuote(advise(latest, config).mood, latest.band, latest.date);
+    if (line) {
+      process.stdout.write(`🧘 "${line.text}" — ${line.author}\n`);
+    }
+    return;
+  }
   const firstRun = args.rebuild || !keys.slice(0, -1).every((key) => history.has(key));
   const rebuildKeys = firstRun ? keys : [today];
   const sinceEpoch = Date.parse(`${rebuildKeys[0]}T00:00:00Z`) - DAY_MS;
@@ -1058,7 +1193,7 @@ function main(argv) {
   for (const [key, day] of Object.entries(rebuilt)) {
     history.set(key, day);
   }
-  const days = keys.map((key) => history.get(key) || { date: key, commits: 0, tokens: 0, repos: [], day_off: true, first_ts: null, last_ts: null, cost: null, sessions: 0, max_parallel_sessions: 0, sleep_minutes: null, bedtime: null, wake: null, meeting_minutes: null, first_meeting: null, last_meeting: null });
+  const days = keys.map((key) => history.get(key) || blankDay(key));
   writeHistory([...history.values()], today);
   scoreDays(days, config);
 
@@ -1099,8 +1234,11 @@ module.exports = {
   chart,
   duration,
   shortNumber,
+  monthDay,
   advise,
   collectSleep,
   findRepos,
+  pickQuote,
+  blankDay,
   DEFAULT_CONFIG,
 };

@@ -401,17 +401,75 @@ test("the advice names the weakest component", () => {
   assert.match(advice.guardrail, /21:00/);
 });
 
-test("the chart falls back to the built-in grid without asciichart", () => {
-  // Arrange
+test("the chart draws bars, guide rows and a dated axis", () => {
+  // Arrange: a day off in the middle, so the gap must survive
   const daily = [3, null, 7, 9];
+  const average = [3, 3, 5, 6];
 
   // Act
-  const lines = report.chart(daily, [3, 3, 5, 6]);
+  const lines = report.chart(daily, average, ["2026-08-24", "2026-08-25", "2026-08-26", "2026-09-22"]);
+  const body = lines.join("\n");
 
   // Assert
-  assert.ok(lines.length >= 4);
-  assert.ok(lines.join("\n").length > 0);
-  assert.deepEqual(report.chart([5], [5]), ["  not enough history yet"]);
+  assert.equal(lines.length, 13, "ten value rows, an axis, a sparkline and a date row");
+  assert.ok(body.includes("█"), "bars are drawn");
+  assert.match(lines[2], /^   8 ┼/, "8 is a guide row");
+  assert.match(lines[5], /^   5 ┼/, "5 is a guide row");
+  assert.match(lines[1], /^   9 ┤/, "every other row is a plain tick");
+  assert.match(lines[11], /^  avg /, "the 7-day average gets its own row");
+  assert.ok(lines[12].includes("24 Aug") && lines[12].includes("22 Sep"), "the axis is dated");
+  assert.deepEqual(report.chart([], []), ["  not enough history yet"]);
+});
+
+test("a day off leaves a gap rather than a bar", () => {
+  // Arrange
+  const lines = report.chart([10, null, 10], [10, 10, 10], []);
+
+  // Act: the top row shows the two scored days and nothing for the day off
+  const top = lines[0];
+
+  // Assert
+  assert.match(top, /^  10 ┤██  ██$/, "two columns a day, a blank pair for the day off");
+});
+
+test("the quote bank is well formed and every mood is covered", () => {
+  // Arrange
+  const bank = JSON.parse(fs.readFileSync(path.join(__dirname, "quotes.json"), "utf8"));
+
+  // Act
+  const ids = new Set(bank.map((quote) => quote.id));
+  const moods = new Set(bank.flatMap((quote) => quote.moods));
+
+  // Assert
+  assert.ok(bank.length >= 20, `expected a real bank, got ${bank.length}`);
+  assert.equal(ids.size, bank.length, "quote ids are unique");
+  for (const mood of ["rest", "stop", "focus", "momentum", "comeback", "balanced"]) {
+    assert.ok(moods.has(mood), `no quote covers the ${mood} mood`);
+  }
+  for (const quote of bank) {
+    assert.ok(quote.text && quote.author && quote.moods.length, `incomplete quote: ${quote.id}`);
+  }
+});
+
+test("the quote is stable within a day and survives an empty history", () => {
+  // Arrange: a home with nothing in it at all
+  const home = fs.mkdtempSync(path.join(os.tmpdir(), "zen-quote-"));
+  const runQuote = () =>
+    execFileSync(process.execPath, [path.join(__dirname, "zen-report.js"), "--quote"], {
+      encoding: "utf8",
+      env: { ...process.env, HOME: home },
+      timeout: 30000,
+    }).trim();
+
+  // Act
+  const first = runQuote();
+  const second = runQuote();
+
+  // Assert
+  assert.match(first, /^🧘 ".+" — .+$/, `unexpected shape: ${first}`);
+  assert.equal(first, second, "the same day must not reshuffle the quote");
+  assert.ok(fs.existsSync(path.join(home, ".god-zen", "quotes-seen.json")), "the pick is remembered");
+  fs.rmSync(home, { recursive: true, force: true });
 });
 
 test("the report runs end to end with every source missing", () => {
@@ -432,7 +490,7 @@ test("the report runs end to end with every source missing", () => {
 
   // Assert
   assert.match(output, /God Zen/);
-  assert.match(output, /missing: /);
+  assert.match(output, /^  missing {4}/m);
   assert.match(output, /ccusage/);
   assert.ok(fs.existsSync(path.join(home, ".god-zen", "history.jsonl")), "history is written on the first run");
   fs.rmSync(home, { recursive: true, force: true });

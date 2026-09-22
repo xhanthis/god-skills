@@ -1,0 +1,40 @@
+[
+  { "id": "lubbock-rest", "text": "Rest is not idleness.", "author": "John Lubbock", "moods": ["rest", "stop"] },
+  { "id": "lamott-unplug", "text": "Almost everything will work again if you unplug it for a few minutes, including you.", "author": "Anne Lamott", "moods": ["rest", "stop"] },
+  { "id": "dalai-sleep", "text": "Sleep is the best meditation.", "author": "the Dalai Lama", "moods": ["rest", "stop"] },
+  { "id": "ovid-field", "text": "Take rest; a field that has rested gives a bountiful crop.", "author": "Ovid", "moods": ["rest"] },
+  { "id": "cohen-a-both", "text": "There is virtue in work and there is virtue in rest. Use both and overlook neither.", "author": "Alan Cohen", "moods": ["rest", "stop"] },
+  { "id": "harris-relax", "text": "The time to relax is when you don't have time for it.", "author": "Sydney J. Harris", "moods": ["rest", "stop"] },
+  { "id": "empty-cup", "text": "You cannot pour from an empty cup.", "author": "proverb", "moods": ["rest"] },
+  { "id": "merton-balance", "text": "Happiness is not a matter of intensity but of balance and order and rhythm and harmony.", "author": "Thomas Merton", "moods": ["rest", "balanced"] },
+
+  { "id": "thoreau-busy", "text": "It is not enough to be busy. The question is: what are we busy about?", "author": "Henry David Thoreau", "moods": ["focus"] },
+  { "id": "bell-rays", "text": "Concentrate all your thoughts upon the work at hand. The sun's rays do not burn until brought to a focus.", "author": "Alexander Graham Bell", "moods": ["focus"] },
+  { "id": "carnegie-hard-first", "text": "Do the hard jobs first. The easy jobs will take care of themselves.", "author": "Dale Carnegie", "moods": ["focus", "momentum"] },
+  { "id": "aristotle-begun", "text": "Well begun is half done.", "author": "Aristotle", "moods": ["focus", "momentum"] },
+  { "id": "exupery-take-away", "text": "Perfection is achieved not when there is nothing more to add, but when there is nothing left to take away.", "author": "Antoine de Saint-Exupéry", "moods": ["focus"] },
+  { "id": "drucker-nothing", "text": "There is nothing so useless as doing efficiently that which should not be done at all.", "author": "Peter Drucker", "moods": ["focus"] },
+
+  { "id": "twain-started", "text": "The secret of getting ahead is getting started.", "author": "attributed to Mark Twain", "moods": ["momentum"] },
+  { "id": "king-amateurs", "text": "Amateurs sit and wait for inspiration, the rest of us just get up and go to work.", "author": "Stephen King", "moods": ["momentum"] },
+  { "id": "picasso-action", "text": "Action is the foundational key to all success.", "author": "Pablo Picasso", "moods": ["momentum"] },
+  { "id": "lamb-year", "text": "A year from now you may wish you had started today.", "author": "Karen Lamb", "moods": ["momentum"] },
+  { "id": "sandberg-done", "text": "Done is better than perfect.", "author": "Sheryl Sandberg", "moods": ["momentum", "focus"] },
+  { "id": "vangogh-small", "text": "Great things are not done by impulse, but by a series of small things brought together.", "author": "Vincent van Gogh", "moods": ["momentum", "balanced"] },
+  { "id": "angelou-work", "text": "Nothing will work unless you do.", "author": "Maya Angelou", "moods": ["momentum"] },
+
+  { "id": "japanese-seven", "text": "Fall seven times, stand up eight.", "author": "Japanese proverb", "moods": ["comeback"] },
+  { "id": "confucius-slowly", "text": "It does not matter how slowly you go as long as you do not stop.", "author": "attributed to Confucius", "moods": ["comeback", "momentum"] },
+  { "id": "rumi-wound", "text": "The wound is the place where the Light enters you.", "author": "Rumi", "moods": ["comeback"] },
+  { "id": "cohen-l-bells", "text": "Ring the bells that still can ring, forget your perfect offering.", "author": "Leonard Cohen", "moods": ["comeback"] },
+  { "id": "frost-through", "text": "The best way out is always through.", "author": "Robert Frost", "moods": ["comeback", "focus"] },
+  { "id": "nietzsche-why", "text": "He who has a why to live can bear almost any how.", "author": "Friedrich Nietzsche", "moods": ["comeback"] },
+  { "id": "chinese-slowly", "text": "Be not afraid of going slowly; be afraid only of standing still.", "author": "Chinese proverb", "moods": ["comeback", "momentum"] },
+
+  { "id": "roosevelt-stars", "text": "Keep your eyes on the stars, and your feet on the ground.", "author": "Theodore Roosevelt", "moods": ["balanced"] },
+  { "id": "seneca-harbour", "text": "If one does not know to which port one is sailing, no wind is favourable.", "author": "Seneca", "moods": ["balanced", "focus"] },
+  { "id": "goethe-things-most", "text": "Things which matter most must never be at the mercy of things which matter least.", "author": "attributed to Goethe", "moods": ["balanced", "stop"] },
+  { "id": "jobs-no", "text": "Focusing is about saying no.", "author": "Steve Jobs", "moods": ["focus", "stop"] },
+  { "id": "tolkien-not-all", "text": "Not all those who wander are lost.", "author": "J. R. R. Tolkien", "moods": ["balanced"] },
+  { "id": "aurelius-power", "text": "You have power over your mind — not outside events. Realise this, and you will find strength.", "author": "Marcus Aurelius", "moods": ["comeback", "balanced"] }
+]
