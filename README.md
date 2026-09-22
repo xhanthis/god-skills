@@ -69,6 +69,18 @@ curl -sL https://raw.githubusercontent.com/xhanthis/god-skills/main/skills/god-d
 
 Restart Claude Code after installing — skills load at session start.
 
+## Other CLIs — Codex, Gemini, Cursor, Copilot
+
+The skills are plain Markdown, so any agent that reads an instruction file can follow them:
+
+```bash
+npx god-skills --codex                       # ./AGENTS.md   (OpenAI Codex CLI)
+npx god-skills --gemini                      # ./GEMINI.md   (Gemini CLI)
+npx god-skills --agents-md .cursor/rules/god.md   # any instruction file
+```
+
+Each copies the 7 skills to `./.god-skills/` and adds one marker-delimited index block to the file (re-runs replace the block; the rest of the file is untouched). What does **not** port: the hook gates (`Result: PASS` before a session can end), the auto-trigger card, and the Claude Docs / gstack browse integrations — those are Claude Code features. The agent reads a skill when its trigger matches and runs them in sequence itself.
+
 ## The skills
 
 | Skill | Core question |
