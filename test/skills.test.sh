@@ -134,6 +134,8 @@ for VP in 390x844 820x1180 1512x982 1440x900; do
   assert_contains "$TESTER" "$VP" "god-qa tests the $VP viewport"
 done
 assert_contains "$TESTER" "Any **5** → **FAIL**" "god-qa fails the module on a score-5 issue"
+assert_contains "$TESTER" "Laid out like god-ally's report" "god-qa's reply follows god-ally's layout"
+assert_contains "$TESTER" "Verdict    ✅ Result: PASS" "god-qa's verdict row carries the hook token"
 assert_contains "$TESTER" "Manual Test Guide" "god-qa produces the manual curl guide"
 for REF in frontend security compliance-india integrity docs; do
   assert_file "skills/god-qa/references/$REF.md" "god-qa ships references/$REF.md"
@@ -180,6 +182,10 @@ for REF in routing decisions learning-loop; do assert_file "skills/god-ceo/refer
 CFO=$(cat skills/god-cfo/SKILL.md)
 assert_contains "$CFO" "Pin the definition" "god-cfo pins metric definitions first"
 assert_contains "$CFO" "Recompute independently" "god-cfo recomputes money a second way"
+assert_contains "$CFO" "Pop questions first" "god-cfo asks quick questions when something is unclear"
+assert_contains "$CFO" "Always an example" "god-cfo explains with a worked example"
+assert_contains "$CFO" "Always a picture" "god-cfo explains with a graph or illustration"
+assert_contains "$CFO" "Laid out like god-ally's report" "god-cfo's reply follows god-ally's layout"
 for REF in pricing sql-metrics; do assert_file "skills/god-cfo/references/$REF.md" "god-cfo ships references/$REF.md"; done
 WRITER=$(cat skills/god-cmo/SKILL.md)
 assert_contains "$WRITER" "## Editor pass" "god-cmo runs the editor pass"
