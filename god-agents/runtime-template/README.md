@@ -11,7 +11,7 @@ repo paths, Linear team, and KRA context must never land in the public package.
 
 The prompts here carry business context (KRAs, metric baselines, repo layout,
 Linear team IDs). That cannot ship in a public npm tarball, and stripping it
-would gut the prompts — scout's Rule 5 depends on it.
+would gut the prompts.
 
 Versioning it also means the kill switch, guardrail caps, and prompt tuning
 survive a laptop migration, and every change to what the runner does is a commit
@@ -35,12 +35,10 @@ you can diff when a run misbehaves.
    | Placeholder | Where | Value |
    |---|---|---|
    | `{{REPO_PATHS}}` | `config.sh` | quoted paths, e.g. `("$HOME/code/backend" "$HOME/code/admin_app")` |
-   | `{{SCOUT_REPO_PATHS}}` | `config.sh` | same, plus read-only repos with no test harness |
    | `{{DEFAULT_BRANCH}}` | `config.sh`, `prompts/nightly-tester.md` | usually `main` |
    | `{{LINEAR_TEAM_ID}}` | `config.sh` | the God Agents team id |
    | `{{REPO_CONTEXT}}` | `prompts/nightly-tester.md` | stack, how to run the suite, what matters |
-   | `{{KRA_CONTEXT}}` | `prompts/weekly-scout.md` | current KRAs and owned metrics with baselines |
-   | `{{USER}}`, `{{HOME}}` | both plists | macOS username, absolute home path |
+   | `{{USER}}`, `{{HOME}}` | the plist | macOS username, absolute home path |
 
 3. Credentials — never commit these:
 
@@ -58,20 +56,19 @@ you can diff when a run misbehaves.
    Create a dedicated **God Agents** team in Linear so agent findings never
    pollute the human backlog.
 
-4. Install the schedules:
+4. Install the schedule:
 
    ```bash
    cp com.*.plist ~/Library/LaunchAgents/
    launchctl bootstrap gui/$UID ~/Library/LaunchAgents/com.{{USER}}.godagents.plist
-   launchctl bootstrap gui/$UID ~/Library/LaunchAgents/com.{{USER}}.godscout.plist
    ```
 
-   Nightly tester at 02:00, weekly scout Mondays at 03:00.
+   Nightly tester at 02:00.
 
 ## Kill switch
 
 ```bash
-touch ~/.god-agents/PAUSE     # both runners exit immediately
+touch ~/.god-agents/PAUSE     # the runner exits immediately
 rm ~/.god-agents/PAUSE        # resume
 ```
 
@@ -80,7 +77,6 @@ rm ~/.god-agents/PAUSE        # resume
 | Guardrail | Default | Override |
 |---|---|---|
 | Cost cap, nightly, across repos | $10 | `GOD_COST_CAP` |
-| Cost cap, weekly scout | $8 | `GOD_SCOUT_COST_CAP` |
 | PRs per repo per night | 3 | `GOD_PR_CAP` |
 | Branch | never the default branch | — |
 
@@ -92,7 +88,6 @@ clever degradation.
 
 ```bash
 date -r "$(cat ~/.god-agents/logs/last-success)"        # nightly
-date -r "$(cat ~/.god-agents/logs/last-scout-success)"  # scout
 tail ~/.god-agents/logs/failures.log
 ```
 
@@ -107,7 +102,6 @@ real repo paths first:
 
 ```bash
 GOD_DRY_RUN=1 ./run.sh          # branches, checks caps, writes logs, calls nothing
-GOD_DRY_RUN=1 ./run-scout.sh
 ```
 
 Verify afterwards that each repo sits on a `god/nightly-<date>` branch and that
