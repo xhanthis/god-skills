@@ -73,30 +73,24 @@ Restart Claude Code after installing — skills load at session start.
 
 | Skill | Core question |
 |---|---|
-| **god-context** | What is the user actually trying to solve? |
-| **god-cos** | Who handles this, in what order? |
 | **god-pm** | What should we build, and how does it get delivered? |
 | **god-researcher** | What is actually true, and what is changing? |
-| **god-data** | What does the data say? |
 | **god-growth** | Where is the real bottleneck? |
 | **god-designer** | How should the experience work? |
 | **god-customer** | Would customers actually care? |
 | **god-strategist** | Where should the business go? |
-| **god-cfo** | Do the numbers reconcile? |
-| **god-pricer** | What should we charge, and why? |
+| **god-cfo** | Do the numbers reconcile, what should we charge, and what does the data say? |
 | **god-cmo** | How do we get the right people to care? |
 | **god-sales** | How do we convert the right prospects? |
 | **god-ops** | How does this work repeatedly without heroics? |
 | **god-dev** | How do we design and implement this correctly, fast, and better than last time? |
 | **god-qa** | Does it actually work, is it safe, and can we prove it? |
 | **god-ceo** | What is the real problem, is it worth doing, who does it, and what is the final call? |
-| **god-editor** | Can this be clearer and shorter? |
 | **god-scout** | What opportunity are we missing? |
 | **god-reverse** | How is this product built, and how would we rebuild it? |
-| **god-historian** | Why did we get here? |
 | **god-plan** | Highest-leverage use of the day? |
 | **god-health** | Is this pace sustainable? |
-| **god-write** | Does this read like a human wrote it? |
+| **god-writer** | Is this clear, short, and does it read like a human wrote it? |
 
 Eight of these have agent counterparts in `god-agents` today; the rest run as
 skills. Adding one is a manifest entry, not a rewrite.
@@ -107,8 +101,7 @@ skills. Adding one is a manifest entry, not a rewrite.
 USER → god-ceo → specialists → god-qa → EXECUTE
 ```
 
-- **Vague request** ("booking amount is wrong") → **god-context** investigates the codebase and reconstructs the real problem before anyone writes code.
-- **god-cos** picks the minimum set of specialists and the order they run in.
+- **Vague request** ("booking amount is wrong") → **god-ceo** investigates the codebase, reconstructs the real problem, decides if it is worth doing, and picks the minimum set of specialists and their order.
 - **Writing code** → **god-dev** (architecture inside, deep mode) → **god-qa** (tests, security, integrity — auto-chained).
 - **Engineering habits:** god-dev ships every PR with Problem / Approach / Alternatives rejected / Rollout-rollback / Test evidence, timeouts + jittered retries + idempotency on every external call, expand → migrate → contract for schema and API changes, flags with kill switches, owned TODOs; god-qa writes table-driven tests and fails a perf claim with no before/after number.
 - **Ship gate:** god-dev writes to, and god-qa fails on, the org PR auto-reviewer's own blocker list (raw errors in responses, unindexed or unbounded SQL, PII in logs/URLs/third parties, missing authz, XSS, secrets, credential-shaped fixtures, red CI) — so a god-skills PR is meant to pass review the first time.
@@ -139,7 +132,7 @@ Reads the diff, scans for redundancy and N+1 queries, writes unit/integration/E2
 ### god-cfo
 Owns every rupee: booking bifurcation, revenue-share slabs, partner splits, commissions, settlements. Reconciles totals, hunts leakage and double counting, and validates slab boundaries with edge cases (exactly at the slab edge, zero, refunds, GST-inclusive vs exclusive). Financial logic in code gets recomputed independently before it's trusted.
 
-### god-write
+### god-writer
 Strips AI-isms from prose and puts a human voice back in, built on the 29 tells from Wikipedia's [Signs of AI writing](https://en.wikipedia.org/wiki/Wikipedia:Signs_of_AI_writing) — significance inflation, copula avoidance, the rule of three, em-dash overuse, chatbot artifacts, cutoff hedging.
 
 ## Proof

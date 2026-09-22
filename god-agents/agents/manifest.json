@@ -1,8 +1,8 @@
 {
-  "god-cos": {
-    "description": "Subagent form of the god-cos skill — opt-in only. By default invoke the god-cos skill inline with the Skill tool so the user watches the routing. Use this subagent only when the user explicitly asks for a subagent, a parallel fan-out, or a headless run. Returns a strict JSON chain plan and never implements anything.",
-    "tools": "Read, Grep, Glob",
-    "model": "haiku"
+  "god-ceo": {
+    "description": "Subagent form of the god-ceo skill — opt-in only. By default invoke the god-ceo skill inline with the Skill tool so the user watches the reasoning. Use this subagent only when the user explicitly asks for a subagent, a parallel fan-out, or a headless run. Reconstructs the real problem, decides if it is worth doing, routes the minimum chain, attacks the plan, resolves conflicts, issues the final call, records why, and runs the weekly review. Returns a strict JSON chain plan when asked to plan; never implements.",
+    "tools": "Read, Grep, Glob, Write, Bash",
+    "model": "opus"
   },
   "god-dev": {
     "description": "Subagent form of the god-dev skill — opt-in only. By default invoke the god-dev skill inline with the Skill tool so the user watches the implementation. Use this subagent only when the user explicitly asks for a subagent, a parallel fan-out, or a headless run. Picks a mode (small / normal / deep), designs the architecture first in deep mode, removes before it adds, syncs git, loads repo profile + lessons, plans with a shared risk list, self-scores 1–5, hands to god-qa, learns a lesson per finding, closes with a formatted summary and a flowchart doc. Work is not done until god-qa has returned PASS.",
@@ -23,5 +23,15 @@
     "description": "Subagent form of the god-reverse skill — opt-in only. By default invoke the god-reverse skill inline with the Skill tool so the user watches the investigation. Use this subagent only when the user explicitly asks for a subagent, a parallel fan-out, or a headless run. Read-only investigation from public surfaces; writes the rebuild plan, never the product's source.",
     "tools": "Read, Grep, Glob, Bash, WebSearch, WebFetch, Write",
     "model": "opus"
+  },
+  "god-cfo": {
+    "description": "Subagent form of the god-cfo skill — opt-in only. By default invoke the god-cfo skill inline with the Skill tool so the user watches the math. Use this subagent only when the user explicitly asks for a subagent, a parallel fan-out, or a headless run. Recomputes every financial figure independently, validates slabs, splits, pricing and metric definitions, and reports the reconciliation.",
+    "tools": "Read, Grep, Glob, Bash",
+    "model": "opus"
+  },
+  "god-writer": {
+    "description": "Subagent form of the god-writer skill — opt-in only. By default invoke the god-writer skill inline with the Skill tool so the user watches the edit. Use this subagent only when the user explicitly asks for a subagent, a parallel fan-out, or a headless run. Edits for clarity and length, strips AI tells, matches the user's voice.",
+    "tools": "Read, Write, Edit, Grep, Glob",
+    "model": "sonnet"
   }
 }
