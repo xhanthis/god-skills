@@ -7,6 +7,8 @@ All notable changes to `god-skills` and `god-agents`. Dates are release dates.
 ### Changed
 - **Renamed three skills and their subagents.** `god-dev` → `god-build`, `god-writer` → `god-cmo`, `god-zen` → `god-ally`. The team is now god-ceo, god-pm, god-build, god-qa, god-cfo, god-cmo and god-ally. Short names follow (`npx god-skills build`).
 - Install removes the old `god-dev`, `god-writer` and `god-zen` skill folders and agent files it once wrote.
+- **god-build's final message is laid out like god-ally's report** — one aligned block in a code fence (result, what changed, QA, week, needs you), with the PR and doc links on their own lines below it.
+- **No more hardcoded quotes or signatures.** `quotes.json` and the fixed signer list are gone. `--quote` now returns a brief of the moment (mood, score, what went wrong, lines to avoid) and the skill writes a fresh line for it, recorded with `--quote-said` so it never repeats. Each PR signature is written for that PR and logged in `signatures.jsonl`.
 - god-ally keeps its data in `~/.god-ally/` and `~/.claude/god/god-ally/`; move the old `god-zen` folders there to keep your history.
 
 ## 3.1.0 — 2026-09-22

@@ -12,6 +12,8 @@
  *
  * Usage:
  *   node zen-report.js [--mcp '<json>'] [--mcp-file <path>] [--date YYYY-MM-DD] [--json] [--rebuild]
+ *   node zen-report.js --quote [--force]        brief for a fresh line, or nothing
+ *   node zen-report.js --quote-said '<line>'    remember the line that was shown
  */
 
 const fs = require("fs");
@@ -25,8 +27,7 @@ const DIR = path.join(HOME, ".god-ally");
 const CONFIG_FILE = path.join(DIR, "config.json");
 const HISTORY_FILE = path.join(DIR, "history.jsonl");
 const SEEN_FILE = path.join(DIR, "quotes-seen.json");
-const QUOTES_FILE = path.join(__dirname, "quotes.json");
-const QUOTE_COOLDOWN_DAYS = 21;
+const QUOTE_AVOID_COUNT = 30;
 const QUOTE_RATE = 0.05;
 const QUOTE_GAP_DAYS = 3;
 const QUOTE_SCORE_CEILING = 6;
@@ -971,54 +972,59 @@ function quoteWarranted(day, date, force, seen = readSeen()) {
 }
 
 /**
- * Picks the one line worth reading, chosen for how the day actually went rather than at random.
- * Args: mood (string) — from advise(); band (string) — today's band; date (string "YYYY-MM-DD")
- * Returns: {id, text, author} or null when the bank cannot be read
- * Handles: a missing or corrupt quotes file, a bank exhausted by the cooldown (it resets),
- *          two runs on the same day (the same quote both times, never a reshuffle)
+ * Describes the moment a fresh line should speak to. There is no quote bank: the skill
+ * writes or picks a new line for this exact situation, so it is never canned.
+ * Args: day (dayRecord), advice ({action, mood}) — from advise(), date (string "YYYY-MM-DD")
+ * Returns: {said} when a line was already shown today (repeat it, never a second one),
+ *          otherwise {brief} — one line naming the mood, the day and the lines to avoid
+ * Handles: a missing or corrupt seen-file, a said-list longer than is worth reading
  */
-function pickQuote(mood, band, date) {
-  let bank = [];
-  try {
-    bank = JSON.parse(fs.readFileSync(QUOTES_FILE, "utf8"));
-  } catch (error) {
-    return null;
-  }
-  if (!Array.isArray(bank) || !bank.length) {
-    return null;
-  }
+function quoteBrief(day, advice, date) {
   const seen = readSeen();
-  const cutoff = shiftKey(date, -QUOTE_COOLDOWN_DAYS);
-  const fresh = (quote) => !seen[quote.id] || seen[quote.id] < cutoff || seen[quote.id] === date;
-  const bankIds = new Set(bank.map((quote) => quote.id));
-  for (const key of Object.keys(seen)) {
-    if (key !== "last_shown" && !bankIds.has(key)) {
-      delete seen[key];
-    }
+  const said = Array.isArray(seen.said) ? seen.said : [];
+  const today = said.filter((entry) => entry.date === date).pop();
+  if (today) {
+    return { said: today.text };
   }
-  const wanted = [mood, band === "Burnout risk" ? "comeback" : band === "Balanced" ? "balanced" : "momentum"];
-
-  let pool = bank.filter((quote) => fresh(quote) && quote.moods.some((tag) => wanted.includes(tag)));
-  if (!pool.length) {
-    pool = bank.filter(fresh);
-  }
-  if (!pool.length) {
-    pool = bank;
-  }
-  let hash = 0;
-  for (const character of date) {
-    hash = (hash * 31 + character.charCodeAt(0)) >>> 0;
-  }
-  const chosen = pool[hash % pool.length];
-  seen[chosen.id] = date;
   seen.last_shown = date;
   try {
     fs.mkdirSync(DIR, { recursive: true });
     fs.writeFileSync(SEEN_FILE, JSON.stringify(seen));
   } catch (error) {
-    return chosen;
+    // the gap check degrades to the 1-in-20 draw; the brief is still worth giving
   }
-  return chosen;
+  const avoid = said.slice(-QUOTE_AVOID_COUNT).map((entry) => JSON.stringify(entry.text));
+  const scored = day.score == null ? "unscored" : `${day.score.toFixed(1)}/10 ${day.band}`;
+  return {
+    brief: `brief · mood ${advice.mood} · ${scored} · ${advice.action}${avoid.length ? ` · never reuse: ${avoid.join(", ")}` : ""}`,
+  };
+}
+
+/**
+ * Remembers a line that was shown, so it is never used again.
+ * Args: text (string) — the line exactly as printed, date (string "YYYY-MM-DD")
+ * Returns: boolean — whether it was stored
+ * Handles: an empty line (ignored), the same line twice (stored once), an unwritable home
+ */
+function recordQuote(text, date) {
+  const line = String(text || "").trim();
+  if (!line) {
+    return false;
+  }
+  const seen = readSeen();
+  const said = Array.isArray(seen.said) ? seen.said : [];
+  if (!said.some((entry) => entry.text === line)) {
+    said.push({ date, text: line });
+  }
+  seen.said = said.slice(-365);
+  seen.last_shown = date;
+  try {
+    fs.mkdirSync(DIR, { recursive: true });
+    fs.writeFileSync(SEEN_FILE, JSON.stringify(seen));
+  } catch (error) {
+    return false;
+  }
+  return true;
 }
 
 /**
@@ -1153,12 +1159,12 @@ function render(days, config, sourcesUsed, sourcesMissing) {
 /**
  * Parses the command line.
  * Args: argv (string[])
- * Returns: {mcp, date, json, rebuild, quote, force}
+ * Returns: {mcp, date, json, rebuild, quote, quoteSaid, force}
  * Handles: --mcp-file pointing nowhere, flags in any order, unknown flags (ignored),
  *          a --date that is not a real YYYY-MM-DD (dropped, so today is used)
  */
 function parseArgs(argv) {
-  const args = { mcp: null, date: null, json: false, rebuild: false, quote: false, force: false };
+  const args = { mcp: null, date: null, json: false, rebuild: false, quote: false, quoteSaid: null, force: false };
   for (let index = 0; index < argv.length; index += 1) {
     const flag = argv[index];
     if (flag === "--mcp") {
@@ -1177,6 +1183,8 @@ function parseArgs(argv) {
       args.json = true;
     } else if (flag === "--quote") {
       args.quote = true;
+    } else if (flag === "--quote-said") {
+      args.quoteSaid = argv[++index] || "";
     } else if (flag === "--force") {
       args.force = true;
     } else if (flag === "--rebuild") {
@@ -1203,16 +1211,18 @@ function main(argv) {
   for (let back = HISTORY_DAYS - 1; back >= 0; back -= 1) {
     keys.push(shiftKey(today, -back));
   }
+  if (args.quoteSaid != null) {
+    recordQuote(args.quoteSaid, today);
+    return;
+  }
   if (args.quote) {
     const known = scoreDays(keys.map((key) => history.get(key) || blankDay(key)), config);
     const latest = known[known.length - 1];
     if (!quoteWarranted(latest, latest.date, args.force)) {
       return;
     }
-    const line = pickQuote(advise(latest, config).mood, latest.band, latest.date);
-    if (line) {
-      process.stdout.write(`🧘 "${line.text}" — ${line.author}\n`);
-    }
+    const result = quoteBrief(latest, advise(latest, config), latest.date);
+    process.stdout.write(`${result.said || result.brief}\n`);
     return;
   }
   const firstRun = args.rebuild || !keys.slice(0, -1).every((key) => history.has(key));
@@ -1276,7 +1286,8 @@ module.exports = {
   advise,
   collectSleep,
   findRepos,
-  pickQuote,
+  quoteBrief,
+  recordQuote,
   quoteWarranted,
   blankDay,
   DEFAULT_CONFIG,

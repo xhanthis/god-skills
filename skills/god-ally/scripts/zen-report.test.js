@@ -434,23 +434,9 @@ test("a taller bar means a better day, and a day off has none", () => {
   assert.ok(!lines[0].includes("██████████"), "the day off contributes no bar");
 });
 
-test("the quote bank is well formed and every mood is covered", () => {
-  // Arrange
-  const bank = JSON.parse(fs.readFileSync(path.join(__dirname, "quotes.json"), "utf8"));
-
-  // Act
-  const ids = new Set(bank.map((quote) => quote.id));
-  const moods = new Set(bank.flatMap((quote) => quote.moods));
-
+test("there is no quote bank to go stale", () => {
   // Assert
-  assert.ok(bank.length >= 20, `expected a real bank, got ${bank.length}`);
-  assert.equal(ids.size, bank.length, "quote ids are unique");
-  for (const mood of ["rest", "stop", "focus", "momentum", "comeback", "balanced"]) {
-    assert.ok(moods.has(mood), `no quote covers the ${mood} mood`);
-  }
-  for (const quote of bank) {
-    assert.ok(quote.text && quote.author && quote.moods.length, `incomplete quote: ${quote.id}`);
-  }
+  assert.ok(!fs.existsSync(path.join(__dirname, "quotes.json")), "lines are written fresh, never read from a file");
 });
 
 test("a quote is warranted only on a hard day, never twice in a row", () => {
@@ -486,27 +472,48 @@ test("the report itself never carries a quote", () => {
   const renderBody = source.slice(source.indexOf("function render("), source.indexOf("function parseArgs("));
 
   // Assert
-  assert.ok(!renderBody.includes("pickQuote"), "render must not reach for a quote");
+  assert.ok(!renderBody.includes("quoteBrief"), "render must not reach for a quote");
 });
 
-test("the quote is stable within a day and is attributed", () => {
+test("the quote brief names the moment, and a shown line is remembered", () => {
   // Arrange: a home with nothing in it at all
   const home = fs.mkdtempSync(path.join(os.tmpdir(), "zen-quote-"));
-  const runQuote = () =>
-    execFileSync(process.execPath, [path.join(__dirname, "zen-report.js"), "--quote", "--force"], {
+  const run = (...flags) =>
+    execFileSync(process.execPath, [path.join(__dirname, "zen-report.js"), ...flags], {
       encoding: "utf8",
       env: { ...process.env, HOME: home },
       timeout: 30000,
     }).trim();
 
   // Act
-  const first = runQuote();
-  const second = runQuote();
+  const brief = run("--quote", "--force");
+  run("--quote-said", '🧘 "Close the laptop; the bug will keep." — me');
+  const again = run("--quote", "--force");
 
   // Assert
-  assert.match(first, /^🧘 ".+" — .+$/, `unexpected shape: ${first}`);
-  assert.equal(first, second, "the same day must not reshuffle the quote");
-  assert.ok(fs.existsSync(path.join(home, ".god-ally", "quotes-seen.json")), "the pick is remembered");
+  assert.match(brief, /^brief · mood \w+ · /, `unexpected shape: ${brief}`);
+  assert.equal(again, '🧘 "Close the laptop; the bug will keep." — me', "the same day repeats the line shown");
+  const seen = JSON.parse(fs.readFileSync(path.join(home, ".god-ally", "quotes-seen.json"), "utf8"));
+  assert.equal(seen.said.length, 1, "the line is remembered once");
+  fs.rmSync(home, { recursive: true, force: true });
+});
+
+test("the brief lists earlier lines so none is reused", () => {
+  // Arrange
+  const home = fs.mkdtempSync(path.join(os.tmpdir(), "zen-avoid-"));
+  const run = (...flags) =>
+    execFileSync(process.execPath, [path.join(__dirname, "zen-report.js"), ...flags], {
+      encoding: "utf8",
+      env: { ...process.env, HOME: home },
+      timeout: 30000,
+    }).trim();
+
+  // Act
+  run("--quote-said", "🧘 an old line", "--date", "2026-09-01");
+  const brief = run("--quote", "--force", "--date", "2026-09-22");
+
+  // Assert
+  assert.ok(brief.includes('never reuse: "🧘 an old line"'), brief);
   fs.rmSync(home, { recursive: true, force: true });
 });
 
