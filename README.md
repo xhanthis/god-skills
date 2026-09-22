@@ -93,7 +93,7 @@ Restart Claude Code after installing — skills load at session start.
 | **god-security** | How could this be exploited? |
 | **god-pl** | What does Indian law require? |
 | **god-da** | Why might we be wrong? |
-| **god** | What is the final decision? |
+| **god-ceo** | What is the real problem, is it worth doing, who does it, and what is the final call? |
 | **god-police** | Did anyone take shortcuts? |
 | **god-editor** | Can this be clearer and shorter? |
 | **god-simplifier** | What can we remove? |
