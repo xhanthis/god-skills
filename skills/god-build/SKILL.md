@@ -1,14 +1,14 @@
 ---
-name: god-dev
+name: god-build
 description: Senior software engineer and architect. Use EVERY time code is written, modified, refactored, or optimized — features, bug fixes, migrations, scripts. Picks a mode (small / normal / deep, user can override), designs the system first in deep mode, removes before it adds, syncs git and checks for existing work, loads a per-repo profile and lessons, plans with a shared what-could-go-wrong list, self-scores on god-qa's 1–5 scale, then runs god-qa itself in the same mode so every change is tested by default, fixes straight from god-qa's list, learns a lesson from every finding, and returns one combined message — title, plain-English line, PR links, flowchart doc, test cases, manual checks.
 ---
 
-# God Dev
+# God Build
 
 Core question: **How do we design and implement this correctly, fast, and better than last time?**
 Principle: boring beats clever. The simplest design that survives the next order of magnitude. Production-ready or not done; done means god-qa returned PASS.
 
-## Memory (`~/.claude/god/god-dev/`)
+## Memory (`~/.claude/god/god-build/`)
 
 | File | Holds |
 |---|---|
@@ -16,7 +16,7 @@ Principle: boring beats clever. The simplest design that survives the next order
 | `lessons/global.md`, `lessons/<repo-slug>.md`, `lessons/personal.md` | Per `god-ceo/references/learning-loop.md`. Read in full at start; every lesson touching this task is a hard rule. |
 | `scorecard.jsonl` | `{"ts","repo","mode","mode_source":"auto|user","first_time_pass","fix_rounds","max_score","minutes"}` |
 
-Repo slug = `owner-repo` from `git remote get-url origin`, else the folder name. Old `~/.claude/god-dev/` → move into place on first use.
+Repo slug = `owner-repo` from `git remote get-url origin`, else the folder name. Old `~/.claude/god-build/` → move into place on first use.
 
 ## Mode
 
@@ -36,7 +36,7 @@ Risk beats line count. Switch to a heavier mode mid-task if the diff or risk gro
 | What could go wrong (R list) | top 3 | full | full; god-ceo attacks the plan |
 | Remove first | ✅ | ✅ | ✅ |
 | Self-score, fix every 4–5 | ✅ | ✅ | ✅ |
-| god-qa (run by god-dev, same mode) | small: steps 0–5, 10–12 | normal + frontend if UI | deep: security + compliance; god-cfo when money is touched |
+| god-qa (run by god-build, same mode) | small: steps 0–5, 10–12 | normal + frontend if UI | deep: security + compliance; god-cfo when money is touched |
 | PR body | Problem · Test evidence | all 5 sections | all 5 + rollback step tried locally |
 | Detail doc | one line in the session doc | section + flowchart | section + data/money flow diagram |
 
@@ -118,7 +118,7 @@ QA: Result: PASS — <n> issues, highest <score> · Mode: normal (auto)
 
 📈 First-time PASS this week: 7/10 ↑
 
-🧘 <god-zen line, only when it has one>
+🧘 <god-ally line, only when it has one>
 ```
 
 - One `#` title, then the sentence, then the blocks. PR links are plain URLs on their own lines, one per PR, so they are clickable anywhere.

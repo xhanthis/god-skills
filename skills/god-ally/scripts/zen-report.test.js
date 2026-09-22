@@ -1,9 +1,9 @@
 "use strict";
 
 /**
- * Suite for the God Zen daily report. Zero dependencies — node:test only, like the rest
+ * Suite for the God Ally daily report. Zero dependencies — node:test only, like the rest
  * of this repo's tooling. Every case is Arrange / Act / Assert.
- * Run: node --test skills/god-zen/scripts/
+ * Run: node --test skills/god-ally/scripts/
  */
 
 const test = require("node:test");
@@ -356,7 +356,7 @@ test("a bad or absent MCP payload never throws", () => {
 });
 
 test("a missing Health folder yields no nights rather than an error", () => {
-  assert.deepEqual(report.collectSleep("/tmp/god-zen-does-not-exist-12345"), {});
+  assert.deepEqual(report.collectSleep("/tmp/god-ally-does-not-exist-12345"), {});
 });
 
 test("repos are discovered under the configured roots", () => {
@@ -506,16 +506,16 @@ test("the quote is stable within a day and is attributed", () => {
   // Assert
   assert.match(first, /^🧘 ".+" — .+$/, `unexpected shape: ${first}`);
   assert.equal(first, second, "the same day must not reshuffle the quote");
-  assert.ok(fs.existsSync(path.join(home, ".god-zen", "quotes-seen.json")), "the pick is remembered");
+  assert.ok(fs.existsSync(path.join(home, ".god-ally", "quotes-seen.json")), "the pick is remembered");
   fs.rmSync(home, { recursive: true, force: true });
 });
 
 test("the report runs end to end with every source missing", () => {
   // Arrange: an empty HOME, so there is no git, no Claude log, no Health folder
   const home = fs.mkdtempSync(path.join(os.tmpdir(), "zen-home-"));
-  fs.mkdirSync(path.join(home, ".god-zen"));
+  fs.mkdirSync(path.join(home, ".god-ally"));
   fs.writeFileSync(
-    path.join(home, ".god-zen", "config.json"),
+    path.join(home, ".god-ally", "config.json"),
     JSON.stringify({ ...report.DEFAULT_CONFIG, repoRoots: [path.join(home, "empty")], authorEmails: ["nobody@example.invalid"], useCcusage: false })
   );
 
@@ -527,9 +527,9 @@ test("the report runs end to end with every source missing", () => {
   });
 
   // Assert
-  assert.match(output, /God Zen/);
+  assert.match(output, /God Ally/);
   assert.match(output, /^  missing {4}/m);
   assert.match(output, /ccusage/);
-  assert.ok(fs.existsSync(path.join(home, ".god-zen", "history.jsonl")), "history is written on the first run");
+  assert.ok(fs.existsSync(path.join(home, ".god-ally", "history.jsonl")), "history is written on the first run");
   fs.rmSync(home, { recursive: true, force: true });
 });

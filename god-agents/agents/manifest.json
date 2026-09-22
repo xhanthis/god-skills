@@ -4,8 +4,8 @@
     "tools": "Read, Grep, Glob, Write, Bash",
     "model": "opus"
   },
-  "god-dev": {
-    "description": "Subagent form of the god-dev skill — opt-in only. By default invoke the god-dev skill inline with the Skill tool so the user watches the implementation. Use this subagent only when the user explicitly asks for a subagent, a parallel fan-out, or a headless run. Picks a mode (small / normal / deep), designs the architecture first in deep mode, removes before it adds, syncs git, loads repo profile + lessons, plans with a shared risk list, self-scores 1–5, hands to god-qa, learns a lesson per finding, closes with a formatted summary and a flowchart doc. Work is not done until god-qa has returned PASS.",
+  "god-build": {
+    "description": "Subagent form of the god-build skill — opt-in only. By default invoke the god-build skill inline with the Skill tool so the user watches the implementation. Use this subagent only when the user explicitly asks for a subagent, a parallel fan-out, or a headless run. Picks a mode (small / normal / deep), designs the architecture first in deep mode, removes before it adds, syncs git, loads repo profile + lessons, plans with a shared risk list, self-scores 1–5, hands to god-qa, learns a lesson per finding, closes with a formatted summary and a flowchart doc. Work is not done until god-qa has returned PASS.",
     "tools": "Read, Write, Edit, Grep, Glob, Bash, Skill, ToolSearch, mcp__claude_ai_Claude_Docs__guide, mcp__claude_ai_Claude_Docs__batch, mcp__claude_ai_Claude_Docs__update, mcp__claude_ai_Claude_Docs__read",
     "model": "opus"
   },
@@ -19,8 +19,8 @@
     "tools": "Read, Grep, Glob, Bash",
     "model": "opus"
   },
-  "god-writer": {
-    "description": "Subagent form of the god-writer skill — opt-in only. By default invoke the god-writer skill inline with the Skill tool so the user watches the edit. Use this subagent only when the user explicitly asks for a subagent, a parallel fan-out, or a headless run. Edits for clarity and length, strips AI tells, matches the user's voice.",
+  "god-cmo": {
+    "description": "Subagent form of the god-cmo skill — opt-in only. By default invoke the god-cmo skill inline with the Skill tool so the user watches the edit. Use this subagent only when the user explicitly asks for a subagent, a parallel fan-out, or a headless run. Edits for clarity and length, strips AI tells, matches the user's voice.",
     "tools": "Read, Write, Edit, Grep, Glob",
     "model": "sonnet"
   },
@@ -29,8 +29,8 @@
     "tools": "Read, Grep, Glob, Bash, WebSearch, WebFetch, Write",
     "model": "opus"
   },
-  "god-zen": {
-    "description": "Subagent form of the god-zen skill — opt-in only. By default invoke the god-zen skill inline with the Skill tool. Use this subagent only when the user explicitly asks for a subagent or a headless run (for example the weekly report). Reads the user's activity log, git history, token usage and calendar; reports hours, sleep window, focus, intensity and meeting load against the user's own baseline. Never writes code.",
+  "god-ally": {
+    "description": "Subagent form of the god-ally skill — opt-in only. By default invoke the god-ally skill inline with the Skill tool. Use this subagent only when the user explicitly asks for a subagent or a headless run (for example the weekly report). Reads the user's activity log, git history, token usage and calendar; reports hours, sleep window, focus, intensity and meeting load against the user's own baseline. Never writes code.",
     "tools": "Read, Grep, Glob, Bash, Write",
     "model": "sonnet"
   }

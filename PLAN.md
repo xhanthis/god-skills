@@ -119,17 +119,17 @@ signals ("when to invoke", with PROACTIVELY / MUST BE USED), not summaries.
     "model": "haiku"
   },
   "god-architect": {
-    "description": "System design before implementation. MUST BE USED before god-dev for any change involving a new module, schema change, new endpoint, or cross-service behavior. Writes design docs only — never source code.",
+    "description": "System design before implementation. MUST BE USED before god-build for any change involving a new module, schema change, new endpoint, or cross-service behavior. Writes design docs only — never source code.",
     "tools": "Read, Grep, Glob, Write",
     "model": "opus"
   },
-  "god-dev": {
+  "god-build": {
     "description": "Implements code to senior-engineer standards. Use PROACTIVELY whenever code will be written, modified, refactored, or optimized. Work is not done until god-tester has returned PASS.",
     "tools": "Read, Write, Edit, Grep, Glob, Bash",
     "model": "opus"
   },
   "god-tester": {
-    "description": "Senior QA. MUST BE USED after god-dev completes any implementation, and whenever code needs verification. Writes and actually executes tests, auto-fixes failures up to 3 cycles, returns PASS / FAIL / UNVERIFIED.",
+    "description": "Senior QA. MUST BE USED after god-build completes any implementation, and whenever code needs verification. Writes and actually executes tests, auto-fixes failures up to 3 cycles, returns PASS / FAIL / UNVERIFIED.",
     "tools": "Read, Write, Edit, Bash, Grep, Glob",
     "model": "opus"
   },
@@ -225,11 +225,11 @@ and appends `{ts, agent_type: "god-tester", verdict}` to `chain.jsonl`.
 
 **`god-agents/hooks/god/require-tester-pass.sh`** — Gate 1: dev cannot self-declare done.
 **Design change from the draft plan, deliberate:** this runs on the lead session's
-`Stop` event, NOT on god-dev's `SubagentStop`. Blocking god-dev's stop would
+`Stop` event, NOT on god-build's `SubagentStop`. Blocking god-build's stop would
 deadlock — tester runs *after* dev finishes, and dev has no Agent tool to spawn it.
-The lead session does. Logic: if `chain.jsonl` contains god-dev edit entries with no
+The lead session does. Logic: if `chain.jsonl` contains god-build edit entries with no
 god-tester PASS entry newer than the newest of them → exit 2 with
-`"god-dev changes lack a god-tester PASS. Run god-tester before finishing."`
+`"god-build changes lack a god-tester PASS. Run god-tester before finishing."`
 Loop guard: if `stop_hook_active` is true in the hook input, exit 0.
 
 **`god-agents/hooks/god/block-raw-sql.sh`** — Gate 2. `PreToolUse` on `Edit|Write`.
@@ -269,13 +269,13 @@ matching `*_test.*` and `*test*`. Exit 2 with the offending line in stderr.
 A slash command (`/god <request>`) instructing the lead session:
 
 1. Spawn `god-cos` with the request. cos returns strict JSON:
-   `{"chain": ["god-architect", "god-dev", "god-tester"], "reason": "..."}`
+   `{"chain": ["god-architect", "god-build", "god-tester"], "reason": "..."}`
    (Add a short "Output contract" section to `skills/god-cos/SKILL.md` specifying
    this JSON — the one permitted skill-body edit in this project.)
 2. Parse the chain. Execute each agent **sequentially from the main session**,
    passing: the original request, all handoff blocks so far, and current `git diff`.
    This keeps specialist output visible instead of buried under cos's summary.
-3. Failure loop: tester FAIL → back to god-dev → god-tester, max 3 cycles, then stop
+3. Failure loop: tester FAIL → back to god-build → god-tester, max 3 cycles, then stop
    and report what is still broken.
 4. If any agent issued a verdict, run god-police last.
 5. Fallback: if cos returns unparseable output, retry once, then ask the user.

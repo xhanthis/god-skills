@@ -22,13 +22,13 @@ PROJ="$WORK/proj"; mkdir -p "$PROJ"
 LOG="$PROJ/.claude/logs/chain.jsonl"
 
 # --- Gate 3: audit trail --------------------------------------------------
-hook log-edits.sh "{\"cwd\":\"$PROJ\",\"agent_type\":\"god-dev\",\"tool_name\":\"Edit\",\"tool_input\":{\"file_path\":\"/x/y.go\"}}"
+hook log-edits.sh "{\"cwd\":\"$PROJ\",\"agent_type\":\"god-build\",\"tool_name\":\"Edit\",\"tool_input\":{\"file_path\":\"/x/y.go\"}}"
 assert_file "$LOG" "log-edits creates the chain log"
-assert_contains "$(cat "$LOG")" '"agent":"god-dev"' "the edit is attributed to the agent that made it"
+assert_contains "$(cat "$LOG")" '"agent":"god-build"' "the edit is attributed to the agent that made it"
 
 # --- Gate 1: no PASS, no finish -------------------------------------------
 CODE=$(run_gate require-qa-pass.sh "{\"cwd\":\"$PROJ\",\"stop_hook_active\":false}")
-assert_eq "$CODE" "2" "session is blocked while god-dev edits lack a qa PASS"
+assert_eq "$CODE" "2" "session is blocked while god-build edits lack a qa PASS"
 
 # --- verdict recording ----------------------------------------------------
 printf 'noise\n**Result: PASS**\n' > "$WORK/transcript.txt"
@@ -39,7 +39,7 @@ CODE=$(run_gate require-qa-pass.sh "{\"cwd\":\"$PROJ\",\"stop_hook_active\":fals
 assert_eq "$CODE" "0" "a recorded PASS unblocks the session"
 
 # --- a later dev edit re-blocks -------------------------------------------
-hook log-edits.sh "{\"cwd\":\"$PROJ\",\"agent_type\":\"god-dev\",\"tool_name\":\"Write\",\"tool_input\":{\"file_path\":\"/x/z.go\"}}"
+hook log-edits.sh "{\"cwd\":\"$PROJ\",\"agent_type\":\"god-build\",\"tool_name\":\"Write\",\"tool_input\":{\"file_path\":\"/x/z.go\"}}"
 CODE=$(run_gate require-qa-pass.sh "{\"cwd\":\"$PROJ\",\"stop_hook_active\":false}")
 assert_eq "$CODE" "2" "an edit after the PASS blocks again"
 
@@ -65,18 +65,18 @@ CODE=$(run_gate require-qa-pass.sh "{\"cwd\":\"$CLEAN\",\"stop_hook_active\":fal
 assert_eq "$CODE" "0" "a session that changed nothing is not blocked"
 
 # --- Gate 1, inline skill mode --------------------------------------------
-# god-dev run through the Skill tool leaves no agent_type on its edits and no
+# god-build run through the Skill tool leaves no agent_type on its edits and no
 # SubagentStop for the verdict, so the gate reads the session transcript. The
 # fixture lines mirror Claude Code's JSONL: one message per line.
 SKILLPROJ="$WORK/skillproj"; mkdir -p "$SKILLPROJ"
 T="$WORK/session.jsonl"
-DEV_CALL='{"isSidechain":false,"message":{"role":"assistant","content":[{"type":"tool_use","id":"toolu_1","name":"Skill","input":{"skill":"god-dev"}}]}}'
+DEV_CALL='{"isSidechain":false,"message":{"role":"assistant","content":[{"type":"tool_use","id":"toolu_1","name":"Skill","input":{"skill":"god-build"}}]}}'
 EDIT_CALL='{"isSidechain":false,"message":{"role":"assistant","content":[{"type":"tool_use","id":"toolu_2","name":"Edit","input":{"file_path":"/x/y.go"}}]}}'
 say() { printf '{"isSidechain":false,"message":{"role":"assistant","content":[{"type":"text","text":"%s"}]}}\n' "$1"; }
 skill_gate() { run_gate require-qa-pass.sh "{\"cwd\":\"$SKILLPROJ\",\"transcript_path\":\"$1\",\"stop_hook_active\":false}"; }
 
 printf '%s\n%s\n' "$DEV_CALL" "$EDIT_CALL" > "$T"
-assert_eq "$(skill_gate "$T")" "2" "inline god-dev edits without a PASS block the session"
+assert_eq "$(skill_gate "$T")" "2" "inline god-build edits without a PASS block the session"
 
 say '**Result: PASS**' >> "$T"
 assert_eq "$(skill_gate "$T")" "0" "an inline god-qa PASS unblocks the session"
@@ -95,7 +95,7 @@ assert_eq "$(skill_gate "$T2")" "2" "a PASS quoted in a user message is not a ve
 
 T3="$WORK/nodev.jsonl"
 printf '%s\n' "$EDIT_CALL" > "$T3"
-assert_eq "$(skill_gate "$T3")" "0" "edits in a session that never ran god-dev are not gated"
+assert_eq "$(skill_gate "$T3")" "0" "edits in a session that never ran god-build are not gated"
 
 T4="$WORK/sidechain.jsonl"
 printf '%s\n%s\n' "$DEV_CALL" "$EDIT_CALL" > "$T4"
@@ -216,7 +216,7 @@ for t in bash grep cut tail head printf date mkdir dirname cat python3 sh env se
   p=$(command -v "$t") && ln -sf "$p" "$BIN/$t"
 done
 PROJ2="$WORK/proj2"; mkdir -p "$PROJ2"
-printf '%s' "{\"cwd\":\"$PROJ2\",\"agent_type\":\"god-dev\",\"tool_name\":\"Edit\",\"tool_input\":{\"file_path\":\"/q.py\"}}" \
+printf '%s' "{\"cwd\":\"$PROJ2\",\"agent_type\":\"god-build\",\"tool_name\":\"Edit\",\"tool_input\":{\"file_path\":\"/q.py\"}}" \
   | PATH="$BIN" "$H/log-edits.sh"
 assert_file "$PROJ2/.claude/logs/chain.jsonl" "log-edits works without jq"
 
@@ -235,28 +235,28 @@ printf '%s' '{"tool_input":{"file_path":"/a.py","content":"r = requests.get(url)
   | PATH="$BIN" "$H/block-loose-ends.sh" >/dev/null 2>&1
 assert_eq "$?" "2" "the loose-ends gate works without jq"
 
-# --- god-zen collector ------------------------------------------------------
+# --- god-ally collector ------------------------------------------------------
 ZEN="$WORK/zen"; mkdir -p "$ZEN"
-GOD_ZEN_DIR="$ZEN" hook zen-activity.sh "{\"hook_event_name\":\"SessionStart\",\"cwd\":\"$PROJ\"}" >/dev/null
-GOD_ZEN_DIR="$ZEN" hook zen-activity.sh "{\"hook_event_name\":\"UserPromptSubmit\",\"cwd\":\"$PROJ\",\"prompt\":\"hi\"}" >/dev/null
-GOD_ZEN_DIR="$ZEN" hook zen-activity.sh "{\"hook_event_name\":\"Stop\",\"cwd\":\"$PROJ\"}" >/dev/null
+GOD_ALLY_DIR="$ZEN" hook zen-activity.sh "{\"hook_event_name\":\"SessionStart\",\"cwd\":\"$PROJ\"}" >/dev/null
+GOD_ALLY_DIR="$ZEN" hook zen-activity.sh "{\"hook_event_name\":\"UserPromptSubmit\",\"cwd\":\"$PROJ\",\"prompt\":\"hi\"}" >/dev/null
+GOD_ALLY_DIR="$ZEN" hook zen-activity.sh "{\"hook_event_name\":\"Stop\",\"cwd\":\"$PROJ\"}" >/dev/null
 assert_eq "$(wc -l < "$ZEN/activity.jsonl" | tr -d ' ')" "3" "zen logs one line per session event"
 assert_contains "$(cat "$ZEN/activity.jsonl")" '"event":"prompt"' "zen records prompt events"
-GOD_ZEN_DIR="$ZEN" hook zen-activity.sh '{"hook_event_name":"Stop","cwd":"/tmp/we\\ird \"dir\""}' >/dev/null
+GOD_ALLY_DIR="$ZEN" hook zen-activity.sh '{"hook_event_name":"Stop","cwd":"/tmp/we\\ird \"dir\""}' >/dev/null
 assert_eq "$(node -e "require('fs').readFileSync('$ZEN/activity.jsonl','utf8').trim().split('\n').forEach(l=>JSON.parse(l));console.log('valid')")" "valid" "zen escapes backslashes and quotes in the cwd so every log line is valid JSON"
-assert_eq "$(GOD_ZEN_DIR="$ZEN" hook zen-activity.sh "{\"hook_event_name\":\"UserPromptSubmit\",\"cwd\":\"$PROJ\"}")" "" "zen stays silent with no next.json"
+assert_eq "$(GOD_ALLY_DIR="$ZEN" hook zen-activity.sh "{\"hook_event_name\":\"UserPromptSubmit\",\"cwd\":\"$PROJ\"}")" "" "zen stays silent with no next.json"
 SOON=$(( $(date +%s) + 300 ))
 printf '{"next_meeting_ts":%s}' "$SOON" > "$ZEN/next.json"
-OUT=$(GOD_ZEN_DIR="$ZEN" hook zen-activity.sh "{\"hook_event_name\":\"UserPromptSubmit\",\"cwd\":\"$PROJ\"}")
+OUT=$(GOD_ALLY_DIR="$ZEN" hook zen-activity.sh "{\"hook_event_name\":\"UserPromptSubmit\",\"cwd\":\"$PROJ\"}")
 assert_contains "$OUT" "meeting in 5 min" "zen warns before a meeting that starts in 5 minutes"
 assert_contains "$OUT" "ask in one line whether to continue" "zen asks before continuing on a strong signal"
 LATER=$(( $(date +%s) + 7200 ))
 printf '{"next_meeting_ts":%s}' "$LATER" > "$ZEN/next.json"
-assert_eq "$(GOD_ZEN_DIR="$ZEN" hook zen-activity.sh "{\"hook_event_name\":\"UserPromptSubmit\",\"cwd\":\"$PROJ\"}")" "" "zen is quiet when the meeting is two hours away"
+assert_eq "$(GOD_ALLY_DIR="$ZEN" hook zen-activity.sh "{\"hook_event_name\":\"UserPromptSubmit\",\"cwd\":\"$PROJ\"}")" "" "zen is quiet when the meeting is two hours away"
 printf '{"next_meeting_ts":%s,"quiet_until":%s}' "$SOON" "$LATER" > "$ZEN/next.json"
-assert_eq "$(GOD_ZEN_DIR="$ZEN" hook zen-activity.sh "{\"hook_event_name\":\"UserPromptSubmit\",\"cwd\":\"$PROJ\"}")" "" "zen respects quiet_until"
+assert_eq "$(GOD_ALLY_DIR="$ZEN" hook zen-activity.sh "{\"hook_event_name\":\"UserPromptSubmit\",\"cwd\":\"$PROJ\"}")" "" "zen respects quiet_until"
 printf '{"next_meeting_ts":%s}' "$SOON" > "$ZEN/next.json"; touch "$ZEN/off-$(date +%F)"
-assert_eq "$(GOD_ZEN_DIR="$ZEN" hook zen-activity.sh "{\"hook_event_name\":\"UserPromptSubmit\",\"cwd\":\"$PROJ\"}")" "" "'zen off' silences it for the day"
+assert_eq "$(GOD_ALLY_DIR="$ZEN" hook zen-activity.sh "{\"hook_event_name\":\"UserPromptSubmit\",\"cwd\":\"$PROJ\"}")" "" "'zen off' silences it for the day"
 assert_eq "$(run_gate zen-activity.sh 'not json')" "0" "zen never blocks on bad input"
 
 finish

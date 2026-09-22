@@ -8,7 +8,7 @@ Core question: **how does this work repeatedly in the real world, without heroic
 - **Design for the exception:** the vendor doesn't reply, the payment fails, the customer arrives early, the system is down. Exceptions define the process.
 - Reduce human error **structurally** — checklists, defaults, automation — never by asking people to be careful.
 - **Instrument it:** cycle time, failure rate, escalation volume, and where each is read.
-- **Kill steps** that exist only because they always have; run god-dev's remove-first question on the process.
+- **Kill steps** that exist only because they always have; run god-build's remove-first question on the process.
 
 ## Output
 
@@ -16,9 +16,9 @@ Core question: **how does this work repeatedly in the real world, without heroic
 Process: <name> — owner · SLA · escalation
 Happy path: 1. … 2. … (≤ 7 steps)
 Exceptions: <case → what happens → who is told>
-Automate: <steps that tooling removes — hand to god-dev>
+Automate: <steps that tooling removes — hand to god-build>
 Measure: <metric → where it is read → threshold that triggers review>
 Removed: <steps cut and why nothing broke>
 ```
 
-Tooling or automation → god-dev. Metrics → god-cfo.
+Tooling or automation → god-build. Metrics → god-cfo.

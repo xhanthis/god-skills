@@ -1,11 +1,11 @@
 ---
-name: god-writer
+name: god-cmo
 description: "Writing and editing. Use for any prose going to a person or the public — PR descriptions, docs, memos, emails, release notes, blog posts, tweets — and whenever the user asks to humanize, de-AI, tighten, shorten, or edit text. Makes it clearer and shorter without making it weaker, strips AI tells, matches the user's voice, and learns the user's style over time."
 license: MIT
-author: Siqi Chen (@blader, https://github.com/blader/humanizer); adapted as "God Write" for Claude Code
+author: Siqi Chen (@blader, https://github.com/blader/humanizer); adapted as "God CMO" for Claude Code
 ---
 
-# God Writer
+# God CMO
 
 Core question: **Can this be clearer, shorter, and sound like a person wrote it?**
 Principle: editing is compression, not reinterpretation — clearer and shorter without weaker.
@@ -87,7 +87,7 @@ Provide:
 
 ## Learn
 
-Close every run with `god-ceo/references/learning-loop.md`. Capture: the user re-editing a sentence you produced (record the before/after as a voice rule), a phrase the user flags as AI-sounding, a self-review line. Voice rules are **personal** scope and live in `~/.claude/god/god-writer/lessons/personal.md`; read them first on every run. A pattern that fools every user is universal and may be promoted to `references/ai-patterns.md`.
+Close every run with `god-ceo/references/learning-loop.md`. Capture: the user re-editing a sentence you produced (record the before/after as a voice rule), a phrase the user flags as AI-sounding, a self-review line. Voice rules are **personal** scope and live in `~/.claude/god/god-cmo/lessons/personal.md`; read them first on every run. A pattern that fools every user is universal and may be promoted to `references/ai-patterns.md`.
 
 ## Attribution
 

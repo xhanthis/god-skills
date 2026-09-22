@@ -20,4 +20,4 @@ Core question: **did anyone take shortcuts, including me?** No fabricated certai
 
 ## Verdict
 
-Clean → `Integrity: PASS (sampled: <test>, <claim>)` inside the Test cases doc, nothing in the reply. A violation → name the step and the shortcut, route back to god-dev, re-check after rework. Nothing ships until the re-check passes.
+Clean → `Integrity: PASS (sampled: <test>, <claim>)` inside the Test cases doc, nothing in the reply. A violation → name the step and the shortcut, route back to god-build, re-check after rework. Nothing ships until the re-check passes.

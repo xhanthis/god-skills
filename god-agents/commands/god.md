@@ -18,7 +18,7 @@ Invoke the `god-ceo` skill with the request verbatim and produce its plan as
 strict JSON:
 
 ```json
-{"chain": ["god-dev", "god-qa"], "reason": "<one line>"}
+{"chain": ["god-build", "god-qa"], "reason": "<one line>"}
 ```
 
 Show the plan to the user before executing it.
@@ -36,7 +36,7 @@ Surface each specialist's findings as they land — never summarize them away.
 
 ## 3. Failure loop
 
-If god-qa returns FAIL, invoke the god-dev skill again with the failure
+If god-qa returns FAIL, invoke the god-build skill again with the failure
 report, then god-qa again. Maximum 3 dev↔qa cycles; after that, stop and
 report exactly what is still broken.
 
