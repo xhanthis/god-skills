@@ -1,0 +1,54 @@
+#!/usr/bin/env bash
+# God Zen's daily report: its own node:test suite, plus the contract the skill depends on.
+set -uo pipefail
+cd "$(dirname "$0")/.."
+. test/harness.sh
+
+printf 'god-zen daily report\n'
+
+SCRIPTS=skills/god-zen/scripts
+assert_file "$SCRIPTS/zen-report.js" "the report script ships with the skill"
+assert_file "$SCRIPTS/zen-score.js" "the scoring module ships with the skill"
+assert_file "$SCRIPTS/zen-report.test.js" "the report's own suite ships"
+
+# --- the algorithm, run for real -------------------------------------------
+OUT=$(node --test "$SCRIPTS/" 2>&1)
+case "$OUT" in
+  *"# fail 0"*) _ok "every scoring unit test passes" ;;
+  *) _fail "every scoring unit test passes" "$(printf '%s' "$OUT" | grep -E '^not ok|# fail' | head -5)" ;;
+esac
+assert_contains "$OUT" "the worked example scores exactly 3.3" "the 3.3 worked example is pinned"
+assert_contains "$OUT" "00:29 belongs to the previous Zen day" "the 05:00 day boundary is pinned"
+assert_contains "$OUT" "caps the score at 5" "the past-midnight cap is pinned"
+assert_contains "$OUT" "with every source missing" "a run with no sources at all is covered"
+
+# --- it degrades instead of crashing ---------------------------------------
+HOME_DIR=$(mktemp -d)
+mkdir -p "$HOME_DIR/.god-zen" "$HOME_DIR/empty"
+cat > "$HOME_DIR/.god-zen/config.json" <<JSON
+{"repoRoots":["$HOME_DIR/empty"],"maxDepth":2,"authorEmails":["nobody@example.invalid"],"timezone":"Asia/Kolkata","dayStartHour":5,"healthFolder":"$HOME_DIR/nope","useCcusage":false}
+JSON
+REPORT=$(HOME="$HOME_DIR" node "$SCRIPTS/zen-report.js" --mcp 'not json' 2>&1)
+assert_contains "$REPORT" "Zen Score" "the report prints without a single source"
+assert_contains "$REPORT" "missing:" "the footer names the missing sources"
+assert_contains "$REPORT" "apple health sleep" "a missing Health folder is named, not fatal"
+assert_file "$HOME_DIR/.god-zen/history.jsonl" "the first run writes history"
+NUMBERS_ONLY=$(grep -c '"date"' "$HOME_DIR/.god-zen/history.jsonl" 2>/dev/null || echo 0)
+[ "$NUMBERS_ONLY" -ge 30 ] && _ok "the first run backfills 30 days" || _fail "the first run backfills 30 days" "$NUMBERS_ONLY lines"
+assert_not_contains "$(cat "$HOME_DIR/.god-zen/history.jsonl")" "message" "history holds numbers, never content"
+JSON_OUT=$(HOME="$HOME_DIR" node "$SCRIPTS/zen-report.js" --json 2>&1)
+assert_contains "$JSON_OUT" '"sources"' "--json returns the same run as data"
+rm -rf "$HOME_DIR"
+
+# --- what the skill promises -----------------------------------------------
+ZEN=$(cat skills/god-zen/SKILL.md)
+assert_contains "$ZEN" "zen-report.js" "the skill names the report script"
+assert_contains "$ZEN" "Never ask the user anything" "the report stays passive"
+assert_contains "$ZEN" '"meetings"' "the skill documents the MCP payload"
+assert_contains "$ZEN" "never message or event content" "MCP gathering is timestamps only"
+README=$(cat README.md)
+assert_contains "$README" "cleanupPeriodDays" "the README tells users to keep more log history"
+assert_contains "$README" "Find Health Samples" "the README carries the iOS Shortcut steps"
+assert_contains "$README" "Run Immediately" "the Shortcut never prompts"
+
+finish

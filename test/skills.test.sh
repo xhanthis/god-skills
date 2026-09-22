@@ -200,6 +200,9 @@ assert_contains "$ZEN" "never leaves the machine, never a PR" "god-zen data stay
 assert_contains "$ZEN" "ask before continuing" "god-zen asks before work on a strong signal"
 assert_contains "$ZEN" "zen-activity.sh" "god-zen names its collector hook"
 assert_contains "$ZEN" "Never** diagnoses" "god-zen never diagnoses"
+assert_file "skills/god-zen/scripts/zen-report.js" "god-zen ships its daily report script"
+assert_file "skills/god-zen/scripts/zen-score.js" "god-zen ships its scoring module"
+assert_file "$WORK/h1/.claude/skills/god-zen/scripts/zen-report.js" "the installer copies skill scripts"
 for S in god-ceo god-cfo god-writer god-qa god-dev god-pm god-zen; do
   L=$(wc -l < skills/$S/SKILL.md | tr -d ' ')
   [ "$L" -le 150 ] && _ok "$S core stays under 150 lines ($L)" || _fail "$S core stays under 150 lines" "$L lines"
