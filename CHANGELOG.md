@@ -9,6 +9,7 @@ All notable changes to `god-skills` and `god-agents`. Dates are release dates.
 - Install removes the old `god-dev`, `god-writer` and `god-zen` skill folders and agent files it once wrote.
 - **god-build's final message is laid out like god-ally's report** — one aligned block in a code fence (result, what changed, QA, week, needs you), with the PR and doc links on their own lines below it.
 - **No more hardcoded quotes or signatures.** `quotes.json` and the fixed signer list are gone. `--quote` now returns a brief of the moment (mood, score, what went wrong, lines to avoid) and the skill writes a fresh line for it, recorded with `--quote-said` so it never repeats. Each PR signature is written for that PR and logged in `signatures.jsonl`.
+- **god-qa and god-cfo replies follow the same layout** — a plain one-sentence answer on top, then one aligned block. god-qa explains every issue in what a user would see. god-cfo always shows a worked example with real numbers and a picture (split bars, slab ladder, money flow), explains every term in everyday words, and asks 1–3 quick questions when a definition or policy is unclear instead of guessing.
 - god-ally keeps its data in `~/.god-ally/` and `~/.claude/god/god-ally/`; move the old `god-zen` folders there to keep your history.
 
 ## 3.1.0 — 2026-09-22
