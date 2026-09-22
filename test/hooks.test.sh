@@ -27,41 +27,41 @@ assert_file "$LOG" "log-edits creates the chain log"
 assert_contains "$(cat "$LOG")" '"agent":"god-dev"' "the edit is attributed to the agent that made it"
 
 # --- Gate 1: no PASS, no finish -------------------------------------------
-CODE=$(run_gate require-tester-pass.sh "{\"cwd\":\"$PROJ\",\"stop_hook_active\":false}")
-assert_eq "$CODE" "2" "session is blocked while god-dev edits lack a tester PASS"
+CODE=$(run_gate require-qa-pass.sh "{\"cwd\":\"$PROJ\",\"stop_hook_active\":false}")
+assert_eq "$CODE" "2" "session is blocked while god-dev edits lack a qa PASS"
 
 # --- verdict recording ----------------------------------------------------
 printf 'noise\n**Result: PASS**\n' > "$WORK/transcript.txt"
 hook record-verdict.sh "{\"cwd\":\"$PROJ\",\"transcript_path\":\"$WORK/transcript.txt\"}"
-assert_contains "$(cat "$LOG")" '"verdict":"PASS"' "the tester verdict is recorded"
+assert_contains "$(cat "$LOG")" '"verdict":"PASS"' "the qa verdict is recorded"
 
-CODE=$(run_gate require-tester-pass.sh "{\"cwd\":\"$PROJ\",\"stop_hook_active\":false}")
+CODE=$(run_gate require-qa-pass.sh "{\"cwd\":\"$PROJ\",\"stop_hook_active\":false}")
 assert_eq "$CODE" "0" "a recorded PASS unblocks the session"
 
 # --- a later dev edit re-blocks -------------------------------------------
 hook log-edits.sh "{\"cwd\":\"$PROJ\",\"agent_type\":\"god-dev\",\"tool_name\":\"Write\",\"tool_input\":{\"file_path\":\"/x/z.go\"}}"
-CODE=$(run_gate require-tester-pass.sh "{\"cwd\":\"$PROJ\",\"stop_hook_active\":false}")
+CODE=$(run_gate require-qa-pass.sh "{\"cwd\":\"$PROJ\",\"stop_hook_active\":false}")
 assert_eq "$CODE" "2" "an edit after the PASS blocks again"
 
 # --- FAIL is not a PASS ---------------------------------------------------
 printf '**Result: FAIL**\n' > "$WORK/fail.txt"
 hook record-verdict.sh "{\"cwd\":\"$PROJ\",\"transcript_path\":\"$WORK/fail.txt\"}"
-CODE=$(run_gate require-tester-pass.sh "{\"cwd\":\"$PROJ\",\"stop_hook_active\":false}")
+CODE=$(run_gate require-qa-pass.sh "{\"cwd\":\"$PROJ\",\"stop_hook_active\":false}")
 assert_eq "$CODE" "2" "a FAIL verdict does not unblock the session"
 
 # --- UNVERIFIED is not a PASS either --------------------------------------
 printf '**Result: UNVERIFIED**\n' > "$WORK/unv.txt"
 hook record-verdict.sh "{\"cwd\":\"$PROJ\",\"transcript_path\":\"$WORK/unv.txt\"}"
-CODE=$(run_gate require-tester-pass.sh "{\"cwd\":\"$PROJ\",\"stop_hook_active\":false}")
+CODE=$(run_gate require-qa-pass.sh "{\"cwd\":\"$PROJ\",\"stop_hook_active\":false}")
 assert_eq "$CODE" "2" "an UNVERIFIED verdict does not unblock the session"
 
 # --- loop guard -----------------------------------------------------------
-CODE=$(run_gate require-tester-pass.sh "{\"cwd\":\"$PROJ\",\"stop_hook_active\":true}")
+CODE=$(run_gate require-qa-pass.sh "{\"cwd\":\"$PROJ\",\"stop_hook_active\":true}")
 assert_eq "$CODE" "0" "the gate does not re-block itself (loop guard)"
 
 # --- a project with no dev edits is never blocked -------------------------
 CLEAN="$WORK/clean"; mkdir -p "$CLEAN"
-CODE=$(run_gate require-tester-pass.sh "{\"cwd\":\"$CLEAN\",\"stop_hook_active\":false}")
+CODE=$(run_gate require-qa-pass.sh "{\"cwd\":\"$CLEAN\",\"stop_hook_active\":false}")
 assert_eq "$CODE" "0" "a session that changed nothing is not blocked"
 
 # --- Gate 1, inline skill mode --------------------------------------------
@@ -73,13 +73,13 @@ T="$WORK/session.jsonl"
 DEV_CALL='{"isSidechain":false,"message":{"role":"assistant","content":[{"type":"tool_use","id":"toolu_1","name":"Skill","input":{"skill":"god-dev"}}]}}'
 EDIT_CALL='{"isSidechain":false,"message":{"role":"assistant","content":[{"type":"tool_use","id":"toolu_2","name":"Edit","input":{"file_path":"/x/y.go"}}]}}'
 say() { printf '{"isSidechain":false,"message":{"role":"assistant","content":[{"type":"text","text":"%s"}]}}\n' "$1"; }
-skill_gate() { run_gate require-tester-pass.sh "{\"cwd\":\"$SKILLPROJ\",\"transcript_path\":\"$1\",\"stop_hook_active\":false}"; }
+skill_gate() { run_gate require-qa-pass.sh "{\"cwd\":\"$SKILLPROJ\",\"transcript_path\":\"$1\",\"stop_hook_active\":false}"; }
 
 printf '%s\n%s\n' "$DEV_CALL" "$EDIT_CALL" > "$T"
 assert_eq "$(skill_gate "$T")" "2" "inline god-dev edits without a PASS block the session"
 
 say '**Result: PASS**' >> "$T"
-assert_eq "$(skill_gate "$T")" "0" "an inline god-tester PASS unblocks the session"
+assert_eq "$(skill_gate "$T")" "0" "an inline god-qa PASS unblocks the session"
 
 printf '%s\n' "$EDIT_CALL" >> "$T"
 assert_eq "$(skill_gate "$T")" "2" "an edit after the inline PASS blocks again"
@@ -201,7 +201,7 @@ assert_eq "$CODE" "0" "prose files are exempt from the loose-ends gate"
 # --- gates never block on their own bugs ----------------------------------
 CODE=$(run_gate block-raw-sql.sh 'not json at all')
 assert_eq "$CODE" "0" "malformed input does not block the tool call"
-CODE=$(run_gate require-tester-pass.sh '{}')
+CODE=$(run_gate require-qa-pass.sh '{}')
 assert_eq "$CODE" "0" "missing cwd does not block the session"
 CODE=$(run_gate log-edits.sh '{}')
 assert_eq "$CODE" "0" "the logger exits cleanly on empty input"
@@ -220,7 +220,7 @@ printf '%s' "{\"cwd\":\"$PROJ2\",\"agent_type\":\"god-dev\",\"tool_name\":\"Edit
   | PATH="$BIN" "$H/log-edits.sh"
 assert_file "$PROJ2/.claude/logs/chain.jsonl" "log-edits works without jq"
 
-printf '%s' "{\"cwd\":\"$PROJ2\",\"stop_hook_active\":false}" | PATH="$BIN" "$H/require-tester-pass.sh" >/dev/null 2>&1
+printf '%s' "{\"cwd\":\"$PROJ2\",\"stop_hook_active\":false}" | PATH="$BIN" "$H/require-qa-pass.sh" >/dev/null 2>&1
 assert_eq "$?" "2" "the PASS gate works without jq"
 
 printf '%s' '{"tool_input":{"file_path":"/a.py","content":"cur.execute(f\"SELECT * FROM t WHERE id={uid}\")"}}' \

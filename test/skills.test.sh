@@ -25,7 +25,7 @@ OUT=$(HOME="$WORK/h1" node "$CLI" -g -y)
 assert_contains "$OUT" "already present" "a second install leaves existing skills alone"
 
 # --- selective install, short names, unknown names ------------------------
-HOME="$WORK/h2" node "$CLI" dev tester -g -y >/dev/null
+HOME="$WORK/h2" node "$CLI" dev qa -g -y >/dev/null
 assert_eq "$(ls "$WORK/h2/.claude/skills" | wc -l | tr -d ' ')" "2" "short names install just those skills"
 assert_file "$WORK/h2/.claude/skills/god-dev/SKILL.md" "short name 'dev' resolves to god-dev"
 assert_exit 1 "an unknown skill name fails loudly" -- env HOME="$WORK/h3" node "$CLI" nope -g -y
@@ -94,16 +94,22 @@ process.stdin.on("end", () => {
 ')
 assert_eq "$MANIFEST" "OK" "the tarball ships skills and excludes the god-agents package"
 
-# --- god-tester contract ---------------------------------------------------
+# --- god-qa contract ---------------------------------------------------
 # The hook gates grep the lead transcript for `Result: PASS|FAIL|UNVERIFIED`;
 # the reply template must keep that token or every session stays blocked.
-TESTER=$(cat skills/god-tester/SKILL.md)
-assert_contains "$TESTER" "Result: PASS | FAIL | UNVERIFIED" "god-tester's reply template carries the hook verdict token"
+TESTER=$(cat skills/god-qa/SKILL.md skills/god-qa/references/*.md)
+assert_contains "$TESTER" "Result: PASS | FAIL | UNVERIFIED" "god-qa's reply template carries the hook verdict token"
 for VP in 390x844 820x1180 1512x982 1440x900; do
-  assert_contains "$TESTER" "$VP" "god-tester tests the $VP viewport"
+  assert_contains "$TESTER" "$VP" "god-qa tests the $VP viewport"
 done
-assert_contains "$TESTER" "Any **5** → **FAIL**" "god-tester fails the module on a score-5 issue"
-assert_contains "$TESTER" "Manual Test Guide" "god-tester produces the manual curl guide"
+assert_contains "$TESTER" "Any **5** → **FAIL**" "god-qa fails the module on a score-5 issue"
+assert_contains "$TESTER" "Manual Test Guide" "god-qa produces the manual curl guide"
+for REF in frontend security compliance-india integrity docs; do
+  assert_file "skills/god-qa/references/$REF.md" "god-qa ships references/$REF.md"
+done
+assert_contains "$(cat skills/god-qa/SKILL.md)" "integrity.md\` runs before **every** PASS" "god-qa runs the integrity pass before any PASS"
+QALINES=$(wc -l < skills/god-qa/SKILL.md | tr -d ' ')
+[ "$QALINES" -le 150 ] && _ok "god-qa core stays under 150 lines ($QALINES)" || _fail "god-qa core stays under 150 lines" "$QALINES lines"
 
 # --- god-dev contract ------------------------------------------------------
 DEV=$(cat skills/god-dev/SKILL.md)
@@ -111,8 +117,8 @@ for MODE in small normal deep; do
   assert_contains "$DEV" "| **$MODE** |" "god-dev defines the $MODE mode"
 done
 assert_contains "$DEV" "User override wins" "god-dev lets the user override the mode"
-assert_contains "$DEV" "Self-score before handoff" "god-dev scores its own diff before god-tester"
-assert_contains "$DEV" "returned \`Result: PASS\`" "god-dev's done requires god-tester's hook verdict token"
+assert_contains "$DEV" "Self-score before handoff" "god-dev scores its own diff before god-qa"
+assert_contains "$DEV" "returned \`Result: PASS\`" "god-dev's done requires god-qa's hook verdict token"
 for MEM in "profiles/<repo-slug>.json" "lessons/<repo-slug>.md" "scorecard.jsonl"; do
   assert_contains "$DEV" "$MEM" "god-dev keeps $MEM"
 done
