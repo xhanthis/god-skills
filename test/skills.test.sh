@@ -57,6 +57,23 @@ assert_file "$OLD/god-designer/SKILL.md" "a user folder with a retired name but 
 assert_file "$OLD/god-mine/SKILL.md" "unrelated folders are untouched"
 assert_contains "$OUT" "share_learnings" "install tells the user how to opt out of upstream learning PRs"
 
+# --- other CLIs: --codex / --gemini / --agents-md ---------------------------
+CX="$WORK/codex"; mkdir -p "$CX"; printf '# My repo\n\nKeep this.\n' > "$CX/AGENTS.md"
+(cd "$CX" && node "$CLI" --codex >/dev/null)
+assert_file "$CX/.god-skills/god-dev/SKILL.md" "--codex copies the skills next to AGENTS.md"
+assert_file "$CX/.god-skills/god-qa/references/frontend.md" "--codex copies skill references too"
+AG=$(cat "$CX/AGENTS.md")
+assert_contains "$AG" "Keep this." "--codex preserves the existing AGENTS.md content"
+assert_contains "$AG" "<!-- god-skills:start -->" "--codex writes a marker-delimited block"
+assert_eq "$(grep -c '^| \*\*god-' "$CX/AGENTS.md" | tr -d ' ')" "$COUNT" "the index block lists every skill"
+assert_contains "$AG" ".god-skills/god-ceo/SKILL.md" "the index points at the copied files"
+(cd "$CX" && node "$CLI" --codex >/dev/null)
+assert_eq "$(grep -c 'god-skills:start' "$CX/AGENTS.md" | tr -d ' ')" "1" "re-running --codex replaces the block instead of appending"
+(cd "$CX" && node "$CLI" --gemini >/dev/null)
+assert_file "$CX/GEMINI.md" "--gemini writes GEMINI.md"
+(cd "$CX" && node "$CLI" --agents-md .cursor/rules/god.md >/dev/null)
+assert_file "$CX/.cursor/rules/god.md" "--agents-md writes any instruction file"
+
 # --- list -----------------------------------------------------------------
 LIST=$(node "$CLI" list)
 assert_contains "$LIST" "$COUNT skills available" "list counts every skill"
@@ -64,7 +81,7 @@ assert_contains "$LIST" "god-zen" "list names the newest skill"
 
 # --- the agent system moved out of this package ---------------------------
 HELP=$(node "$CLI" --help)
-assert_not_contains "$HELP" "--agents" "the agent flags are gone from god-skills"
+assert_not_contains "$HELP" "--agents " "the agent flags are gone from god-skills"
 assert_contains "$HELP" "npx god-agents" "help points at the god-agents package"
 
 # --- doctor ---------------------------------------------------------------
