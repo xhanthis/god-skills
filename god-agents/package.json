@@ -1,6 +1,6 @@
 {
   "name": "god-agents",
-  "version": "1.3.0",
+  "version": "1.4.0",
   "description": "Claude Code subagents generated from the god-skills skills, plus the hook gates that enforce them and a headless runner template.",
   "bin": {
     "god-agents": "bin/god-agents.js",
