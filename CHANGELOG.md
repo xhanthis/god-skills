@@ -5,9 +5,9 @@ All notable changes to `god-skills` and `god-agents`. Dates are release dates.
 ## Unreleased
 
 ### Changed
-- **Renamed three skills and their subagents.** `god-dev` → `god-build`, `god-writer` → `god-cmo`, `god-zen` → `god-ally`. The team is now god-ceo, god-pm, god-build, god-qa, god-cfo, god-cmo and god-ally. Short names follow (`npx god-skills build`).
-- Install removes the old `god-dev`, `god-writer` and `god-zen` skill folders and agent files it once wrote.
-- **god-build's final message is laid out like god-ally's report** — one aligned block in a code fence (result, what changed, QA, week, needs you), with the PR and doc links on their own lines below it.
+- **Renamed two skills and their subagents.** `god-writer` → `god-cmo`, `god-zen` → `god-ally`. The team is now god-ceo, god-pm, god-dev, god-qa, god-cfo, god-cmo and god-ally.
+- Install removes the old `god-writer` and `god-zen` skill folders and agent files it once wrote.
+- **god-dev's final message is laid out like god-ally's report** — one aligned block in a code fence (result, what changed, QA, week, needs you), with the PR and doc links on their own lines below it.
 - **No more hardcoded quotes or signatures.** `quotes.json` and the fixed signer list are gone. `--quote` now returns a brief of the moment (mood, score, what went wrong, lines to avoid) and the skill writes a fresh line for it, recorded with `--quote-said` so it never repeats. Each PR signature is written for that PR and logged in `signatures.jsonl`.
 - **god-qa and god-cfo replies follow the same layout** — a plain one-sentence answer on top, then one aligned block. god-qa explains every issue in what a user would see. god-cfo always shows a worked example with real numbers and a picture (split bars, slab ladder, money flow), explains every term in everyday words, and asks 1–3 quick questions when a definition or policy is unclear instead of guessing.
 - **god-ceo, god-pm, god-cmo and `/god-ally week` follow the same layout.** god-ceo shows the call with a before/after picture and asks quick questions when a priority is unclear; god-pm leads with a customer example and evidence bars, sources below; god-cmo puts the final text first with a short what-changed block and keeps the draft and audit out of the reply; the week view drops its table for the daily report's block and chart.

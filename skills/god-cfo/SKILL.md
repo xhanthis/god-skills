@@ -27,7 +27,7 @@ Goal: finance, numbers and policy should feel easy. Explain every answer so some
 
 ## Findings
 
-Every mismatch is scored on god-qa's 1–5 scale (wrong money reaching a customer, partner or the books = 5). A financial diff with any 4 or 5 is not shippable; route to god-build with the recomputation attached, then re-check.
+Every mismatch is scored on god-qa's 1–5 scale (wrong money reaching a customer, partner or the books = 5). A financial diff with any 4 or 5 is not shippable; route to god-dev with the recomputation attached, then re-check.
 
 ## Learn
 
@@ -79,7 +79,7 @@ Laid out like god-ally's report: one plain sentence on top, one aligned block in
 
 ## Route
 
-Fixes → **god-build** → **god-qa** → re-check here. Legal or tax provision questions → god-qa's `compliance-india.md`. Decision on pricing or investment → **god-ceo**.
+Fixes → **god-dev** → **god-qa** → re-check here. Legal or tax provision questions → god-qa's `compliance-india.md`. Decision on pricing or investment → **god-ceo**.
 
 ## Output rules
 

@@ -71,7 +71,7 @@ Laid out like god-ally's report: one plain sentence on top, one aligned block in
 
   Test first refund 20 orders by hand with the new rule
   Conditions ships behind a flag · revisit if refunds still fail > 1%
-  Chain      god-build → god-qa → god-cfo
+  Chain      god-dev → god-qa → god-cfo
 
   ──────────────────────────────────────────────────────────────────
 ```
@@ -87,7 +87,7 @@ Laid out like god-ally's report: one plain sentence on top, one aligned block in
 
 ## Route
 
-Implementation → **god-build**. Proof → **god-qa**. Money, pricing, data → **god-cfo**. What to build, research, customers, ops, rebuilding a product → **god-pm**. Prose → **god-cmo**. Pace, hours, breaks → **god-ally**.
+Implementation → **god-dev**. Proof → **god-qa**. Money, pricing, data → **god-cfo**. What to build, research, customers, ops, rebuilding a product → **god-pm**. Prose → **god-cmo**. Pace, hours, breaks → **god-ally**.
 
 ## Output rules
 

@@ -18,7 +18,7 @@ npx god-skills doctor     # verify the install, flag leftovers from older versio
 ```
 
 ```bash
-npx god-skills build qa --global      # just these two
+npx god-skills dev qa --global      # just these two
 npx god-skills --project --force    # overwrite in this repo
 npx god-agents --all                # subagents, /god, and the hook gates
 ```
@@ -31,7 +31,7 @@ npx god-agents --all                # subagents, /god, and the hook gates
 | `-f, --force` | overwrite files already there |
 | `-y, --yes` | no prompts, defaults to global |
 
-Short names work: `npx god-skills build` installs `god-build`. Upgrading from 2.x: the install removes the retired skill folders it once wrote (never a folder of yours that happens to share a name) and `doctor` names any left behind. `v2.4.0` is tagged if you need the old 30.
+Short names work: `npx god-skills dev` installs `god-dev`. Upgrading from 2.x: the install removes the retired skill folders it once wrote (never a folder of yours that happens to share a name) and `doctor` names any left behind. `v2.4.0` is tagged if you need the old 30.
 
 Restart Claude Code after installing — skills load at session start.
 
@@ -52,14 +52,14 @@ Each copies the 7 skills to `./.god-skills/` and adds one marker-delimited index
 | Skill | Core question | Absorbed |
 |---|---|---|
 | **god-ceo** | What is the real problem, is it worth doing, who does it, and what is the final call? | context, cos, historian, da, god |
-| **god-build** | How do we design and implement this correctly, fast, and better than last time? | architect, simplifier |
+| **god-dev** | How do we design and implement this correctly, fast, and better than last time? | architect, simplifier |
 | **god-qa** | Does it actually work, is it safe, and can we prove it? | tester, security, police, pl |
 | **god-cfo** | Do the numbers reconcile, what should we charge, and what does the data say? | pricer, data |
 | **god-pm** | What should we build, why, for whom, how does it run, and how is the competitor built? | customer, ops, strategist, scout, researcher, reverse |
 | **god-cmo** | Is this clear, short, and does it read like a human wrote it? | write, editor |
 | **god-ally** | Is this pace sustainable — and should you be working right now? | plan, health |
 
-Every skill's `SKILL.md` stays under 150 lines; the heavier passes live in `references/` and load only when the task needs them (god-qa's four-viewport frontend pass only when UI changed, its security pass only when auth or input is touched, god-build's architecture pass only in deep mode).
+Every skill's `SKILL.md` stays under 150 lines; the heavier passes live in `references/` and load only when the task needs them (god-qa's four-viewport frontend pass only when UI changed, its security pass only when auth or input is touched, god-dev's architecture pass only in deep mode).
 
 ## God Ally's daily report
 
@@ -121,17 +121,17 @@ Skip it and the report still works: sleep is then scored on when you stopped wor
 ## How a request flows
 
 ```
-USER → god-ceo (vague or multi-skill asks only) → god-build → god-qa → EXECUTE
+USER → god-ceo (vague or multi-skill asks only) → god-dev → god-qa → EXECUTE
 ```
 
 - **Vague request** ("order amount is wrong") → **god-ceo** investigates the codebase, reconstructs the real problem, says whether it is worth doing and where it ranks this week, and picks the minimum chain. A clear single-skill ask skips it.
-- **Writing code** → **god-build** picks a mode — **small** (≤30 lines, no revenue / business logic / data), **normal**, **deep** (anything touching money, data, auth, or >300 lines; designs first and waits for your OK) — you can override with one word. It syncs git, checks for an unmerged branch already doing the work, loads the repo profile and lessons, plans with a what-could-go-wrong list, removes before it adds, self-scores on god-qa's 1–5 scale and fixes every 4–5, then runs god-qa itself in the same mode — every change is tested by default — and returns one message: title, a plain-English sentence, PR links, the flowchart doc, the test cases, the manual checks.
+- **Writing code** → **god-dev** picks a mode — **small** (≤30 lines, no revenue / business logic / data), **normal**, **deep** (anything touching money, data, auth, or >300 lines; designs first and waits for your OK) — you can override with one word. It syncs git, checks for an unmerged branch already doing the work, loads the repo profile and lessons, plans with a what-could-go-wrong list, removes before it adds, self-scores on god-qa's 1–5 scale and fixes every 4–5, then runs god-qa itself in the same mode — every change is tested by default — and returns one message: title, a plain-English sentence, PR links, the flowchart doc, the test cases, the manual checks.
 - **Proving it** → **god-qa** extends the same risk list, writes and runs tests (backend; frontend at 390×844, 820×1180, 1512×982, 1440×900 via gstack browse; accessibility; perf and a 50-call burst on local/staging only; simulated low network), runs the security and Indian-compliance passes when the diff touches them, re-runs past failures first, spot-checks its own evidence, scores every issue (5 = cannot go live … 1 = backlog; any 5 or two 4s = FAIL), fixes and retests up to three times, and ends with a one-screen verdict plus two Claude Docs — the test cases with results, and a manual guide with ready-to-run curls.
 - **Money in the diff** → **god-cfo** recomputes it a second way before it is trusted.
 - **Any significant decision** → **god-ceo** attacks it, decides (BUILD · MODIFY · CHEAPEST TEST FIRST · DEFER · INVESTIGATE · DO NOT BUILD · SHIP · DO NOT SHIP · STOP), records why in `docs/decisions/`, and answers "why does this exist" later.
 - **Every skill's final message** may carry one 🧘 line from **god-ally** — stop for tonight, take a break, don't start this before the meeting, eat, go deep now — whenever it has something specific. On a strong signal it asks before you continue.
 
-Failure loops: `qa → build → qa` (max 3) · `cfo → build → cfo` · stuck anywhere → `god-ceo` (sensei).
+Failure loops: `qa → dev → qa` (max 3) · `cfo → dev → cfo` · stuck anywhere → `god-ceo` (sensei).
 
 ## The learning loop
 
@@ -145,7 +145,7 @@ One shared loop, `god-ceo/references/learning-loop.md`, used by all seven. A lea
 
 Value = **severity × reach × confidence**. A universal lesson scoring ≥ 18 (or any severity-5 finding) opens a PR on its **first** sighting; 6–17 is stored and promoted as confidence grows; below 6 waits as a candidate. The PR carries a summarized rule only — never code, paths, names or tokens — is opened from the user's fork, labelled `learning`, at most one a day, and is never merged by a machine. On by default; `"share_learnings": false` in `~/.claude/god/config.json` turns it off. CI rejects a learning PR that touches anything but skill text, exceeds 40 lines, lacks its `Scope:` / `Score:` lines, or contains anything identifying.
 
-Memory lives in `~/.claude/god/<skill>/` — lessons, scorecards, god-build's repo profiles, god-qa's regression files, god-ceo's decisions and priorities, god-ally's activity log. Nothing there is ever sent anywhere except the summarized rules described above.
+Memory lives in `~/.claude/god/<skill>/` — lessons, scorecards, god-dev's repo profiles, god-qa's regression files, god-ceo's decisions and priorities, god-ally's activity log. Nothing there is ever sent anywhere except the summarized rules described above.
 
 ## The rules every God obeys
 
@@ -157,7 +157,7 @@ Memory lives in `~/.claude/god/<skill>/` — lessons, scorecards, god-build's re
 
 **Integrity gate.** god-qa's integrity pass re-runs one test, re-verifies one claim, and greps the final diff for what the org PR reviewer hard-blocks before any PASS — sampling catches most shortcuts.
 
-**Ship gate.** god-build writes to, and god-qa fails on, the org PR auto-reviewer's own blocker list: raw errors in responses, unindexed or unbounded SQL, PII in logs / URLs / third parties, missing authz, XSS, secrets, credential-shaped fixtures, red CI.
+**Ship gate.** god-dev writes to, and god-qa fails on, the org PR auto-reviewer's own blocker list: raw errors in responses, unindexed or unbounded SQL, PII in logs / URLs / third parties, missing authz, XSS, secrets, credential-shaped fixtures, red CI.
 
 **Brevity.** Lead with the finding, one line per point, max three points outside the templates, no prose on a pass. If the review is longer than the change, the review is wrong.
 
@@ -165,7 +165,7 @@ Memory lives in `~/.claude/god/<skill>/` — lessons, scorecards, god-build's re
 
 | Event | Gate |
 |---|---|
-| `Stop` | the session cannot finish while god-build edits lack a god-qa `Result: PASS` — read from the chain log for subagents and the transcript for inline skills |
+| `Stop` | the session cannot finish while god-dev edits lack a god-qa `Result: PASS` — read from the chain log for subagents and the transcript for inline skills |
 | `SubagentStop` on god-qa | the verdict is recorded so the Stop gate has ground truth |
 | `PreToolUse` on Edit/Write | string-concatenated SQL and reviewer tripwires are blocked before they land |
 | `SessionStart` / `UserPromptSubmit` / `Stop` | god-ally's collector logs the event and, before a prompt, warns when a meeting is minutes away or you are past your stop time |

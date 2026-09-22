@@ -87,7 +87,7 @@ Laid out like god-ally's report: one plain sentence on top, one aligned block in
 
 ## Route
 
-Economics, pricing, data → **god-cfo**. Build → **god-build**. UI/UX questions ride with god-build's plan card (god-qa tests the 4 viewports). Legal/compliance → god-qa's `compliance-india.md`. The go / no-go → **god-ceo**.
+Economics, pricing, data → **god-cfo**. Build → **god-dev**. UI/UX questions ride with god-dev's plan card (god-qa tests the 4 viewports). Legal/compliance → god-qa's `compliance-india.md`. The go / no-go → **god-ceo**.
 
 ## Output rules
 

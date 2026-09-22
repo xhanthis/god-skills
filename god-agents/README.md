@@ -22,7 +22,7 @@ npx god-agents doctor     # verify the install
 ```
 
 ```bash
-npx god-agents build tester security --global   # just these three
+npx god-agents dev tester security --global   # just these three
 npx god-agents list                           # agents, tools and models
 npx god-agents runtime ~/god-agents-runtime   # scaffold the headless runner
 ```
@@ -36,7 +36,7 @@ npx god-agents runtime ~/god-agents-runtime   # scaffold the headless runner
 | `-y, --yes` | no prompts, defaults to global |
 | `--dry-run` | print what would happen, write nothing |
 
-Short names work: `npx god-agents build` installs `god-build`.
+Short names work: `npx god-agents dev` installs `god-dev`.
 
 Hooks always install globally — the settings snippet references `$HOME`.
 
@@ -69,7 +69,7 @@ compares to prove it.
 | god-ceo | Read, Grep, Glob, Write, Bash | opus |
 | god-cfo | Read, Grep, Glob, Bash | opus |
 | god-cmo | Read, Write, Edit, Grep, Glob | sonnet |
-| god-build | Read, Write, Edit, Grep, Glob, Bash, Skill, ToolSearch, Claude Docs (guide, batch, update, read) | opus |
+| god-dev | Read, Write, Edit, Grep, Glob, Bash, Skill, ToolSearch, Claude Docs (guide, batch, update, read) | opus |
 | god-qa | Read, Write, Edit, Bash, Grep, Glob, Skill, ToolSearch, Claude Docs (guide, batch, update, read) | opus |
 | god-pm | Read, Grep, Glob, Bash, WebSearch, WebFetch, Write | opus |
 | god-ally | Read, Grep, Glob, Bash, Write | sonnet |
@@ -88,14 +88,14 @@ times.
 
 | Event | Gate |
 |---|---|
-| `Stop` | the session cannot finish while god-build edits lack a god-qa PASS, whether god-build ran as a subagent (read from the chain log) or inline as a skill (read from the session transcript) |
+| `Stop` | the session cannot finish while god-dev edits lack a god-qa PASS, whether god-dev ran as a subagent (read from the chain log) or inline as a skill (read from the session transcript) |
 | `PreToolUse` on Edit/Write | string-built SQL is blocked outright |
 | `PreToolUse` on Edit/Write | credential-shaped literals and reviewer-injection phrasing are blocked in every file, fixtures included — the exact regexes the org PR auto-reviewer greps for |
 | `PreToolUse` on Edit/Write | loose ends are blocked: a `TODO` without `(owner, TICKET-123)`, a `requests.*()` call without `timeout=`, Go's timeout-less `http.Get` / `http.DefaultClient` |
 | `PostToolUse` on Edit/Write | every edit is logged to `.claude/logs/chain.jsonl` |
 | `SubagentStop` on god-qa | the verdict is recorded, so the Stop gate has ground truth |
 
-That is the difference between "god-build should call god-qa" and god-build being
+That is the difference between "god-dev should call god-qa" and god-dev being
 unable to finish without one. `FAIL` and `UNVERIFIED` don't unblock it either.
 
 `--hooks` backs up `~/.claude/settings.json` before merging, skips any gate that
