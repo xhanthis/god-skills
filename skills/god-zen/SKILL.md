@@ -18,6 +18,8 @@ Principle: health is the foundation of performance, not the price of it. Interve
 | `next.json` | this skill, at close | `{"next_meeting_ts","stop_after","lunch","quiet_until"}` — what the hook reads before the next prompt |
 | `nudges.jsonl` | this skill | every line it spoke, so it never repeats one within a day |
 | `lessons/`, `scorecard.jsonl` | learning loop | personal scope only |
+| `~/.god-zen/config.json` | the report, on first run | repo roots, author emails, timezone, day boundary, Health folder — edit to taste |
+| `~/.god-zen/history.jsonl` | the report, every run | one line a day: timestamps, commit, token, session and sleep **numbers only** |
 
 Sources, read at close (cheap, cached per day): `activity.jsonl`; `git log --all --since=-28.days --format=%at` across the repos seen in `activity.jsonl`; `npx ccusage@latest daily --json` (skip silently if unavailable); Google Calendar and Wispr Flow tools when the session lists them (today's and tomorrow's events; skip silently otherwise).
 
@@ -43,10 +45,40 @@ Sources, read at close (cheap, cached per day): `activity.jsonl`; `git log --all
 - **Weekly report doc:** the first session each Monday writes the week's summary to one Claude Doc (`Zen — weekly`, same link every week; a new dated section on top) and drops the link once. No Docs connector → `~/.claude/god/god-zen/weekly.md`.
 - Nothing else is written outside its own directory.
 
-## When called directly
+## The daily report (`/god-zen`, `/god-zen today`)
 
-- `/god-zen` (or `/god-zen week`): this week vs your normal, in one table — hours, latest night, inferred sleep window, days off, deep vs scattered time, tokens and spend, meeting load — then **the one change that would help most**.
-- `/god-zen today`: hours so far, breaks, pace, what is ahead on the calendar, when to stop.
+`scripts/zen-report.js` collects git, Claude Code usage and Apple Health sleep, scores the day and prints the whole report. **Never ask the user anything** — a source that is missing is named in the footer and the score is computed without it.
+
+1. **Gather MCP timestamps first, silently.** For every connected tool, fetch today's timestamps only — never message or event content. Google Calendar → each event's start and end; Slack and Gmail → the time each message was **sent by the user**; Linear and Notion → the time of each update they made. A tool that is not connected is skipped without a word.
+2. **Build one JSON payload:** `{"timestamps":["<ISO>",…],"meetings":[{"start":"<ISO>","end":"<ISO>"},…],"sources":["google_calendar","slack",…]}`. No payload is fine — pass nothing.
+3. **Run it, and print the output inside a fenced code block** so the bars and columns keep their alignment:
+   ```bash
+   node ~/.claude/skills/god-zen/scripts/zen-report.js --mcp '<payload>'
+   ```
+   (`./.claude/skills/…` on a project install; `--json` returns the same numbers as data.) The report is already laid out — never re-wrap it, re-order it, or turn it into a table.
+4. Add at most one line of your own, only if the report missed something a tool told you.
+
+Scoring lives entirely in the script — day length 35%, sleep 30%, intensity 20%, recovery 15%, with a hard cap of 5 for any activity past midnight or a night under five hours. Never recompute or override a score by hand. Config and history sit in `~/.god-zen/`; the first run backfills 30 days.
+
+## The motivational line (rare, and never in the report)
+
+`/god-zen` never carries a quote. The report is numbers and one action; that is the whole job.
+
+Elsewhere, at the end of **another skill's** reply, a single line of encouragement is occasionally worth more than another metric. The script decides when — not you:
+
+```bash
+node ~/.claude/skills/god-zen/scripts/zen-report.js --quote
+```
+
+It prints **nothing almost every time**. A line comes back only when the day scored under 6, none has been shown in the last 3 days, and a 1-in-20 draw lands — so roughly one closing message in twenty on a hard day, and none at all on a good one. Print exactly what comes back, or nothing.
+
+- **Never write a quote yourself**, never re-use one you saw earlier in the session, and never print one the script did not return.
+- A specific signal always wins. If the 🧘 line has something real to say — third late night, meeting in 8 minutes, no lunch yet — say that and skip the quote entirely. Never both.
+- It reads stored history only, so it returns instantly and costs nothing.
+
+## Other direct calls
+
+- `/god-zen week`: this week vs your normal, in one table — hours, latest night, inferred sleep window, days off, deep vs scattered time, tokens and spend, meeting load — then **the one change that would help most**.
 - `zen off` / `zen on` / `zen targets stop_by=23:00 …` update the files above.
 
 ## Learn
