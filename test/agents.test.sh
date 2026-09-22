@@ -83,6 +83,18 @@ assert_contains "$(cat "$WORK/h1/.claude/commands/god.md")" "sequentially from t
   "the router runs the chain from the main session, not nested in the ceo"
 assert_contains "$(cat skills/god-ceo/SKILL.md skills/god-ceo/references/routing.md)" '"chain"' "god-ceo declares its JSON output contract"
 
+# --- the published god-agents pulls a god-skills that has these skills -----
+# From npm there is no sibling skills/ folder, so agent bodies come from the
+# god-skills dependency; its range must accept the god-skills version in this repo.
+DEP_OK=$(node -e "
+const want=require('./god-agents/package.json').dependencies['god-skills'];
+const have=require('./package.json').version;
+const m=want.match(/^\\^(\\d+)\\.(\\d+)\\.(\\d+)$/);
+const [hM,hm,hp]=have.split('.').map(Number);
+const ok=m && +m[1]===hM && (hm>+m[2] || (hm===+m[2] && hp>=+m[3]));
+console.log(ok?'OK':'BAD '+want+' vs '+have)")
+assert_eq "$DEP_OK" "OK" "god-agents depends on the god-skills major this repo ships"
+
 # --- retired agents and hooks are removed on install -----------------------
 OLDA="$WORK/hR/.claude/agents"; mkdir -p "$OLDA" "$WORK/hR/.claude/hooks/god"
 printf -- '---\nname: god-tester\ndescription: "Subagent form of the god-tester skill"\ntools: Read\nmodel: opus\n---\n' > "$OLDA/god-tester.md"
