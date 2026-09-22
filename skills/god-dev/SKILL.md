@@ -1,6 +1,6 @@
 ---
 name: god-dev
-description: Senior software engineer. Use EVERY time code is written, modified, refactored, or optimized — features, bug fixes, migrations, scripts. Sizes the task (small / normal / deep, user can override), syncs git and checks for existing work, loads a per-repo profile and lessons, plans with a shared what-could-go-wrong list, self-scores on god-tester's 1–5 scale before handing off, fixes straight from god-tester's list, learns a lesson from every finding, and closes with a plain-English formatted summary plus a flowchart doc.
+description: Senior software engineer. Use EVERY time code is written, modified, refactored, or optimized — features, bug fixes, migrations, scripts. Picks a mode (small / normal / deep, user can override), syncs git and checks for existing work, loads a per-repo profile and lessons, plans with a shared what-could-go-wrong list, self-scores on god-tester's 1–5 scale before handing off, fixes straight from god-tester's list, learns a lesson from every finding, and closes with a plain-English formatted summary plus a flowchart doc.
 ---
 
 # God Dev
@@ -14,21 +14,21 @@ Principle: boring beats clever. Production-ready or not done. Done means god-tes
 |---|---|
 | `profiles/<repo-slug>.json` | `default_branch`, `commands` {build, test, test_related, lint, typecheck, dev}, `layout` (where api / ui / db / tests live), `helpers` (path → what it does, max 20), `conventions` (max 10 lines), `fingerprint` (hash of package.json / go.mod / pyproject / Makefile). Rebuild when the fingerprint changes. |
 | `lessons/<repo-slug>.md`, `lessons/global.md` | One line per lesson: `- [<date>] <what broke> → <do this instead> (repos: a,b · seen: 3)`. Max 30 lines per file; drop a lesson unseen for 20 runs. |
-| `scorecard.jsonl` | One line per task: `{"ts","repo","size","size_source":"auto|user","first_time_pass":bool,"fix_rounds":n,"max_score":n,"minutes":n}`. |
+| `scorecard.jsonl` | One line per task: `{"ts","repo","mode","mode_source":"auto|user","first_time_pass":bool,"fix_rounds":n,"max_score":n,"minutes":n}`. |
 
 Repo slug = `owner-repo` from `git remote get-url origin`, else the folder name.
 
-## Size
+## Mode
 
-| Size | Auto-picked when |
+| Mode | Auto-picked when |
 |---|---|
 | **small** | ≤ 30 changed lines AND touches none of: revenue, business logic, data (schema, SQL, migrations, reports, money, PII, auth) |
 | **normal** | 31–300 changed lines AND touches none of the above |
 | **deep** | Touches any of the above, OR > 300 lines |
 
-Risk beats size: a 5-line money change is deep. Estimate from the plan; re-size upward mid-task if the diff or risk grows, never downward.
+Risk beats line count: a 5-line money change is deep. Estimate from the plan; switch to a heavier mode mid-task if the diff or risk grows, never a lighter one.
 
-**User override wins.** `small` / `normal` / `deep` anywhere in the request, or `/god-dev deep …`, sets the size. If the user picks below the auto size, say so in one line (`Size: small (your pick; auto said deep — touches refunds)`), record `size_source: "user"`, and proceed. The first line of the first reply always states `Size: <size> (auto|your pick)`.
+**User override wins.** `small` / `normal` / `deep` anywhere in the request, or `/god-dev deep …`, sets the mode. If the user picks a lighter mode than auto, say so in one line (`Mode: small (your pick; auto said deep — touches refunds)`), record `mode_source: "user"`, and proceed. The first line of the first reply always states `Mode: <mode> (auto|your pick)`.
 
 | Step | small | normal | deep |
 |---|---|---|---|
@@ -52,8 +52,8 @@ Risk beats size: a 5-line money change is deep. Estimate from the plan; re-size 
 - Read the repo profile; missing or stale fingerprint → build it now (one pass: read package manifests, CI config, Makefile, test dirs) and save it. Later runs skip rediscovery.
 - Read `lessons/<repo>.md` and `lessons/global.md`. Every lesson that touches this task's area is a hard rule for this run.
 
-### 3. Size, then plan card
-State the size. Then the plan card, shaped by size:
+### 3. Mode, then plan card
+State the mode. Then the plan card, shaped by mode:
 ```
 Files: <paths to touch>
 Reuse: <existing helpers/queries/components found, with paths — never a parallel implementation>
@@ -111,7 +111,7 @@ Every PR is read by an automated reviewer that blocks on the list below and neve
 ## Definition of done
 
 1. The ship gate passes on a re-read of the diff, and the self-score has no 4 or 5 left.
-2. The PR body carries the sections its size requires, with the detail-doc link.
+2. The PR body carries the sections its mode requires, with the detail-doc link.
 3. **god-tester** has been invoked and returned `Result: PASS`.
 4. Lessons and scorecard are written.
 
@@ -128,7 +128,7 @@ Every PR is read by an automated reviewer that blocks on the list below and neve
 
 | | |
 |---|---|
-| **Size** | Normal (auto) |
+| **Mode** | Normal (auto) |
 | **PRs** | [#123](link) · [#124](link) |
 | **Tester** | ✅ PASS — no issues above 2 |
 
