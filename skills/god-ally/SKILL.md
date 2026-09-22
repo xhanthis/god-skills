@@ -87,7 +87,7 @@ node ~/.claude/skills/god-ally/scripts/zen-report.js --quote-said '<the line exa
 
 ## Other direct calls
 
-- `/god-ally week`: this week vs your normal, in one table — hours, latest night, inferred sleep window, days off, deep vs scattered time, tokens and spend, meeting load — then **the one change that would help most**.
+- `/god-ally week`: this week vs your normal, laid out exactly like the daily report — one plain sentence on top ("Long week: 4 late nights, one day off."), then one aligned block in a fenced code block: a 7-day bar chart of hours worked, then rows for hours, latest night, inferred sleep window, days off, deep vs scattered time, tokens and spend, meeting load — each `this week · your normal` — then a `Do this` row with **the one change that would help most**. Never a table.
 - `zen off` / `zen on` / `zen targets stop_by=23:00 …` update the files above.
 
 ## Learn
