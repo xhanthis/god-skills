@@ -177,6 +177,10 @@ for V in BUILD "DO NOT BUILD" DEFER SHIP STOP; do
 done
 assert_contains "$CEO" "Known fact → Evidence → Inference → Assumption → Unknown" "god-ceo classifies claims before deciding"
 assert_contains "$CEO" "Weekly review" "god-ceo runs the weekly review"
+for S in god-ceo god-pm god-cmo; do
+  assert_contains "$(cat skills/$S/SKILL.md)" "Laid out like god-ally's report" "$S's reply follows god-ally's layout"
+done
+assert_contains "$(cat skills/god-ally/SKILL.md)" "laid out exactly like the daily report" "god-ally's week view matches the daily report"
 assert_contains "$CEO" "Sensei" "god-ceo is the escalation point for stuck skills"
 for REF in routing decisions learning-loop; do assert_file "skills/god-ceo/references/$REF.md" "god-ceo ships references/$REF.md"; done
 CFO=$(cat skills/god-cfo/SKILL.md)

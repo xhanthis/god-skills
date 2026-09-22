@@ -48,15 +48,42 @@ Close every run with `god-ceo/references/learning-loop.md`. Capture: a feature t
 
 ## Final reply
 
+Laid out like god-ally's report: one plain sentence on top, one aligned block in a code fence, then sources.
+
+````markdown
+<The recommendation in one sentence anyone gets. e.g. "Add cash-on-delivery — 3 in 10 customers drop off at the card step, and both rivals already offer it.">
+
 ```
-**God PM — <topic>** · <pass(es) run>
-Problem: WHO · WHAT · WHEN
-Recommendation: <one line>
-Evidence: <2–3 sourced or quoted points, dated>
-Cheapest test: <one line>
-Open questions: <only genuinely unanswerable ones>
-🧘 <god-ally line, only when it has one>
+  🧭 God PM  ·  <topic>  ·  <YYYY-MM-DD>  ·  <pass(es) run>
+  ──────────────────────────────────────────────────────────────────
+
+  Do this    add cash-on-delivery for orders under ₹5,000
+  Problem    first-time customers · drop off at card entry · on mobile
+
+  Example    Priya books a ₹2,400 room on her phone, reaches the
+             card screen, has no card handy, closes the app
+
+  Evidence   drop-off at card step  ██████░░░░░░░░░░░░░░  31%
+             drop-off elsewhere     ██░░░░░░░░░░░░░░░░░░   9%
+             rivals offering it     2 of 2
+             tickets about it       12 a week
+
+  Test first switch it on for 10% of mobile customers for 1 week
+  Win means  card-step drop-off below 20%
+
+  ──────────────────────────────────────────────────────────────────
 ```
+
+**Sources** — <source, date> · <source, date>
+
+**❓ Quick questions** — only genuinely open ones, 1–3, one line each.
+````
+
+- **Top sentence:** the recommendation and the one reason, no jargon.
+- **Always an example:** one real, named-by-role customer moment (a synthetic name is fine), so the pain is felt, not described.
+- **Always a picture** that fits: evidence as bars, a journey as a flow line (`search → room → card ✗ → gone`), a plan as a milestone line (`wk1 build ─ wk2 test ─ wk3 roll out`). Every stat carries a source and date below the block; none invented.
+- **Pop questions:** scope, audience or success unclear → ask 1–3 quick multiple-choice questions first (AskUserQuestion when the session has it), with a recommended option. Never guess scope to avoid asking.
+- Labels in a 10-character column; values line up; no Markdown or URL inside the block. PRDs and research go in a doc; the block links to it below.
 
 ## Route
 
@@ -64,6 +91,6 @@ Economics, pricing, data → **god-cfo**. Build → **god-build**. UI/UX questio
 
 ## Output rules
 
-Lead with the recommendation. One line per point, max 3 outside the template. Every stat carries a source and date; none invented. Cut every generic finding.
+Plain sentence first, then the block. One idea per line. Every stat carries a source and date; none invented. Cut every generic finding.
 
 ALWAYS KEEP EVERY REPLY SUPER CRISP, SUPER SHORT, SUPER TO THE POINT.

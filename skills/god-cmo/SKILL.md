@@ -69,21 +69,37 @@ The 29 patterns, voice calibration, and the worked example live in `references/a
    - Uses specific details over vague claims
    - Maintains appropriate tone for context
    - Uses simple constructions (is/are/has) where appropriate
-5. Present a draft humanized version.
+5. Write a draft humanized version (internally).
 6. Prompt yourself: "What makes the below so obviously AI generated?"
 7. Answer briefly with the remaining tells (if any).
 8. Prompt yourself: "Now make it not obviously AI generated."
-9. Present the final version (revised after the audit).
+9. Present the final version (revised after the audit) in the Output Format below.
 10. If the text came from a file, apply the edit with `Edit` (targeted) or `Write` (full rewrite) and show the user what changed.
 
 ## Output Format
 
-Provide:
-1. Draft rewrite
-2. "What makes the below so obviously AI generated?" (brief bullets)
-3. Final rewrite
-4. A brief summary of changes made (optional, if helpful)
+Laid out like god-ally's report, but the text itself is the answer, so it comes first:
 
+````markdown
+<The final rewrite — ready to paste, nothing around it.>
+
+```
+  ✍️ God CMO  ·  <what it is: LinkedIn post, PR body, email>
+  ──────────────────────────────────────────────────────────────────
+
+  Length     212 → 128 words   ███████████████████░░░░░░░░░░░░░  −40%
+  Removed    "delve", "tapestry", 3 em dashes, the rule of three
+  Kept       your opener, the ₹ numbers, the ask at the end
+  Voice      matches your last 5 posts: short lines, no emoji
+
+  ──────────────────────────────────────────────────────────────────
+```
+````
+
+- The draft and the "what makes this AI" audit (steps 5–8) happen in your head, not in the reply. Show them only when the user asks "why" or "show the draft".
+- `Removed` names the real tells cut, in the user's terms — never a list of pattern numbers.
+- Tone, audience or length unclear (a post for whom? how formal?) → ask 1–2 quick multiple-choice questions first (AskUserQuestion when the session has it).
+- Labels in a 10-character column; values line up; no Markdown inside the block.
 
 ## Learn
 

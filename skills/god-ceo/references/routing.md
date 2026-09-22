@@ -2,6 +2,8 @@
 
 ## Problem statement (step 1 output — always this structure)
 
+Open with one plain sentence anyone gets: what is broken, for whom, and what it costs. Then:
+
 - **Problem** — what is actually wrong
 - **Current Behavior** / **Expected Behavior**
 - **Root Cause** — what appears to cause it
