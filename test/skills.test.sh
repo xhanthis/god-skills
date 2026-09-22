@@ -118,6 +118,11 @@ for MEM in "profiles/<repo-slug>.json" "lessons/<repo-slug>.md" "scorecard.jsonl
 done
 assert_contains "$DEV" "## ⚠️ Needs you" "god-dev's final message carries the needs-you section"
 assert_contains "$DEV" "## Mode"  "god-dev calls it mode, not size"
+assert_contains "$DEV" "Authored by [" "god-dev signs PRs with the god-skills signature"
+SIG=$(bash -c "$(awk '/^     P=\(/{f=1} f{l=$0; sub(/^     /,"",l); print l} /^     echo /{exit}' skills/god-dev/SKILL.md)" 2>&1)
+assert_contains "$SIG" "Authored by [" "the signature snippet runs and prints a signature"
+assert_contains "$SIG" "(https://www.npmjs.com/package/god-skills)" "the signature links the npm package"
+assert_eq "$(printf '%s\n' "$SIG" | wc -l | tr -d ' ')" "1" "the signature snippet prints exactly one line"
 assert_contains "$DEV" "boring beats clever" "god-dev keeps the body line the agent test pins"
 
 finish
