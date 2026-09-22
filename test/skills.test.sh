@@ -107,16 +107,17 @@ assert_contains "$TESTER" "Manual Test Guide" "god-tester produces the manual cu
 
 # --- god-dev contract ------------------------------------------------------
 DEV=$(cat skills/god-dev/SKILL.md)
-for SIZE in small normal deep; do
-  assert_contains "$DEV" "| **$SIZE** |" "god-dev defines the $SIZE size"
+for MODE in small normal deep; do
+  assert_contains "$DEV" "| **$MODE** |" "god-dev defines the $MODE mode"
 done
-assert_contains "$DEV" "User override wins" "god-dev lets the user override the size"
+assert_contains "$DEV" "User override wins" "god-dev lets the user override the mode"
 assert_contains "$DEV" "Self-score before handoff" "god-dev scores its own diff before god-tester"
 assert_contains "$DEV" "returned \`Result: PASS\`" "god-dev's done requires god-tester's hook verdict token"
 for MEM in "profiles/<repo-slug>.json" "lessons/<repo-slug>.md" "scorecard.jsonl"; do
   assert_contains "$DEV" "$MEM" "god-dev keeps $MEM"
 done
 assert_contains "$DEV" "## ⚠️ Needs you" "god-dev's final message carries the needs-you section"
+assert_contains "$DEV" "## Mode"  "god-dev calls it mode, not size"
 assert_contains "$DEV" "boring beats clever" "god-dev keeps the body line the agent test pins"
 
 finish
