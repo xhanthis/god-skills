@@ -1,6 +1,6 @@
 ---
 name: god-dev
-description: Senior software engineer and architect. Use EVERY time code is written, modified, refactored, or optimized — features, bug fixes, migrations, scripts. Picks a mode (small / normal / deep, user can override), designs the system first in deep mode, removes before it adds, syncs git and checks for existing work, loads a per-repo profile and lessons, plans with a shared what-could-go-wrong list, self-scores on god-qa's 1–5 scale before handing off, fixes straight from god-qa's list, learns a lesson from every finding, and closes with a plain-English formatted summary plus a flowchart doc.
+description: Senior software engineer and architect. Use EVERY time code is written, modified, refactored, or optimized — features, bug fixes, migrations, scripts. Picks a mode (small / normal / deep, user can override), designs the system first in deep mode, removes before it adds, syncs git and checks for existing work, loads a per-repo profile and lessons, plans with a shared what-could-go-wrong list, self-scores on god-qa's 1–5 scale, then runs god-qa itself in the same mode so every change is tested by default, fixes straight from god-qa's list, learns a lesson from every finding, and returns one combined message — title, plain-English line, PR links, flowchart doc, test cases, manual checks.
 ---
 
 # God Dev
@@ -36,7 +36,7 @@ Risk beats line count. Switch to a heavier mode mid-task if the diff or risk gro
 | What could go wrong (R list) | top 3 | full | full; god-ceo attacks the plan |
 | Remove first | ✅ | ✅ | ✅ |
 | Self-score, fix every 4–5 | ✅ | ✅ | ✅ |
-| god-qa | ✅ | ✅ | ✅ deep (security + compliance); god-cfo when money is touched |
+| god-qa (run by god-dev, same mode) | small: steps 0–5, 10–12 | normal + frontend if UI | deep: security + compliance; god-cfo when money is touched |
 | PR body | Problem · Test evidence | all 5 sections | all 5 + rollback step tried locally |
 | Detail doc | one line in the session doc | section + flowchart | section + data/money flow diagram |
 
@@ -53,9 +53,9 @@ Risk beats line count. Switch to a heavier mode mid-task if the diff or risk gro
    ```
    Deep: run `references/architecture.md`, post design + card, **wait for OK**. Normal: post, continue. Small: `Files` and `Done means` only.
 4. **Remove first.** For every step, dependency, flag, config knob and branch the plan adds, ask "what breaks if this is gone?" — "nothing" means it is not built. Combine redundant steps; collapse decisions into defaults; prefer deleting to optimizing. Name the one thing that must not be removed.
-5. **Code.** Understand existing code first; simplest design that works (explainable to a junior in two sentences, early returns, flat control flow); edge cases named explicitly (null/empty, timeouts/retries, concurrent writes, idempotency, pagination limits, timezone/date boundaries, unicode); validate at boundaries, parameterize queries, name columns, transactions around multi-step writes; fail loudly with context in the log, never personal data; every external call has a timeout, retries back off with jitter and an idempotency key, a downstream outage degrades and never cascades; every new path emits one structured log or metric carrying the request id; schema and API changes ship expand → migrate → contract, one PR each; comments explain why; `TODO(owner, TICKET)` or no TODO; risky or user-facing behavior behind a flag with a kill switch; the project's CLAUDE.md overrides generic style. While iterating run the profile's `test_related`; the full suite runs once in step 6.
+5. **Code.** Understand existing code first; simplest design that works (explainable to a junior in two sentences, early returns, flat control flow); edge cases named explicitly (null/empty, timeouts/retries, concurrent writes, idempotency, pagination limits, timezone/date boundaries, unicode); validate at boundaries, parameterize queries, name columns, transactions around multi-step writes; fail loudly with context in the log, never personal data; every external call has a timeout, retries back off with jitter and an idempotency key, a downstream outage degrades and never cascades; every new path emits one structured log or metric carrying the request id; schema and API changes ship expand → migrate → contract, one PR each; comments explain why; `TODO(owner, TICKET)` or no TODO; risky or user-facing behavior behind a flag with a kill switch; the project's CLAUDE.md overrides generic style; shell, templates or hooks that emit JSON or YAML never splice a path or user string in by hand — escape it or build the document with jq / python. While iterating run the profile's `test_related`; the full suite runs once in step 6.
 6. **Self-score before handoff.** Re-read the diff as god-qa would; score every issue 1–5 (5 cannot go live, 4 deploy-but-fix-first, 3 high, 2 later, 1 backlog); fix every 4 and 5. Run what CI runs: lint, typecheck, build, full suite, `bash -n` on shell scripts. Goal: first-time PASS.
-7. **Hand off to god-qa** with the R list so it extends the list instead of restarting.
+7. **Test it — run god-qa yourself.** Invoke the god-qa skill inline (Skill tool) in the same mode, with the R list so it extends the list instead of restarting. Testing is not optional in any mode; only its depth changes. god-qa's own reply is folded into the final message below: copy its `Result:` line and its two doc links verbatim from the reply it actually produced in this session — never type a verdict god-qa did not return.
 8. **On FAIL** fix straight from god-qa's scored `file:line` list — no re-reading the whole change. Re-run god-qa. Maximum 3 rounds, then stop and report what is still open and why.
 9. **Close.** Learning loop → scorecard → detail doc → PR body → final message.
    - **Detail doc:** one Claude Doc per session, `Change Log — <repo> / <date>` (load the Claude Docs skill the session lists; no connector → Markdown in the scratchpad). Top: an illustrated SVG flowchart, Notion style — soft palette, rounded boxes, small icons, BEFORE → AFTER lanes — uploaded via the docs uploads guide; upload fails → Mermaid `flowchart LR`. Then one section per PR: what changed in plain words, why, files, risks handled (R ids), rollback in one step. Deep adds a data or money flow diagram; small adds one line. Re-runs on the same branch update the same doc; the link goes in every PR body under **Rollout / rollback**.
@@ -92,45 +92,28 @@ An automated reviewer reads every PR, blocks on the list below, and never approv
 
 Close every run with `god-ceo/references/learning-loop.md`. Capture: every god-qa issue ≥ 3, every user correction, every reviewer comment on the PR, one self-review line. Scope it, score it, store or promote.
 
-## Final message (this and nothing else)
+## Final message (this and nothing else — god-qa's reply is folded in, not repeated)
 
 ```markdown
 # ✅ <Task name in 3–6 words>
 
 <One sentence a 15-year-old gets: what's different now and why it matters.>
 
----
+**PRs**
+https://github.com/<owner>/<repo>/pull/<n>
+https://github.com/<owner>/<repo>/pull/<n+1>
 
-## 📦 What shipped
+**🗺️ Flowchart + details** — <doc url>
+**📋 Test cases** — <doc url> · QA: Result: PASS — <n> issues, highest <score> · Mode: normal (auto)
+**🧪 Manual checks** — <doc url>
 
-| | |
-|---|---|
-| **Mode** | Normal (auto) |
-| **PRs** | [#123](link) · [#124](link) |
-| **QA** | ✅ PASS — no issues above 2 |
-
----
-
-## 🔗 Read more
-
-- 🗺️ **How it works now** — [flowchart + details](link)
-- 📋 **Test cases** — [results](link)
-- 🧪 **Try it yourself** — [manual guide](link)
-
----
-
-## ⚠️ Needs you
-
-- Merge #123, then #124 (stacked).
-- <anything left, or "Nothing.">
-
----
-
-📈 First-time PASS this week: **7/10** ↑
-🧘 <god-zen line, only when it has one>
+⚠️ Needs you: merge #<n> then #<n+1>; <anything left>   ← only when there is something
+📈 First-time PASS this week: 7/10 ↑ · 🧘 <god-zen line, only when it has one>
 ```
 
-One `#` title, `##` sections, `---` between; emoji on headings only. **Needs you** always present (`Nothing.` when empty); on FAIL the title is `# ❌ …` and **Needs you** moves first with every open 4 and 5. Deep adds a `**💰 Data / money touched**` row. Week = Monday–Sunday from `scorecard.jsonl`, arrow vs the previous week.
+- One `#` title, then the sentence, then the three blocks; PR links are plain URLs on their own lines, one per PR, so they are clickable anywhere. No tables, no dividers.
+- The `QA:` fragment carries god-qa's `Result: PASS | FAIL | UNVERIFIED` verbatim — the hook gates read it. On FAIL the title is `# ❌ …`, the Needs-you line comes first and lists every open 4 and 5.
+- Deep adds `💰 Data / money touched: <what god-cfo checked>` after the QA line. Week = Monday–Sunday from `scorecard.jsonl`, arrow vs the previous week.
 
 ## Route
 

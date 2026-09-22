@@ -151,7 +151,10 @@ assert_contains "$DEV" "returned \`Result: PASS\`" "god-dev's done requires god-
 for MEM in "profiles/<repo-slug>.json" "lessons/<repo-slug>.md" "scorecard.jsonl"; do
   assert_contains "$DEV" "$MEM" "god-dev keeps $MEM"
 done
-assert_contains "$DEV" "## ⚠️ Needs you" "god-dev's final message carries the needs-you section"
+assert_contains "$DEV" "**🧪 Manual checks**" "god-dev's final message carries the manual-checks link"
+assert_contains "$DEV" "https://github.com/<owner>/<repo>/pull/<n>" "god-dev lists PRs as plain URLs"
+assert_contains "$DEV" "run god-qa yourself" "god-dev tests by default by running god-qa itself"
+assert_contains "$DEV" "never type a verdict god-qa did not return" "god-dev may only relay god-qa's real verdict"
 assert_contains "$DEV" "## Mode"  "god-dev calls it mode, not size"
 assert_contains "$DEV" "Authored by [" "god-dev signs PRs with the god-skills signature"
 SNIP=$(awk '/^     set -- /{f=1} f{l=$0; sub(/^     /,"",l); print l} /^     echo /{exit}' skills/god-dev/SKILL.md)
