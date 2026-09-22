@@ -16,6 +16,7 @@ All notable changes to `god-skills` and `god-agents`. Dates are release dates.
 ### Changed
 - `god-zen`'s SKILL.md documents the report, its MCP payload and the new storage files. Scoring is the script's job; the skill is told never to recompute a score by hand, and to print the report inside a fenced code block so its columns survive any renderer.
 - The graph is the **last seven days**, one labelled bar each: the y-axis is the score, so taller is a better day, and the date and that day's score sit under every bar. Thirty thin bars blurred together and a line plot was worse; seven fat ones read at a glance. No charting dependency.
+- `god-dev`'s PR signature list is trimmed to 20 signers, and the credit verb now belongs to whoever signs it — the Bug Whisperer debugs a PR, Stack Overflow copy-pastes it, Senna drives it. `Authored by` remains the default.
 - `test/skills.test.sh` no longer hardcodes a name from god-dev's signature list — it derives the last entry and addresses it directly, so editing the list cannot make the suite flaky.
 - `god-dev`'s final message gets room to breathe: a blank line between every block and between each PR link, one divider above the closing block, and anything beyond the template in its own short paragraph.
 

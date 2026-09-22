@@ -172,7 +172,7 @@ Memory lives in `~/.claude/god/<skill>/` — lessons, scorecards, god-dev's repo
 
 ## Proof
 
-`npm test` runs 319 assertions across both packages — no credentials, no network — and CI runs them on every pull request:
+`npm test` runs 320 assertions across both packages — no credentials, no network — and CI runs them on every pull request:
 
 | Suite | Covers |
 |---|---|
