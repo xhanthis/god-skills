@@ -108,12 +108,23 @@ function parseArgs(argv) {
     force: false,
     yes: false,
     help: false,
-    version: false
+    version: false,
+    agentsFile: null
   };
 
-  for (const arg of argv) {
+  for (let i = 0; i < argv.length; i += 1) {
+    const arg = argv[i];
     if (arg === "list" || arg === "install" || arg === "doctor") {
       options.command = arg;
+    } else if (arg === "--codex") {
+      options.command = "agents-md";
+      options.agentsFile = options.agentsFile || "AGENTS.md";
+    } else if (arg === "--gemini") {
+      options.command = "agents-md";
+      options.agentsFile = options.agentsFile || "GEMINI.md";
+    } else if (arg === "--agents-md") {
+      options.command = "agents-md";
+      options.agentsFile = argv[i + 1] && !argv[i + 1].startsWith("-") ? argv[(i += 1)] : "AGENTS.md";
     } else if (arg === "--global" || arg === "-g") {
       options.scope = "global";
     } else if (arg === "--project" || arg === "-p") {
@@ -147,6 +158,9 @@ function printHelp() {
     "  npx god-skills god-dev god-qa      install only these skills",
     "  npx god-skills list                show every available skill",
     "  npx god-skills doctor              verify an existing install",
+    "  npx god-skills --codex             write the skills into ./AGENTS.md for Codex CLI",
+    "  npx god-skills --gemini            same, into ./GEMINI.md for Gemini CLI",
+    "  npx god-skills --agents-md <file>  same, into any instruction file (Cursor, Copilot, ...)",
     "",
     paint("Options", "bold"),
     "  -g, --global    install to ~/.claude (all projects)",
@@ -158,6 +172,7 @@ function printHelp() {
     "  -v, --version   print the installed version",
     "",
     paint("Subagents, hook gates and the headless runner: npx god-agents", "dim"),
+    paint("Other CLIs read one instruction file and have no Skill tool: --codex copies the 7 skills to ./.god-skills/ and adds a short index block; the gates and auto-triggers stay Claude Code only.", "dim"),
     paint("Restart Claude Code after installing — skills load at session start.", "dim"),
     ""
   ];
@@ -313,6 +328,65 @@ function doctor() {
   console.log("");
 }
 
+const AGENTS_START = "<!-- god-skills:start -->";
+const AGENTS_END = "<!-- god-skills:end -->";
+
+/**
+ * Installs the skills for an agent CLI that reads one instruction file and has no
+ * Skill tool (Codex: AGENTS.md, Gemini CLI: GEMINI.md, Cursor/Copilot rules files).
+ * Copies every skill folder to <cwd>/.god-skills/ so references load on demand, and
+ * writes one marker-delimited index block into the instruction file — replacing an
+ * earlier block, never touching the rest of the file. Hooks and auto-triggers are
+ * Claude Code features and are not installed here.
+ */
+function installAgentsMd(options) {
+  const all = availableSkills();
+  const root = process.cwd();
+  const skillsDest = path.join(root, ".god-skills");
+  for (const name of all) {
+    fs.rmSync(path.join(skillsDest, name), { recursive: true, force: true });
+    copyDir(path.join(SOURCE_DIR, name), path.join(skillsDest, name));
+  }
+
+  const lines = [
+    AGENTS_START,
+    `## God Skills (${version})`,
+    "",
+    "Seven specialists that behave like one company. There is no Skill tool here: when a trigger below matches the task, read that skill's file and follow it exactly, including its `references/` files where the skill points to them. Run skills one after another in this session; never skip god-qa after code changes.",
+    "",
+    "| Skill | Read when | File |",
+    "|---|---|---|"
+  ];
+  for (const name of all) {
+    lines.push(`| **${name}** | ${describeSkill(name)} | \`.god-skills/${name}/SKILL.md\` |`);
+  }
+  lines.push(
+    "",
+    "Memory for every skill lives under `~/.claude/god/<skill>/` as each SKILL.md describes; create the folders on first use. Learnings follow `.god-skills/god-ceo/references/learning-loop.md`.",
+    AGENTS_END
+  );
+  const block = lines.join("\n");
+
+  const file = path.resolve(root, options.agentsFile);
+  let existing = fs.existsSync(file) ? fs.readFileSync(file, "utf8") : "";
+  const start = existing.indexOf(AGENTS_START);
+  const end = existing.indexOf(AGENTS_END);
+  let next;
+  if (start !== -1 && end !== -1 && end > start) {
+    next = existing.slice(0, start) + block + existing.slice(end + AGENTS_END.length);
+  } else {
+    next = existing.trimEnd() + (existing.trim() ? "\n\n" : "") + block + "\n";
+  }
+  fs.mkdirSync(path.dirname(file), { recursive: true });
+  fs.writeFileSync(file, next);
+
+  console.log("");
+  console.log(`${paint("✓", "green")} ${all.length} skills copied to ${paint(skillsDest, "cyan")}`);
+  console.log(`${paint("✓", "green")} index block written to ${paint(file, "cyan")}`);
+  console.log(paint("Hook gates and auto-triggers are Claude Code only; the skills here run when the agent reads them.", "dim"));
+  console.log("");
+}
+
 /** Prints every available skill with its one-line description. */
 function list() {
   const all = availableSkills();
@@ -349,6 +423,11 @@ async function main() {
 
   if (options.command === "doctor") {
     doctor();
+    return;
+  }
+
+  if (options.command === "agents-md") {
+    installAgentsMd(options);
     return;
   }
 
