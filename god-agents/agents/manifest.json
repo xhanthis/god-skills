@@ -15,8 +15,8 @@
     "model": "opus"
   },
   "god-tester": {
-    "description": "Subagent form of the god-tester skill — opt-in only. By default invoke the god-tester skill inline with the Skill tool so the user watches the tests run. Use this subagent only when the user explicitly asks for a subagent, a parallel fan-out, or a headless run. Executes tests, auto-fixes up to 3 cycles, returns PASS / FAIL / UNVERIFIED.",
-    "tools": "Read, Write, Edit, Bash, Grep, Glob",
+    "description": "Subagent form of the god-tester skill — opt-in only. By default invoke the god-tester skill inline with the Skill tool so the user watches the tests run. Use this subagent only when the user explicitly asks for a subagent, a parallel fan-out, or a headless run. Devil's-advocate risk pass, backend + 4-viewport frontend + a11y + perf + low-network tests, 1–5 issue scores, auto-fixes up to 3 cycles, returns PASS / FAIL / UNVERIFIED with two Claude Docs links.",
+    "tools": "Read, Write, Edit, Bash, Grep, Glob, Skill, ToolSearch, mcp__claude_ai_Claude_Docs__guide, mcp__claude_ai_Claude_Docs__batch, mcp__claude_ai_Claude_Docs__update, mcp__claude_ai_Claude_Docs__read",
     "model": "opus"
   },
   "god-security": {
