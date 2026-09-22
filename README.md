@@ -73,23 +73,16 @@ Restart Claude Code after installing — skills load at session start.
 
 | Skill | Core question |
 |---|---|
-| **god-pm** | What should we build, and how does it get delivered? |
-| **god-researcher** | What is actually true, and what is changing? |
+| **god-pm** | What should we build, why, for whom, how does it run, and how is the competitor built? |
+| **god-zen** | Is this pace sustainable — and should you be working right now? |
 | **god-growth** | Where is the real bottleneck? |
 | **god-designer** | How should the experience work? |
-| **god-customer** | Would customers actually care? |
-| **god-strategist** | Where should the business go? |
 | **god-cfo** | Do the numbers reconcile, what should we charge, and what does the data say? |
 | **god-cmo** | How do we get the right people to care? |
 | **god-sales** | How do we convert the right prospects? |
-| **god-ops** | How does this work repeatedly without heroics? |
 | **god-dev** | How do we design and implement this correctly, fast, and better than last time? |
 | **god-qa** | Does it actually work, is it safe, and can we prove it? |
 | **god-ceo** | What is the real problem, is it worth doing, who does it, and what is the final call? |
-| **god-scout** | What opportunity are we missing? |
-| **god-reverse** | How is this product built, and how would we rebuild it? |
-| **god-plan** | Highest-leverage use of the day? |
-| **god-health** | Is this pace sustainable? |
 | **god-writer** | Is this clear, short, and does it read like a human wrote it? |
 
 Eight of these have agent counterparts in `god-agents` today; the rest run as

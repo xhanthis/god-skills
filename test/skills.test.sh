@@ -18,7 +18,7 @@ assert_eq "$(node "$CLI" --version)" "$(node -e "console.log(require('./package.
 # --- install --------------------------------------------------------------
 HOME="$WORK/h1" node "$CLI" -g -y >/dev/null
 assert_eq "$(ls "$WORK/h1/.claude/skills" | wc -l | tr -d ' ')" "$COUNT" "every skill installs"
-assert_file "$WORK/h1/.claude/skills/god-reverse/SKILL.md" "the newest skill ships"
+assert_file "$WORK/h1/.claude/skills/god-zen/SKILL.md" "the newest skill ships"
 
 # --- installs are idempotent without --force ------------------------------
 OUT=$(HOME="$WORK/h1" node "$CLI" -g -y)
@@ -46,7 +46,7 @@ assert_not_contains "$(cat "$WORK/h2/.claude/skills/god-dev/SKILL.md")" "tampere
 # --- list -----------------------------------------------------------------
 LIST=$(node "$CLI" list)
 assert_contains "$LIST" "$COUNT skills available" "list counts every skill"
-assert_contains "$LIST" "god-reverse" "list names the newest skill"
+assert_contains "$LIST" "god-zen" "list names the newest skill"
 
 # --- the agent system moved out of this package ---------------------------
 HELP=$(node "$CLI" --help)
@@ -157,7 +157,16 @@ assert_contains "$WRITER" "## Editor pass" "god-writer runs the editor pass"
 assert_contains "$WRITER" "references/ai-patterns.md" "god-writer loads the pattern catalog on demand"
 assert_file "skills/god-writer/references/ai-patterns.md" "the AI-pattern catalog ships"
 assert_contains "$(cat skills/god-writer/references/ai-patterns.md)" "## Full Example" "the catalog keeps the worked example"
-for S in god-ceo god-cfo god-writer god-qa god-dev; do
+PM=$(cat skills/god-pm/SKILL.md)
+for REF in research ops reverse; do assert_file "skills/god-pm/references/$REF.md" "god-pm ships references/$REF.md"; done
+assert_contains "$PM" "filed only after the user says yes" "god-pm files scouted ideas only on a yes"
+assert_contains "$PM" "WHO** hits **WHAT** pain **WHEN" "god-pm starts from a problem statement"
+ZEN=$(cat skills/god-zen/SKILL.md)
+assert_contains "$ZEN" "never leaves the machine, never a PR" "god-zen data stays local"
+assert_contains "$ZEN" "ask before continuing" "god-zen asks before work on a strong signal"
+assert_contains "$ZEN" "zen-activity.sh" "god-zen names its collector hook"
+assert_contains "$ZEN" "Never** diagnoses" "god-zen never diagnoses"
+for S in god-ceo god-cfo god-writer god-qa god-dev god-pm god-zen; do
   L=$(wc -l < skills/$S/SKILL.md | tr -d ' ')
   [ "$L" -le 150 ] && _ok "$S core stays under 150 lines ($L)" || _fail "$S core stays under 150 lines" "$L lines"
 done
