@@ -18,7 +18,7 @@ Invoke the `god-cos` skill with the request verbatim and produce its plan as
 strict JSON:
 
 ```json
-{"chain": ["god-architect", "god-dev", "god-qa"], "reason": "<one line>"}
+{"chain": ["god-dev", "god-qa"], "reason": "<one line>"}
 ```
 
 Show the plan to the user before executing it.
