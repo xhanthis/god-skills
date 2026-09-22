@@ -14,16 +14,6 @@
     "tools": "Read, Write, Edit, Bash, Grep, Glob, Skill, ToolSearch, mcp__claude_ai_Claude_Docs__guide, mcp__claude_ai_Claude_Docs__batch, mcp__claude_ai_Claude_Docs__update, mcp__claude_ai_Claude_Docs__read",
     "model": "opus"
   },
-  "god-scout": {
-    "description": "Subagent form of the god-scout skill — opt-in only. By default invoke the god-scout skill inline with the Skill tool so the user watches the scan. Use this subagent only when the user explicitly asks for a subagent, a parallel fan-out, or a headless run such as the weekly scout. Read-only; never writes code or opens PRs.",
-    "tools": "Read, Grep, Glob, WebSearch",
-    "model": "opus"
-  },
-  "god-reverse": {
-    "description": "Subagent form of the god-reverse skill — opt-in only. By default invoke the god-reverse skill inline with the Skill tool so the user watches the investigation. Use this subagent only when the user explicitly asks for a subagent, a parallel fan-out, or a headless run. Read-only investigation from public surfaces; writes the rebuild plan, never the product's source.",
-    "tools": "Read, Grep, Glob, Bash, WebSearch, WebFetch, Write",
-    "model": "opus"
-  },
   "god-cfo": {
     "description": "Subagent form of the god-cfo skill — opt-in only. By default invoke the god-cfo skill inline with the Skill tool so the user watches the math. Use this subagent only when the user explicitly asks for a subagent, a parallel fan-out, or a headless run. Recomputes every financial figure independently, validates slabs, splits, pricing and metric definitions, and reports the reconciliation.",
     "tools": "Read, Grep, Glob, Bash",
@@ -32,6 +22,16 @@
   "god-writer": {
     "description": "Subagent form of the god-writer skill — opt-in only. By default invoke the god-writer skill inline with the Skill tool so the user watches the edit. Use this subagent only when the user explicitly asks for a subagent, a parallel fan-out, or a headless run. Edits for clarity and length, strips AI tells, matches the user's voice.",
     "tools": "Read, Write, Edit, Grep, Glob",
+    "model": "sonnet"
+  },
+  "god-pm": {
+    "description": "Subagent form of the god-pm skill — opt-in only. By default invoke the god-pm skill inline with the Skill tool so the user watches the thinking. Use this subagent only when the user explicitly asks for a subagent, a parallel fan-out, or a headless run. Decides what to build and why, writes PRDs, speaks for the customer, researches markets and competitors with sources, designs operational processes, and reverse-engineers existing products into a rebuild plan. Never writes product code.",
+    "tools": "Read, Grep, Glob, Bash, WebSearch, WebFetch, Write",
+    "model": "opus"
+  },
+  "god-zen": {
+    "description": "Subagent form of the god-zen skill — opt-in only. By default invoke the god-zen skill inline with the Skill tool. Use this subagent only when the user explicitly asks for a subagent or a headless run (for example the weekly report). Reads the user's activity log, git history, token usage and calendar; reports hours, sleep window, focus, intensity and meeting load against the user's own baseline. Never writes code.",
+    "tools": "Read, Grep, Glob, Bash, Write",
     "model": "sonnet"
   }
 }

@@ -71,11 +71,11 @@ compares to prove it.
 | god-writer | Read, Write, Edit, Grep, Glob | sonnet |
 | god-dev | Read, Write, Edit, Grep, Glob, Bash, Skill, ToolSearch, Claude Docs (guide, batch, update, read) | opus |
 | god-qa | Read, Write, Edit, Bash, Grep, Glob, Skill, ToolSearch, Claude Docs (guide, batch, update, read) | opus |
-| god-scout | Read, Grep, Glob, WebSearch | opus |
-| god-reverse | Read, Grep, Glob, Bash, WebSearch, WebFetch, Write | opus |
+| god-pm | Read, Grep, Glob, Bash, WebSearch, WebFetch, Write | opus |
+| god-zen | Read, Grep, Glob, Bash, Write | sonnet |
 
 `tools` is a security boundary, not a convenience: god-qa's security pass runs with the same tools as its tests; the router
-cannot spawn agents, and god-scout cannot run commands. Models are
+cannot spawn agents, and god-zen cannot edit code. Models are
 pinned explicitly, because an unpinned subagent inherits the lead's model and
 silently burns Opus on triage.
 
