@@ -1,7 +1,7 @@
 "use strict";
 
 /**
- * Pure scoring for the God Zen daily report.
+ * Pure scoring for the God Ally daily report.
  * No clock, no filesystem, no config lookups — every function takes numbers and returns
  * numbers so the suite can pin the algorithm without a machine to run it on.
  * Every component is 0–10; the weighted blend is the Zen Score.

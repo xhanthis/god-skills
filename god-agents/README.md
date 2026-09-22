@@ -68,14 +68,14 @@ compares to prove it.
 |---|---|---|
 | god-ceo | Read, Grep, Glob, Write, Bash | opus |
 | god-cfo | Read, Grep, Glob, Bash | opus |
-| god-writer | Read, Write, Edit, Grep, Glob | sonnet |
+| god-cmo | Read, Write, Edit, Grep, Glob | sonnet |
 | god-dev | Read, Write, Edit, Grep, Glob, Bash, Skill, ToolSearch, Claude Docs (guide, batch, update, read) | opus |
 | god-qa | Read, Write, Edit, Bash, Grep, Glob, Skill, ToolSearch, Claude Docs (guide, batch, update, read) | opus |
 | god-pm | Read, Grep, Glob, Bash, WebSearch, WebFetch, Write | opus |
-| god-zen | Read, Grep, Glob, Bash, Write | sonnet |
+| god-ally | Read, Grep, Glob, Bash, Write | sonnet |
 
 `tools` is a security boundary, not a convenience: god-qa's security pass runs with the same tools as its tests; the router
-cannot spawn agents, and god-zen cannot edit code. Models are
+cannot spawn agents, and god-ally cannot edit code. Models are
 pinned explicitly, because an unpinned subagent inherits the lead's model and
 silently burns Opus on triage.
 
@@ -110,7 +110,7 @@ parse failure — a bug in a gate must never block your work.
 cloned to `~/.god-agents`. Your repo paths, KRAs, and Linear config live there,
 never in this public package.
 
-- `launchd` schedules a nightly tester and a weekly scout.
+- `launchd` schedules a nightly tester.
 - Every run starts on a fresh `god/nightly-<date>` branch. Never `main`.
 - Cost caps, a PR cap, and a `PAUSE` kill switch are enforced in the shell around
   the model call — a prompt can be argued out of a limit, a script cannot.

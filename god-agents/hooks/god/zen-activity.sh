@@ -1,14 +1,14 @@
 #!/usr/bin/env bash
-# god-zen's data collector. Runs on SessionStart, UserPromptSubmit and Stop.
-# Appends one line per event to ~/.claude/god/god-zen/activity.jsonl so god-zen can learn
+# god-ally's data collector. Runs on SessionStart, UserPromptSubmit and Stop.
+# Appends one line per event to ~/.claude/god/god-ally/activity.jsonl so god-ally can learn
 # the user's hours, breaks and sleep window without reading transcripts. On a prompt it also
-# reads next.json (written by god-zen at its last close) and, when the next meeting is close or
-# the user is past their stop target, injects a one-line reminder that god-zen must ask before
+# reads next.json (written by god-ally at its last close) and, when the next meeting is close or
+# the user is past their stop target, injects a one-line reminder that god-ally must ask before
 # the work starts. Never blocks; any failure exits 0 silently.
 set -u
 . "$(dirname "$0")/lib.sh"
 
-DIR="${GOD_ZEN_DIR:-$HOME/.claude/god/god-zen}"
+DIR="${GOD_ALLY_DIR:-$HOME/.claude/god/god-ally}"
 mkdir -p "$DIR" 2>/dev/null || exit 0
 NOW=$(date +%s)
 EVENT=$(hook_field .hook_event_name)
@@ -43,5 +43,5 @@ if [ -n "$STOP" ] && [ "$(date +%H:%M)" \> "$STOP" ]; then
 fi
 [ -n "$MSG" ] || exit 0
 
-printf '%s' "{\"hookSpecificOutput\":{\"hookEventName\":\"UserPromptSubmit\",\"additionalContext\":\"god-zen: $MSG. Before starting, ask in one line whether to continue now; the answer stands for the rest of the day.\"}}"
+printf '%s' "{\"hookSpecificOutput\":{\"hookEventName\":\"UserPromptSubmit\",\"additionalContext\":\"god-ally: $MSG. Before starting, ask in one line whether to continue now; the answer stands for the rest of the day.\"}}"
 exit 0

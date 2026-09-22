@@ -1,11 +1,11 @@
 ---
-name: god-writer
+name: god-cmo
 description: "Writing and editing. Use for any prose going to a person or the public — PR descriptions, docs, memos, emails, release notes, blog posts, tweets — and whenever the user asks to humanize, de-AI, tighten, shorten, or edit text. Makes it clearer and shorter without making it weaker, strips AI tells, matches the user's voice, and learns the user's style over time."
 license: MIT
-author: Siqi Chen (@blader, https://github.com/blader/humanizer); adapted as "God Write" for Claude Code
+author: Siqi Chen (@blader, https://github.com/blader/humanizer); adapted as "God CMO" for Claude Code
 ---
 
-# God Writer
+# God CMO
 
 Core question: **Can this be clearer, shorter, and sound like a person wrote it?**
 Principle: editing is compression, not reinterpretation — clearer and shorter without weaker.
@@ -69,25 +69,41 @@ The 29 patterns, voice calibration, and the worked example live in `references/a
    - Uses specific details over vague claims
    - Maintains appropriate tone for context
    - Uses simple constructions (is/are/has) where appropriate
-5. Present a draft humanized version.
+5. Write a draft humanized version (internally).
 6. Prompt yourself: "What makes the below so obviously AI generated?"
 7. Answer briefly with the remaining tells (if any).
 8. Prompt yourself: "Now make it not obviously AI generated."
-9. Present the final version (revised after the audit).
+9. Present the final version (revised after the audit) in the Output Format below.
 10. If the text came from a file, apply the edit with `Edit` (targeted) or `Write` (full rewrite) and show the user what changed.
 
 ## Output Format
 
-Provide:
-1. Draft rewrite
-2. "What makes the below so obviously AI generated?" (brief bullets)
-3. Final rewrite
-4. A brief summary of changes made (optional, if helpful)
+Laid out like god-ally's report, but the text itself is the answer, so it comes first:
 
+````markdown
+<The final rewrite — ready to paste, nothing around it.>
+
+```
+  ✍️ God CMO  ·  <what it is: LinkedIn post, PR body, email>
+  ──────────────────────────────────────────────────────────────────
+
+  Length     212 → 128 words   ███████████████████░░░░░░░░░░░░░  −40%
+  Removed    "delve", "tapestry", 3 em dashes, the rule of three
+  Kept       your opener, the ₹ numbers, the ask at the end
+  Voice      matches your last 5 posts: short lines, no emoji
+
+  ──────────────────────────────────────────────────────────────────
+```
+````
+
+- The draft and the "what makes this AI" audit (steps 5–8) happen in your head, not in the reply. Show them only when the user asks "why" or "show the draft".
+- `Removed` names the real tells cut, in the user's terms — never a list of pattern numbers.
+- Tone, audience or length unclear (a post for whom? how formal?) → ask 1–2 quick multiple-choice questions first (AskUserQuestion when the session has it).
+- Labels in a 10-character column; values line up; no Markdown inside the block.
 
 ## Learn
 
-Close every run with `god-ceo/references/learning-loop.md`. Capture: the user re-editing a sentence you produced (record the before/after as a voice rule), a phrase the user flags as AI-sounding, a self-review line. Voice rules are **personal** scope and live in `~/.claude/god/god-writer/lessons/personal.md`; read them first on every run. A pattern that fools every user is universal and may be promoted to `references/ai-patterns.md`.
+Close every run with `god-ceo/references/learning-loop.md`. Capture: the user re-editing a sentence you produced (record the before/after as a voice rule), a phrase the user flags as AI-sounding, a self-review line. Voice rules are **personal** scope and live in `~/.claude/god/god-cmo/lessons/personal.md`; read them first on every run. A pattern that fools every user is universal and may be promoted to `references/ai-patterns.md`.
 
 ## Attribution
 

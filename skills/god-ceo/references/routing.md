@@ -2,6 +2,8 @@
 
 ## Problem statement (step 1 output — always this structure)
 
+Open with one plain sentence anyone gets: what is broken, for whom, and what it costs. Then:
+
 - **Problem** — what is actually wrong
 - **Current Behavior** / **Expected Behavior**
 - **Root Cause** — what appears to cause it
@@ -24,8 +26,8 @@
 | **god-qa** | tests, 4-viewport UI, a11y, perf, low network, security, Indian compliance, integrity, PASS / FAIL |
 | **god-cfo** | every number: money math, splits, slabs, pricing, SQL, metrics, forecasts |
 | **god-pm** | what to build and why, PRDs, customers, research, competitors, ops processes, reverse-engineering a product |
-| **god-writer** | prose for people: edit, shorten, humanize, match voice |
-| **god-zen** | the user's hours, breaks, sleep, focus, meetings — speaks through other skills |
+| **god-cmo** | prose for people: edit, shorten, humanize, match voice |
+| **god-ally** | the user's hours, breaks, sleep, focus, meetings — speaks through other skills |
 | **god-ceo** | this file: problem, worth, priority, route, attack, decide, record, review |
 
 ## Standard chains (adapt, never inflate)
@@ -36,8 +38,8 @@
 - **Research / competitor / market:** god-pm (research pass) → god-ceo decides.
 - **Rebuild an existing product:** god-pm (reverse pass) → god-dev deep → god-qa.
 - **Process / SOP:** god-pm (ops pass) → god-dev if tooling → god-qa.
-- **Text for people:** god-writer alone.
-- **Personal pace / planning:** god-zen alone.
+- **Text for people:** god-cmo alone.
+- **Personal pace / planning:** god-ally alone.
 
 ## Chain contract (when asked to plan, e.g. by `/god`)
 

@@ -18,7 +18,7 @@ assert_eq "$(node "$CLI" --version)" "$(node -e "console.log(require('./package.
 # --- install --------------------------------------------------------------
 HOME="$WORK/h1" node "$CLI" -g -y >/dev/null
 assert_eq "$(ls "$WORK/h1/.claude/skills" | wc -l | tr -d ' ')" "$COUNT" "every skill installs"
-assert_file "$WORK/h1/.claude/skills/god-zen/SKILL.md" "the newest skill ships"
+assert_file "$WORK/h1/.claude/skills/god-ally/SKILL.md" "the newest skill ships"
 
 # --- installs are idempotent without --force ------------------------------
 OUT=$(HOME="$WORK/h1" node "$CLI" -g -y)
@@ -77,7 +77,7 @@ assert_file "$CX/.cursor/rules/god.md" "--agents-md writes any instruction file"
 # --- list -----------------------------------------------------------------
 LIST=$(node "$CLI" list)
 assert_contains "$LIST" "$COUNT skills available" "list counts every skill"
-assert_contains "$LIST" "god-zen" "list names the newest skill"
+assert_contains "$LIST" "god-ally" "list names the newest skill"
 
 # --- the agent system moved out of this package ---------------------------
 HELP=$(node "$CLI" --help)
@@ -134,6 +134,8 @@ for VP in 390x844 820x1180 1512x982 1440x900; do
   assert_contains "$TESTER" "$VP" "god-qa tests the $VP viewport"
 done
 assert_contains "$TESTER" "Any **5** → **FAIL**" "god-qa fails the module on a score-5 issue"
+assert_contains "$TESTER" "Laid out like god-ally's report" "god-qa's reply follows god-ally's layout"
+assert_contains "$TESTER" "Verdict    ✅ Result: PASS" "god-qa's verdict row carries the hook token"
 assert_contains "$TESTER" "Manual Test Guide" "god-qa produces the manual curl guide"
 for REF in frontend security compliance-india integrity docs; do
   assert_file "skills/god-qa/references/$REF.md" "god-qa ships references/$REF.md"
@@ -157,35 +159,17 @@ assert_contains "$DEV" "run god-qa yourself" "god-dev tests by default by runnin
 assert_contains "$DEV" "never type a verdict god-qa did not return" "god-dev may only relay god-qa's real verdict"
 assert_contains "$DEV" "## Mode"  "god-dev calls it mode, not size"
 assert_contains "$DEV" "](https://www.npmjs.com/package/god-skills)" "god-dev signs PRs with the god-skills signature"
-SNIP=$(awk '/^     set -- /{f=1} f{l=$0; sub(/^     /,"",l); print l} /^     echo /{exit}' skills/god-dev/SKILL.md)
-SIG=$(bash -c "$SNIP" 2>&1)
-if printf '%s' "$SIG" | grep -qE '^.+ .+ \[[^]]+\]\(https://www\.npmjs\.com/package/god-skills\)$'; then
-  _ok "the signature snippet runs and prints one credit line"
-else
-  _fail "the signature snippet runs and prints one credit line" "$SIG"
-fi
-assert_contains "$SIG" "(https://www.npmjs.com/package/god-skills)" "the signature links the npm package"
-assert_eq "$(printf '%s\n' "$SIG" | wc -l | tr -d ' ')" "1" "the signature snippet prints exactly one line"
-if command -v zsh >/dev/null; then
-  NAMES=$(for _ in $(seq 120); do zsh -c "$SNIP" 2>&1; done | sed -E 's/.*\[([^]]*)\].*/\1/' | sort -u)
-  VERBS=$(for _ in $(seq 60); do zsh -c "$SNIP" 2>&1; done | sed -E 's/^[^ ]+ (.*) \[.*/\1/' | sort -u | grep -c .)
-  [ "$VERBS" -ge 3 ] && _ok "the credit verb varies with the signer ($VERBS seen in 60 runs)" || _fail "the credit verb varies with the signer" "only $VERBS distinct"
-
-  assert_not_contains "$NAMES" "Authored by" "the signature never comes out blank under zsh"
-  DISTINCT=$(printf '%s\n' "$NAMES" | grep -c .)
-  [ "$DISTINCT" -ge 5 ] && _ok "zsh spreads across the list ($DISTINCT names in 120 runs)" || _fail "zsh spreads across the list" "only $DISTINCT distinct names"
-  # The last entry is the one 0-based indexing drops, so address it directly rather than
-  # waiting for a 1-in-N draw to land — that made this assertion flaky.
-  LAST_NAME=$(printf '%s\n' "$SNIP" | sed -n '1p' | grep -oE '"[^"]+"' | tail -1 | tr -d '"' | awk -F'|' '{print $NF}')
-  LAST_PICK=$(zsh -c "$(printf '%s\n' "$SNIP" | sed 's/RANDOM % \$# + 1/\$#/; s/(( RANDOM % 2 )) \&\&/((1)) \&\&/')" 2>&1)
-  assert_contains "$LAST_PICK" "$LAST_NAME" "zsh can address the last name in the list ($LAST_NAME)"
-fi
+assert_contains "$DEV" "there is no list to pick from" "the PR signature is written fresh, not drawn from a list"
+assert_contains "$DEV" "signatures.jsonl" "god-dev remembers signatures so none repeats"
+assert_not_contains "$DEV" "set -- \"" "god-dev ships no hardcoded signer list"
+assert_contains "$DEV" "Laid out like god-ally's report" "god-dev's final message follows god-ally's layout"
+assert_contains "$DEV" "QA         Result: PASS" "the verdict row carries god-qa's token for the hooks"
 assert_contains "$DEV" "boring beats clever" "god-dev keeps the body line the agent test pins"
 assert_file "skills/god-dev/references/architecture.md" "god-dev ships the architecture pass"
 assert_contains "$DEV" "Remove first" "god-dev removes before it adds"
 assert_contains "$DEV" "learning-loop.md" "god-dev closes with the shared learning loop"
 
-# --- god-ceo / god-cfo / god-writer contracts --------------------------------
+# --- god-ceo / god-cfo / god-cmo contracts --------------------------------
 CEO=$(cat skills/god-ceo/SKILL.md skills/god-ceo/references/*.md)
 assert_contains "$CEO" '"chain"' "god-ceo declares the JSON chain contract"
 for V in BUILD "DO NOT BUILD" DEFER SHIP STOP; do
@@ -193,30 +177,38 @@ for V in BUILD "DO NOT BUILD" DEFER SHIP STOP; do
 done
 assert_contains "$CEO" "Known fact → Evidence → Inference → Assumption → Unknown" "god-ceo classifies claims before deciding"
 assert_contains "$CEO" "Weekly review" "god-ceo runs the weekly review"
+for S in god-ceo god-pm god-cmo; do
+  assert_contains "$(cat skills/$S/SKILL.md)" "Laid out like god-ally's report" "$S's reply follows god-ally's layout"
+done
+assert_contains "$(cat skills/god-ally/SKILL.md)" "laid out exactly like the daily report" "god-ally's week view matches the daily report"
 assert_contains "$CEO" "Sensei" "god-ceo is the escalation point for stuck skills"
 for REF in routing decisions learning-loop; do assert_file "skills/god-ceo/references/$REF.md" "god-ceo ships references/$REF.md"; done
 CFO=$(cat skills/god-cfo/SKILL.md)
 assert_contains "$CFO" "Pin the definition" "god-cfo pins metric definitions first"
 assert_contains "$CFO" "Recompute independently" "god-cfo recomputes money a second way"
+assert_contains "$CFO" "Pop questions first" "god-cfo asks quick questions when something is unclear"
+assert_contains "$CFO" "Always an example" "god-cfo explains with a worked example"
+assert_contains "$CFO" "Always a picture" "god-cfo explains with a graph or illustration"
+assert_contains "$CFO" "Laid out like god-ally's report" "god-cfo's reply follows god-ally's layout"
 for REF in pricing sql-metrics; do assert_file "skills/god-cfo/references/$REF.md" "god-cfo ships references/$REF.md"; done
-WRITER=$(cat skills/god-writer/SKILL.md)
-assert_contains "$WRITER" "## Editor pass" "god-writer runs the editor pass"
-assert_contains "$WRITER" "references/ai-patterns.md" "god-writer loads the pattern catalog on demand"
-assert_file "skills/god-writer/references/ai-patterns.md" "the AI-pattern catalog ships"
-assert_contains "$(cat skills/god-writer/references/ai-patterns.md)" "## Full Example" "the catalog keeps the worked example"
+WRITER=$(cat skills/god-cmo/SKILL.md)
+assert_contains "$WRITER" "## Editor pass" "god-cmo runs the editor pass"
+assert_contains "$WRITER" "references/ai-patterns.md" "god-cmo loads the pattern catalog on demand"
+assert_file "skills/god-cmo/references/ai-patterns.md" "the AI-pattern catalog ships"
+assert_contains "$(cat skills/god-cmo/references/ai-patterns.md)" "## Full Example" "the catalog keeps the worked example"
 PM=$(cat skills/god-pm/SKILL.md)
 for REF in research ops reverse; do assert_file "skills/god-pm/references/$REF.md" "god-pm ships references/$REF.md"; done
 assert_contains "$PM" "filed only after the user says yes" "god-pm files scouted ideas only on a yes"
 assert_contains "$PM" "WHO** hits **WHAT** pain **WHEN" "god-pm starts from a problem statement"
-ZEN=$(cat skills/god-zen/SKILL.md)
-assert_contains "$ZEN" "never leaves the machine, never a PR" "god-zen data stays local"
-assert_contains "$ZEN" "ask before continuing" "god-zen asks before work on a strong signal"
-assert_contains "$ZEN" "zen-activity.sh" "god-zen names its collector hook"
-assert_contains "$ZEN" "Never** diagnoses" "god-zen never diagnoses"
-assert_file "skills/god-zen/scripts/zen-report.js" "god-zen ships its daily report script"
-assert_file "skills/god-zen/scripts/zen-score.js" "god-zen ships its scoring module"
-assert_file "$WORK/h1/.claude/skills/god-zen/scripts/zen-report.js" "the installer copies skill scripts"
-for S in god-ceo god-cfo god-writer god-qa god-dev god-pm god-zen; do
+ZEN=$(cat skills/god-ally/SKILL.md)
+assert_contains "$ZEN" "never leaves the machine, never a PR" "god-ally data stays local"
+assert_contains "$ZEN" "ask before continuing" "god-ally asks before work on a strong signal"
+assert_contains "$ZEN" "zen-activity.sh" "god-ally names its collector hook"
+assert_contains "$ZEN" "Never** diagnoses" "god-ally never diagnoses"
+assert_file "skills/god-ally/scripts/zen-report.js" "god-ally ships its daily report script"
+assert_file "skills/god-ally/scripts/zen-score.js" "god-ally ships its scoring module"
+assert_file "$WORK/h1/.claude/skills/god-ally/scripts/zen-report.js" "the installer copies skill scripts"
+for S in god-ceo god-cfo god-cmo god-qa god-dev god-pm god-ally; do
   L=$(wc -l < skills/$S/SKILL.md | tr -d ' ')
   [ "$L" -le 150 ] && _ok "$S core stays under 150 lines ($L)" || _fail "$S core stays under 150 lines" "$L lines"
 done

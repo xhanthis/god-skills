@@ -62,15 +62,6 @@ assert_eq "$COUNT" "2" "reopening did not create a third issue"
 REGRESSION=$(curl -s "$LINEAR_API_URL/__dump" | jq -r '[.comments[] | select(.body | test("Regression"))] | length')
 assert_eq "$REGRESSION" "1" "the regression is labelled as one in the comment"
 
-# --- scout conceptual dedup input -----------------------------------------
-FP3='<!-- god-fingerprint: scout:store:extraction -->'
-BODY3=$(mktemp)
-printf 'Observation: store module is decoupled.\n\n%s\n' "$FP3" > "$BODY3"
-"$CLIENT" file "$FP3" "[god-scout] store module is extractable" "$BODY3" >/dev/null
-TITLES=$("$CLIENT" list-scout-titles)
-assert_contains "$TITLES" "[god-scout] store module is extractable" "scout titles are listable for overlap checks"
-assert_not_contains "$TITLES" "[god-tester]" "tester issues are excluded from scout titles"
-
 # --- search on a fingerprint that was never filed --------------------------
 EMPTY=$("$CLIENT" search '<!-- god-fingerprint: nope:nope:nope:nope -->')
 assert_eq "$EMPTY" "" "search returns nothing for an unknown fingerprint"
@@ -128,5 +119,5 @@ OUT=$(LINEAR_ACTOR_MODE=oauth LINEAR_API_KEY="lin_api_personal" "$CLIENT" whoami
 assert_contains "$OUT" "authored as God" "LINEAR_ACTOR_MODE overrides the prefix heuristic"
 
 
-rm -f "$BODY" "$BODY2" "$BODY3"
+rm -f "$BODY" "$BODY2"
 finish

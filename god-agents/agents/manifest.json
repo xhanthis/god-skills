@@ -19,8 +19,8 @@
     "tools": "Read, Grep, Glob, Bash",
     "model": "opus"
   },
-  "god-writer": {
-    "description": "Subagent form of the god-writer skill — opt-in only. By default invoke the god-writer skill inline with the Skill tool so the user watches the edit. Use this subagent only when the user explicitly asks for a subagent, a parallel fan-out, or a headless run. Edits for clarity and length, strips AI tells, matches the user's voice.",
+  "god-cmo": {
+    "description": "Subagent form of the god-cmo skill — opt-in only. By default invoke the god-cmo skill inline with the Skill tool so the user watches the edit. Use this subagent only when the user explicitly asks for a subagent, a parallel fan-out, or a headless run. Edits for clarity and length, strips AI tells, matches the user's voice.",
     "tools": "Read, Write, Edit, Grep, Glob",
     "model": "sonnet"
   },
@@ -29,8 +29,8 @@
     "tools": "Read, Grep, Glob, Bash, WebSearch, WebFetch, Write",
     "model": "opus"
   },
-  "god-zen": {
-    "description": "Subagent form of the god-zen skill — opt-in only. By default invoke the god-zen skill inline with the Skill tool. Use this subagent only when the user explicitly asks for a subagent or a headless run (for example the weekly report). Reads the user's activity log, git history, token usage and calendar; reports hours, sleep window, focus, intensity and meeting load against the user's own baseline. Never writes code.",
+  "god-ally": {
+    "description": "Subagent form of the god-ally skill — opt-in only. By default invoke the god-ally skill inline with the Skill tool. Use this subagent only when the user explicitly asks for a subagent or a headless run (for example the weekly report). Reads the user's activity log, git history, token usage and calendar; reports hours, sleep window, focus, intensity and meeting load against the user's own baseline. Never writes code.",
     "tools": "Read, Grep, Glob, Bash, Write",
     "model": "sonnet"
   }
