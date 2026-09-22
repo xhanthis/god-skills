@@ -118,6 +118,17 @@ for MEM in "profiles/<repo-slug>.json" "lessons/<repo-slug>.md" "scorecard.jsonl
 done
 assert_contains "$DEV" "## ⚠️ Needs you" "god-dev's final message carries the needs-you section"
 assert_contains "$DEV" "## Mode"  "god-dev calls it mode, not size"
+assert_contains "$DEV" "Authored by [" "god-dev signs PRs with the god-skills signature"
+SNIP=$(awk '/^     set -- /{f=1} f{l=$0; sub(/^     /,"",l); print l} /^     echo /{exit}' skills/god-dev/SKILL.md)
+SIG=$(bash -c "$SNIP" 2>&1)
+assert_contains "$SIG" "Authored by [" "the signature snippet runs and prints a signature"
+assert_contains "$SIG" "(https://www.npmjs.com/package/god-skills)" "the signature links the npm package"
+assert_eq "$(printf '%s\n' "$SIG" | wc -l | tr -d ' ')" "1" "the signature snippet prints exactly one line"
+if command -v zsh >/dev/null; then
+  NAMES=$(for _ in $(seq 120); do zsh -c "$SNIP" 2>&1; done | sed -E 's/.*\[([^]]*)\].*/\1/' | sort -u)
+  assert_not_contains "$NAMES" "Authored by" "the signature never comes out blank under zsh"
+  assert_contains "$NAMES" "Rajinikanth" "zsh can pick the last name in the list"
+fi
 assert_contains "$DEV" "boring beats clever" "god-dev keeps the body line the agent test pins"
 
 finish
