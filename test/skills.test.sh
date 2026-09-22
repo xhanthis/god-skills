@@ -131,4 +131,23 @@ if command -v zsh >/dev/null; then
 fi
 assert_contains "$DEV" "boring beats clever" "god-dev keeps the body line the agent test pins"
 
+# --- the shared learning loop ---------------------------------------------
+LOOP=skills/god-ceo/references/learning-loop.md
+assert_file "$LOOP" "the learning loop ships inside god-ceo"
+LOOPTXT=$(cat "$LOOP")
+for SCOPE in universal repo personal; do
+  assert_contains "$LOOPTXT" "**$SCOPE**" "the loop defines the $SCOPE scope"
+done
+assert_contains "$LOOPTXT" "severity × reach × confidence" "the loop scores by value, not by count"
+assert_contains "$LOOPTXT" "never a PR, even after 100 sightings" "personal lessons never leave the machine"
+assert_contains "$LOOPTXT" "value ≥ 18" "a high-value universal lesson is promoted on first sighting"
+assert_contains "$LOOPTXT" '"share_learnings": false' "users can opt out of upstream PRs"
+assert_contains "$LOOPTXT" "Never merge" "the loop never merges its own PRs"
+assert_file "$WORK/h1/.claude/skills/god-ceo/references/learning-loop.md" "the installer copies skill references"
+WF=.github/workflows/test.yml
+assert_file "$WF" "CI workflow exists"
+assert_contains "$(cat $WF)" "bash test/run.sh" "CI runs the suite"
+assert_contains "$(cat $WF)" "'learning'" "CI guards learning PRs"
+assert_contains "$(cat $WF)" "Scope: universal" "CI accepts only universal lessons upstream"
+
 finish
