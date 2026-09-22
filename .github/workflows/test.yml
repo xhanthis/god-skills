@@ -1,0 +1,56 @@
+name: test
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  suite:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: sudo apt-get install -y -q jq
+      - run: bash test/run.sh
+
+  learning-pr:
+    # A `learning` PR is a rule summary opened from a user's machine. It may change skill
+    # text only, stay small, carry its scope and score, and contain nothing that identifies
+    # the machine it came from.
+    if: contains(github.event.pull_request.labels.*.name, 'learning')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: only skill text, at most 40 changed lines
+        run: |
+          BASE="${{ github.event.pull_request.base.sha }}"
+          FILES=$(git diff --name-only "$BASE"...HEAD)
+          echo "$FILES"
+          if echo "$FILES" | grep -vE '^skills/[a-z-]+/(SKILL\.md|references/[a-z-]+\.md)$'; then
+            echo "::error::a learning PR may only touch skills/<skill>/SKILL.md or skills/<skill>/references/*.md"; exit 1
+          fi
+          LINES=$(git diff "$BASE"...HEAD | grep -cE '^[+-][^+-]' || true)
+          [ "$LINES" -le 40 ] || { echo "::error::$LINES changed lines; the cap is 40"; exit 1; }
+      - name: scope and score lines present
+        env:
+          BODY: ${{ github.event.pull_request.body }}
+        run: |
+          printf '%s' "$BODY" | grep -qE '^Scope: (universal|repo|personal)$' || { echo "::error::missing 'Scope:' line"; exit 1; }
+          printf '%s' "$BODY" | grep -qE '^Scope: universal$' || { echo "::error::only universal lessons are accepted upstream"; exit 1; }
+          printf '%s' "$BODY" | grep -qE '^Score: ' || { echo "::error::missing 'Score:' line"; exit 1; }
+      - name: nothing that identifies the source
+        run: |
+          BASE="${{ github.event.pull_request.base.sha }}"
+          ADDED=$(git diff "$BASE"...HEAD | grep -E '^\+' | grep -vE '^\+\+\+')
+          FAIL=0
+          echo "$ADDED" | grep -qiE '[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}' && { echo "::error::email address in diff"; FAIL=1; }
+          echo "$ADDED" | grep -qE '(\+91[ -]?)?[6-9][0-9]{4}[ -]?[0-9]{5}\b' && { echo "::error::phone number in diff"; FAIL=1; }
+          echo "$ADDED" | grep -qE 'gh[pousr]_[A-Za-z0-9]{20,}|sk-ant-[A-Za-z0-9-]{20,}|AKIA[A-Z0-9]{16}|xox[abpr]-[A-Za-z0-9-]{10,}|eyJ[A-Za-z0-9_-]{20,}\.' && { echo "::error::credential-shaped literal in diff"; FAIL=1; }
+          echo "$ADDED" | grep -oE 'https?://[^ )>]+' | grep -vE '^https?://(www\.)?(github\.com/xhanthis/god-skills|npmjs\.com|docs\.[a-z0-9.-]+|developer\.mozilla\.org|nodejs\.org|go\.dev|docs\.python\.org)' | grep -q . && { echo "::error::link outside the public-docs allowlist"; FAIL=1; }
+          echo "$ADDED" | grep -qE '(^|[^a-zA-Z])(/Users/|/home/|C:\\\\)' && { echo "::error::local file path in diff"; FAIL=1; }
+          exit $FAIL
