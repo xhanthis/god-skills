@@ -136,6 +136,11 @@ if command -v zsh >/dev/null; then
   assert_contains "$NAMES" "Rajinikanth" "zsh can pick the last name in the list"
 fi
 assert_contains "$DEV" "boring beats clever" "god-dev keeps the body line the agent test pins"
+assert_file "skills/god-dev/references/architecture.md" "god-dev ships the architecture pass"
+assert_contains "$DEV" "Remove first" "god-dev removes before it adds"
+assert_contains "$DEV" "learning-loop.md" "god-dev closes with the shared learning loop"
+DEVLINES=$(wc -l < skills/god-dev/SKILL.md | tr -d ' ')
+[ "$DEVLINES" -le 150 ] && _ok "god-dev core stays under 150 lines ($DEVLINES)" || _fail "god-dev core stays under 150 lines" "$DEVLINES lines"
 
 # --- the shared learning loop ---------------------------------------------
 LOOP=skills/god-ceo/references/learning-loop.md
