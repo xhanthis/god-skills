@@ -110,7 +110,7 @@ parse failure — a bug in a gate must never block your work.
 cloned to `~/.god-agents`. Your repo paths, KRAs, and Linear config live there,
 never in this public package.
 
-- `launchd` schedules a nightly tester and a weekly scout.
+- `launchd` schedules a nightly tester.
 - Every run starts on a fresh `god/nightly-<date>` branch. Never `main`.
 - Cost caps, a PR cap, and a `PAUSE` kill switch are enforced in the shell around
   the model call — a prompt can be argued out of a limit, a script cannot.
