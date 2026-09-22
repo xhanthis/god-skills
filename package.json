@@ -1,6 +1,6 @@
 {
   "name": "god-skills",
-  "version": "2.2.1",
+  "version": "2.3.0",
   "description": "30 Claude Code agent skills that behave like one organization instead of one assistant guessing outside its expertise.",
   "bin": {
     "god-skills": "bin/god-skills.js"

@@ -94,4 +94,15 @@ process.stdin.on("end", () => {
 ')
 assert_eq "$MANIFEST" "OK" "the tarball ships skills and excludes the god-agents package"
 
+# --- god-tester contract ---------------------------------------------------
+# The hook gates grep the lead transcript for `Result: PASS|FAIL|UNVERIFIED`;
+# the reply template must keep that token or every session stays blocked.
+TESTER=$(cat skills/god-tester/SKILL.md)
+assert_contains "$TESTER" "Result: PASS | FAIL | UNVERIFIED" "god-tester's reply template carries the hook verdict token"
+for VP in 390x844 820x1180 1512x982 1440x900; do
+  assert_contains "$TESTER" "$VP" "god-tester tests the $VP viewport"
+done
+assert_contains "$TESTER" "Any **5** → **FAIL**" "god-tester fails the module on a score-5 issue"
+assert_contains "$TESTER" "Manual Test Guide" "god-tester produces the manual curl guide"
+
 finish
