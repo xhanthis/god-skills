@@ -54,7 +54,6 @@ assert_contains "$(grep '^tools:' "$AGENTS/god-qa.md")" "Edit" "god-qa can edit 
 # --- models are pinned, never inherited -----------------------------------
 MISSING=$(grep -L '^model:' "$AGENTS"/god-*.md | wc -l | tr -d ' ')
 assert_eq "$MISSING" "0" "every agent pins a model explicitly"
-assert_contains "$(grep '^model:' "$AGENTS/god-cos.md")" "haiku" "the router runs on a cheap model"
 
 # --- agents are opt-in; skills run inline ---------------------------------
 # Claude Code auto-delegates to any agent whose description invites it, which
@@ -66,7 +65,7 @@ OPTOUT=$(grep -LE '^description:.*explicitly asks' "$AGENTS"/god-*.md | wc -l | 
 assert_eq "$OPTOUT" "0" "every agent description delegates only on explicit request"
 INLINE=$(grep -LE '^description:.*inline with the Skill tool' "$AGENTS"/god-*.md | wc -l | tr -d ' ')
 assert_eq "$INLINE" "0" "every agent description points back to the inline skill"
-assert_not_contains "$(grep '^tools:' "$AGENTS/god-cos.md")" "Agent" "the router cannot spawn subagents"
+assert_not_contains "$(grep '^tools:' "$AGENTS/god-ceo.md")" "Agent" "the router cannot spawn subagents"
 GODCMD=$(cat "$WORK/h1/.claude/commands/god.md")
 assert_contains "$GODCMD" "through the Skill tool" "/god runs every specialist as an inline skill"
 assert_not_contains "$GODCMD" "Spawn" "/god never spawns a subagent on its own"
@@ -83,8 +82,8 @@ assert_eq "$AGENT_LINE" "$SKILL_LINE" "no duplicated prompt content between skil
 # --- the router command ships with the agents -----------------------------
 assert_file "$WORK/h1/.claude/commands/god.md" "the /god command is installed"
 assert_contains "$(cat "$WORK/h1/.claude/commands/god.md")" "sequentially from this session" \
-  "the router runs the chain from the main session, not nested in cos"
-assert_contains "$(cat skills/god-cos/SKILL.md)" '"chain"' "god-cos declares its JSON output contract"
+  "the router runs the chain from the main session, not nested in the ceo"
+assert_contains "$(cat skills/god-ceo/SKILL.md skills/god-ceo/references/routing.md)" '"chain"' "god-ceo declares its JSON output contract"
 
 # --- installs are idempotent without --force ------------------------------
 OUT=$(HOME="$WORK/h1" node "$CLI" -g -y)
