@@ -43,6 +43,20 @@ HOME="$WORK/h2" node "$CLI" dev -g -y -f >/dev/null
 assert_not_contains "$(cat "$WORK/h2/.claude/skills/god-dev/SKILL.md")" "tampered" \
   "--force restores the packaged skill"
 
+# --- retired skills are removed, foreign folders are not -------------------
+OLD="$WORK/h5/.claude/skills"; mkdir -p "$OLD/god-tester" "$OLD/god-designer" "$OLD/god-mine"
+printf -- '---\nname: god-tester\ndescription: old\n---\n' > "$OLD/god-tester/SKILL.md"
+printf -- '---\nname: my-designer\ndescription: the user\x27s own skill in a folder with a retired name\n---\n' > "$OLD/god-designer/SKILL.md"
+printf -- '---\nname: god-mine\ndescription: unrelated\n---\n' > "$OLD/god-mine/SKILL.md"
+OUT=$(HOME="$WORK/h5" node "$CLI" doctor 2>&1 || true)
+assert_contains "$OUT" "retired skill god-tester still installed" "doctor flags a retired skill left on disk"
+OUT=$(HOME="$WORK/h5" node "$CLI" -g -y)
+assert_contains "$OUT" "retired skill(s) removed" "install reports what it retired"
+assert_no_file "$OLD/god-tester/SKILL.md" "a retired skill folder that names itself is removed"
+assert_file "$OLD/god-designer/SKILL.md" "a user folder with a retired name but a different skill name is kept"
+assert_file "$OLD/god-mine/SKILL.md" "unrelated folders are untouched"
+assert_contains "$OUT" "share_learnings" "install tells the user how to opt out of upstream learning PRs"
+
 # --- list -----------------------------------------------------------------
 LIST=$(node "$CLI" list)
 assert_contains "$LIST" "$COUNT skills available" "list counts every skill"
