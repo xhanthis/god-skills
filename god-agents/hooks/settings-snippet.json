@@ -46,7 +46,7 @@
     ],
     "SubagentStop": [
       {
-        "matcher": "god-tester",
+        "matcher": "god-qa",
         "hooks": [
           {
             "type": "command",
@@ -62,7 +62,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "$HOME/.claude/hooks/god/require-tester-pass.sh",
+            "command": "$HOME/.claude/hooks/god/require-qa-pass.sh",
             "timeout": 15
           }
         ]

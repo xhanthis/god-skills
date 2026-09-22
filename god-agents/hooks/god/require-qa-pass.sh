@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # Gate 1 — dev cannot self-declare done. Runs on the lead session's Stop event
-# (not god-dev's SubagentStop: tester runs after dev finishes, and dev cannot
+# (not god-dev's SubagentStop: qa runs after dev finishes, and dev cannot
 # spawn it, so blocking dev's stop would deadlock; the lead session can).
-# Blocks the session from finishing while god-dev edits have no god-tester PASS
+# Blocks the session from finishing while god-dev edits have no god-qa PASS
 # after the newest of them. Checks both ways god-dev runs:
 #   subagent     — chain.jsonl, written by log-edits.sh and record-verdict.sh
 #   inline skill — the session transcript, because inline edits carry no
@@ -13,7 +13,7 @@ set -u
 [ "$(hook_field .stop_hook_active)" = "true" ] && exit 0   # loop guard
 
 block() {
-  echo "god-dev changes lack a god-tester PASS. Run god-tester before finishing." >&2
+  echo "god-dev changes lack a god-qa PASS. Run god-qa before finishing." >&2
   exit 2
 }
 

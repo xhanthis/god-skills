@@ -13,5 +13,5 @@ End your final message with exactly one fenced block:
 }
 ```
 
-Only god-tester and god-police may set a non-null verdict. Never claim a verdict
+Only god-qa may set a non-null verdict. Never claim a verdict
 for a test you did not run.

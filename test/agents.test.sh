@@ -12,7 +12,8 @@ trap 'rm -rf "$WORK"' EXIT
 # --- generation is faithful to the manifest -------------------------------
 HOME="$WORK/h1" node "$CLI" -g -y >/dev/null
 AGENTS="$WORK/h1/.claude/agents"
-assert_eq "$(ls "$AGENTS" | grep -c '^god-')" "8" "all eight agents are generated"
+N=$(node -e "console.log(Object.keys(require('./god-agents/agents/manifest.json')).length)")
+assert_eq "$(ls "$AGENTS" | grep -c '^god-')" "$N" "every manifest agent is generated"
 
 # Frontmatter must be parseable YAML. A description containing ': ' silently
 # breaks the agent unless quoted, which is exactly how this bug first appeared.
@@ -46,12 +47,9 @@ console.log(bad.length ? "BAD " + bad.join("; ") : "OK");
 assert_eq "$YAML" "OK" "every agent has valid, complete YAML frontmatter"
 
 # --- tool restrictions are a security boundary ----------------------------
-SEC=$(grep '^tools:' "$AGENTS/god-security.md")
-assert_not_contains "$SEC" "Edit" "god-security cannot edit the code it audits"
-assert_not_contains "$SEC" "Write" "god-security cannot write files"
 assert_not_contains "$(grep '^tools:' "$AGENTS/god-scout.md")" "Edit" "god-scout cannot edit code"
 assert_not_contains "$(grep '^tools:' "$AGENTS/god-scout.md")" "Bash" "god-scout cannot run commands"
-assert_contains "$(grep '^tools:' "$AGENTS/god-tester.md")" "Edit" "god-tester can edit (it auto-fixes)"
+assert_contains "$(grep '^tools:' "$AGENTS/god-qa.md")" "Edit" "god-qa can edit (it auto-fixes)"
 assert_contains "$(grep '^tools:' "$AGENTS/god-architect.md")" "Write" "god-architect can write design docs"
 
 # --- models are pinned, never inherited -----------------------------------
@@ -79,8 +77,8 @@ assert_contains "$(cat "$AGENTS/god-dev.md")" "boring beats clever" "the agent b
 assert_contains "$(cat "$AGENTS/god-dev.md")" "json god-handoff" "the handoff contract is appended"
 
 # --- skills remain the single source of truth -----------------------------
-SKILL_LINE=$(grep -c "Core question" skills/god-tester/SKILL.md)
-AGENT_LINE=$(grep -c "Core question" "$AGENTS/god-tester.md")
+SKILL_LINE=$(grep -c "Core question" skills/god-qa/SKILL.md)
+AGENT_LINE=$(grep -c "Core question" "$AGENTS/god-qa.md")
 assert_eq "$AGENT_LINE" "$SKILL_LINE" "no duplicated prompt content between skill and agent"
 
 # --- the router command ships with the agents -----------------------------
@@ -94,7 +92,7 @@ OUT=$(HOME="$WORK/h1" node "$CLI" -g -y)
 assert_contains "$OUT" "already present" "a second install leaves existing agents alone"
 
 # --- selective install, short names, unknown names ------------------------
-HOME="$WORK/h2" node "$CLI" dev tester -g -y >/dev/null
+HOME="$WORK/h2" node "$CLI" dev qa -g -y >/dev/null
 assert_eq "$(ls "$WORK/h2/.claude/agents" | grep -c '^god-')" "2" "short names install just those agents"
 assert_file "$WORK/h2/.claude/agents/god-dev.md" "short name 'dev' resolves to god-dev"
 assert_exit 1 "an unknown agent name fails loudly" -- env HOME="$WORK/h3" node "$CLI" nope -g -y
@@ -107,7 +105,7 @@ assert_no_file "$WORK/h5/.claude" "--hooks --dry-run writes nothing"
 
 # --- hooks install and settings merge -------------------------------------
 HOME="$WORK/h6" node "$CLI" --hooks >/dev/null
-GATE="$WORK/h6/.claude/hooks/god/require-tester-pass.sh"
+GATE="$WORK/h6/.claude/hooks/god/require-qa-pass.sh"
 assert_file "$GATE" "hook scripts are installed"
 assert_no_file "$WORK/h6/.claude/agents" "--hooks alone does not install agents"
 MODE=$(node -e "console.log((require('fs').statSync(process.argv[1]).mode & 0o777).toString(8))" "$GATE")
@@ -123,7 +121,7 @@ assert_eq "$TOTAL" "6" "re-running --hooks does not duplicate entries"
 # --- --all installs agents and hooks in one pass ---------------------------
 HOME="$WORK/hA" node "$CLI" --all -g -y >/dev/null
 assert_file "$WORK/hA/.claude/agents/god-dev.md" "--all installs the agents"
-assert_file "$WORK/hA/.claude/hooks/god/require-tester-pass.sh" "--all installs the hook gates"
+assert_file "$WORK/hA/.claude/hooks/god/require-qa-pass.sh" "--all installs the hook gates"
 
 # --- existing user settings survive ---------------------------------------
 mkdir -p "$WORK/h7/.claude"

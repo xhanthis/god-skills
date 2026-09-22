@@ -129,7 +129,7 @@ function printHelp() {
     "",
     paint("Usage", "bold"),
     "  npx god-agents                     generate + install every agent and /god",
-    "  npx god-agents god-dev god-tester  install only these agents",
+    "  npx god-agents god-dev god-qa      install only these agents",
     "  npx god-agents --all               agents, /god and the hook gates",
     "  npx god-agents --hooks             only the hook gates (global)",
     "  npx god-agents list                show every available agent",

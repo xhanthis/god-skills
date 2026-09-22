@@ -14,20 +14,10 @@
     "tools": "Read, Write, Edit, Grep, Glob, Bash, Skill, ToolSearch, mcp__claude_ai_Claude_Docs__guide, mcp__claude_ai_Claude_Docs__batch, mcp__claude_ai_Claude_Docs__update, mcp__claude_ai_Claude_Docs__read",
     "model": "opus"
   },
-  "god-tester": {
-    "description": "Subagent form of the god-tester skill — opt-in only. By default invoke the god-tester skill inline with the Skill tool so the user watches the tests run. Use this subagent only when the user explicitly asks for a subagent, a parallel fan-out, or a headless run. Devil's-advocate risk pass, backend + 4-viewport frontend + a11y + perf + low-network tests, 1–5 issue scores, auto-fixes up to 3 cycles, returns PASS / FAIL / UNVERIFIED with two Claude Docs links.",
+  "god-qa": {
+    "description": "Subagent form of the god-qa skill — opt-in only. By default invoke the god-qa skill inline with the Skill tool so the user watches the tests run. Use this subagent only when the user explicitly asks for a subagent, a parallel fan-out, or a headless run. Devil's-advocate risk pass, backend + 4-viewport frontend + a11y + perf + low-network tests, security and Indian-compliance review when the diff touches them, integrity spot-checks, 1–5 issue scores, auto-fixes up to 3 cycles, returns PASS / FAIL / UNVERIFIED with two Claude Docs links.",
     "tools": "Read, Write, Edit, Bash, Grep, Glob, Skill, ToolSearch, mcp__claude_ai_Claude_Docs__guide, mcp__claude_ai_Claude_Docs__batch, mcp__claude_ai_Claude_Docs__update, mcp__claude_ai_Claude_Docs__read",
     "model": "opus"
-  },
-  "god-security": {
-    "description": "Subagent form of the god-security skill — opt-in only. By default invoke the god-security skill inline with the Skill tool so the user watches the review. Use this subagent only when the user explicitly asks for a subagent, a parallel fan-out, or a headless run. Read-only — reports findings, never edits the code it audits.",
-    "tools": "Read, Grep, Glob",
-    "model": "opus"
-  },
-  "god-police": {
-    "description": "Subagent form of the god-police skill — opt-in only. By default invoke the god-police skill inline with the Skill tool so the user watches the audit. Use this subagent only when the user explicitly asks for a subagent, a parallel fan-out, or a headless run. Re-runs one test and re-checks one citation.",
-    "tools": "Read, Grep, Bash",
-    "model": "sonnet"
   },
   "god-scout": {
     "description": "Subagent form of the god-scout skill — opt-in only. By default invoke the god-scout skill inline with the Skill tool so the user watches the scan. Use this subagent only when the user explicitly asks for a subagent, a parallel fan-out, or a headless run such as the weekly scout. Read-only; never writes code or opens PRs.",
