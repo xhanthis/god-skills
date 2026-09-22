@@ -156,16 +156,29 @@ assert_contains "$DEV" "https://github.com/<owner>/<repo>/pull/<n>" "god-dev lis
 assert_contains "$DEV" "run god-qa yourself" "god-dev tests by default by running god-qa itself"
 assert_contains "$DEV" "never type a verdict god-qa did not return" "god-dev may only relay god-qa's real verdict"
 assert_contains "$DEV" "## Mode"  "god-dev calls it mode, not size"
-assert_contains "$DEV" "Authored by [" "god-dev signs PRs with the god-skills signature"
+assert_contains "$DEV" "](https://www.npmjs.com/package/god-skills)" "god-dev signs PRs with the god-skills signature"
 SNIP=$(awk '/^     set -- /{f=1} f{l=$0; sub(/^     /,"",l); print l} /^     echo /{exit}' skills/god-dev/SKILL.md)
 SIG=$(bash -c "$SNIP" 2>&1)
-assert_contains "$SIG" "Authored by [" "the signature snippet runs and prints a signature"
+if printf '%s' "$SIG" | grep -qE '^.+ .+ \[[^]]+\]\(https://www\.npmjs\.com/package/god-skills\)$'; then
+  _ok "the signature snippet runs and prints one credit line"
+else
+  _fail "the signature snippet runs and prints one credit line" "$SIG"
+fi
 assert_contains "$SIG" "(https://www.npmjs.com/package/god-skills)" "the signature links the npm package"
 assert_eq "$(printf '%s\n' "$SIG" | wc -l | tr -d ' ')" "1" "the signature snippet prints exactly one line"
 if command -v zsh >/dev/null; then
   NAMES=$(for _ in $(seq 120); do zsh -c "$SNIP" 2>&1; done | sed -E 's/.*\[([^]]*)\].*/\1/' | sort -u)
+  VERBS=$(for _ in $(seq 60); do zsh -c "$SNIP" 2>&1; done | sed -E 's/^[^ ]+ (.*) \[.*/\1/' | sort -u | grep -c .)
+  [ "$VERBS" -ge 3 ] && _ok "the credit verb varies with the signer ($VERBS seen in 60 runs)" || _fail "the credit verb varies with the signer" "only $VERBS distinct"
+
   assert_not_contains "$NAMES" "Authored by" "the signature never comes out blank under zsh"
-  assert_contains "$NAMES" "Rajinikanth" "zsh can pick the last name in the list"
+  DISTINCT=$(printf '%s\n' "$NAMES" | grep -c .)
+  [ "$DISTINCT" -ge 5 ] && _ok "zsh spreads across the list ($DISTINCT names in 120 runs)" || _fail "zsh spreads across the list" "only $DISTINCT distinct names"
+  # The last entry is the one 0-based indexing drops, so address it directly rather than
+  # waiting for a 1-in-N draw to land — that made this assertion flaky.
+  LAST_NAME=$(printf '%s\n' "$SNIP" | sed -n '1p' | grep -oE '"[^"]+"' | tail -1 | tr -d '"' | awk -F'|' '{print $NF}')
+  LAST_PICK=$(zsh -c "$(printf '%s\n' "$SNIP" | sed 's/RANDOM % \$# + 1/\$#/; s/(( RANDOM % 2 )) \&\&/((1)) \&\&/')" 2>&1)
+  assert_contains "$LAST_PICK" "$LAST_NAME" "zsh can address the last name in the list ($LAST_NAME)"
 fi
 assert_contains "$DEV" "boring beats clever" "god-dev keeps the body line the agent test pins"
 assert_file "skills/god-dev/references/architecture.md" "god-dev ships the architecture pass"
@@ -200,6 +213,9 @@ assert_contains "$ZEN" "never leaves the machine, never a PR" "god-zen data stay
 assert_contains "$ZEN" "ask before continuing" "god-zen asks before work on a strong signal"
 assert_contains "$ZEN" "zen-activity.sh" "god-zen names its collector hook"
 assert_contains "$ZEN" "Never** diagnoses" "god-zen never diagnoses"
+assert_file "skills/god-zen/scripts/zen-report.js" "god-zen ships its daily report script"
+assert_file "skills/god-zen/scripts/zen-score.js" "god-zen ships its scoring module"
+assert_file "$WORK/h1/.claude/skills/god-zen/scripts/zen-report.js" "the installer copies skill scripts"
 for S in god-ceo god-cfo god-writer god-qa god-dev god-pm god-zen; do
   L=$(wc -l < skills/$S/SKILL.md | tr -d ' ')
   [ "$L" -le 150 ] && _ok "$S core stays under 150 lines ($L)" || _fail "$S core stays under 150 lines" "$L lines"

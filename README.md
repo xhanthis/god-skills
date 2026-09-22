@@ -61,6 +61,63 @@ Each copies the 7 skills to `./.god-skills/` and adds one marker-delimited index
 
 Every skill's `SKILL.md` stays under 150 lines; the heavier passes live in `references/` and load only when the task needs them (god-qa's four-viewport frontend pass only when UI changed, its security pass only when auth or input is touched, god-dev's architecture pass only in deep mode).
 
+## God Zen's daily report
+
+`/god-zen` prints one screen: a **Zen Score out of 10** for today, a 30-day graph, what you spent, and one thing to change tomorrow. It never asks you a question — a source that isn't there is listed as missing and the score is computed without it.
+
+```
+node ~/.claude/skills/god-zen/scripts/zen-report.js        # or just ask for /god-zen
+```
+
+| Component | Weight | Full marks |
+|---|---|---|
+| Day length | 35% | first to last activity within 8 hours |
+| Sleep | 30% | 7h30m asleep and nothing logged after 21:00 |
+| Intensity | 20% | tokens and commits at or under your own 28-day median |
+| Recovery | 15% | two days off in the last seven |
+
+Any activity past midnight, or a night under five hours, caps the score at 5. **8–10 Balanced · 5–7.9 Stretched · under 5 Burnout risk.** The day runs 05:00 → 05:00 in `Asia/Kolkata`, so a 00:29 commit counts against the day before — change both in the config.
+
+**Where it reads from,** timestamps and counts only, never content: your git commits across the repo roots in the config; Claude Code token usage via `npx ccusage@latest daily --json`, falling back to `~/.claude/projects/**/*.jsonl`; Apple Health sleep exported to iCloud; and, when they are connected, Google Calendar, Slack, Gmail, Linear and Notion through MCP — the skill fetches those timestamps and hands them to the script. Config and history live in `~/.god-zen/`, created on the first run, which also backfills 30 days.
+
+**Keep enough history.** Claude Code deletes its logs after 30 days. Raise it in `~/.claude/settings.json` so the baseline has something to stand on:
+
+```json
+{ "cleanupPeriodDays": 120 }
+```
+
+**Sleep, from your watch.** The script reads `~/Library/Mobile Documents/com~apple~CloudDocs/GodZen/sleep/YYYY-MM-DD.json`, each holding `{"date":"2026-09-22","asleep_minutes":412,"bedtime":"01:10","wake":"08:02"}`. Build it once with an iOS Shortcut, on the iPhone that has your Health data:
+
+1. **Shortcuts → Automation → + → Time of Day.** Pick a time after you normally wake (09:00 works), *Daily*, and turn on **Run Immediately** so it never asks.
+2. Add **Find Health Samples** → type **Sleep Analysis**, *Sort by* Start Date, and set the date range to today.
+3. Add **Calculate Statistics** (or **Get Numbers from Input**) to total the asleep minutes, then **Text** to build the JSON above — the sample's start is your bedtime, its end your wake time.
+4. Add **Save File**, destination **iCloud Drive → GodZen → sleep**, filename `<today's date, yyyy-MM-dd>.json`, *Overwrite if file exists* on.
+
+Skip it and the report still works: sleep is then scored on when you stopped working alone, and the footer lists `apple health sleep` as missing.
+
+**The graph** is the last seven days, one bar per day: the y-axis is the score out of ten, so taller is a better day, and the date and that day's score sit under every bar. A day off has no bar. It is drawn by the script itself — nothing to install.
+
+**A rare word of encouragement.** The report itself is numbers and one action, never a quote. But at the close of *another* skill's reply, `--quote` will occasionally return a single line — only when the day scored under 6, none has been shown in three days, and a one-in-twenty draw lands. Most calls print nothing, which is the point.
+
+```
+node ~/.claude/skills/god-zen/scripts/zen-report.js --quote
+```
+
+**Keep enough history.** Claude Code deletes its logs after 30 days. Raise it in `~/.claude/settings.json` so the baseline has something to stand on:
+
+```json
+{ "cleanupPeriodDays": 120 }
+```
+
+**Sleep, from your watch.** The script reads `~/Library/Mobile Documents/com~apple~CloudDocs/GodZen/sleep/YYYY-MM-DD.json`, each holding `{"date":"2026-09-22","asleep_minutes":412,"bedtime":"01:10","wake":"08:02"}`. Build it once with an iOS Shortcut, on the iPhone that has your Health data:
+
+1. **Shortcuts → Automation → + → Time of Day.** Pick a time after you normally wake (09:00 works), *Daily*, and turn on **Run Immediately** so it never asks.
+2. Add **Find Health Samples** → type **Sleep Analysis**, *Sort by* Start Date, and set the date range to today.
+3. Add **Calculate Statistics** (or **Get Numbers from Input**) to total the asleep minutes, then **Text** to build the JSON above — the sample's start is your bedtime, its end your wake time.
+4. Add **Save File**, destination **iCloud Drive → GodZen → sleep**, filename `<today's date, yyyy-MM-dd>.json`, *Overwrite if file exists* on.
+
+Skip it and the report still works: sleep is then scored on when you stopped working alone, and the footer lists `apple health sleep` as missing.
+
 ## How a request flows
 
 ```
@@ -115,7 +172,7 @@ Memory lives in `~/.claude/god/<skill>/` — lessons, scorecards, god-dev's repo
 
 ## Proof
 
-`npm test` runs 275 assertions across both packages — no credentials, no network — and CI runs them on every pull request:
+`npm test` runs 320 assertions across both packages — no credentials, no network — and CI runs them on every pull request:
 
 | Suite | Covers |
 |---|---|
@@ -124,6 +181,7 @@ Memory lives in `~/.claude/god/<skill>/` — lessons, scorecards, god-dev's repo
 | `hooks.test.sh` | every gate incl. the god-zen collector, both jq and python3 paths, fail-open behaviour |
 | `linear.test.sh` | the dedup protocol against a mock Linear server |
 | `runner.test.sh` | runner guardrails against real throwaway git repos |
+| `zen.test.sh` | god-zen's scoring units, the 3.3 worked example, the day boundary, the caps, the quote bank, and a full run with every source missing |
 
 `PLAN.md` is the original 30-skill design and is kept for history.
 
