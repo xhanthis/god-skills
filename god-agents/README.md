@@ -66,7 +66,9 @@ compares to prove it.
 
 | Agent | Tools | Model |
 |---|---|---|
-| god-cos | Read, Grep, Glob | haiku |
+| god-ceo | Read, Grep, Glob, Write, Bash | opus |
+| god-cfo | Read, Grep, Glob, Bash | opus |
+| god-writer | Read, Write, Edit, Grep, Glob | sonnet |
 | god-dev | Read, Write, Edit, Grep, Glob, Bash, Skill, ToolSearch, Claude Docs (guide, batch, update, read) | opus |
 | god-qa | Read, Write, Edit, Bash, Grep, Glob, Skill, ToolSearch, Claude Docs (guide, batch, update, read) | opus |
 | god-scout | Read, Grep, Glob, WebSearch | opus |
@@ -77,7 +79,7 @@ cannot spawn agents, and god-scout cannot run commands. Models are
 pinned explicitly, because an unpinned subagent inherits the lead's model and
 silently burns Opus on triage.
 
-**`/god <request>`** has god-cos plan a chain as JSON, then runs each specialist
+**`/god <request>`** has god-ceo plan a chain as JSON, then runs each specialist
 as an inline skill, one after another in the main session. Nothing goes to a
 subagent, so every step stays visible. Tester FAIL loops back to dev, up to three
 times.

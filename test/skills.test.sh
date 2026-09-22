@@ -108,8 +108,6 @@ for REF in frontend security compliance-india integrity docs; do
   assert_file "skills/god-qa/references/$REF.md" "god-qa ships references/$REF.md"
 done
 assert_contains "$(cat skills/god-qa/SKILL.md)" "integrity.md\` runs before **every** PASS" "god-qa runs the integrity pass before any PASS"
-QALINES=$(wc -l < skills/god-qa/SKILL.md | tr -d ' ')
-[ "$QALINES" -le 150 ] && _ok "god-qa core stays under 150 lines ($QALINES)" || _fail "god-qa core stays under 150 lines" "$QALINES lines"
 
 # --- god-dev contract ------------------------------------------------------
 DEV=$(cat skills/god-dev/SKILL.md)
@@ -139,8 +137,30 @@ assert_contains "$DEV" "boring beats clever" "god-dev keeps the body line the ag
 assert_file "skills/god-dev/references/architecture.md" "god-dev ships the architecture pass"
 assert_contains "$DEV" "Remove first" "god-dev removes before it adds"
 assert_contains "$DEV" "learning-loop.md" "god-dev closes with the shared learning loop"
-DEVLINES=$(wc -l < skills/god-dev/SKILL.md | tr -d ' ')
-[ "$DEVLINES" -le 150 ] && _ok "god-dev core stays under 150 lines ($DEVLINES)" || _fail "god-dev core stays under 150 lines" "$DEVLINES lines"
+
+# --- god-ceo / god-cfo / god-writer contracts --------------------------------
+CEO=$(cat skills/god-ceo/SKILL.md skills/god-ceo/references/*.md)
+assert_contains "$CEO" '"chain"' "god-ceo declares the JSON chain contract"
+for V in BUILD "DO NOT BUILD" DEFER SHIP STOP; do
+  assert_contains "$CEO" "**$V**" "god-ceo has the $V verdict"
+done
+assert_contains "$CEO" "Known fact → Evidence → Inference → Assumption → Unknown" "god-ceo classifies claims before deciding"
+assert_contains "$CEO" "Weekly review" "god-ceo runs the weekly review"
+assert_contains "$CEO" "Sensei" "god-ceo is the escalation point for stuck skills"
+for REF in routing decisions learning-loop; do assert_file "skills/god-ceo/references/$REF.md" "god-ceo ships references/$REF.md"; done
+CFO=$(cat skills/god-cfo/SKILL.md)
+assert_contains "$CFO" "Pin the definition" "god-cfo pins metric definitions first"
+assert_contains "$CFO" "Recompute independently" "god-cfo recomputes money a second way"
+for REF in pricing sql-metrics; do assert_file "skills/god-cfo/references/$REF.md" "god-cfo ships references/$REF.md"; done
+WRITER=$(cat skills/god-writer/SKILL.md)
+assert_contains "$WRITER" "## Editor pass" "god-writer runs the editor pass"
+assert_contains "$WRITER" "references/ai-patterns.md" "god-writer loads the pattern catalog on demand"
+assert_file "skills/god-writer/references/ai-patterns.md" "the AI-pattern catalog ships"
+assert_contains "$(cat skills/god-writer/references/ai-patterns.md)" "## Full Example" "the catalog keeps the worked example"
+for S in god-ceo god-cfo god-writer god-qa god-dev; do
+  L=$(wc -l < skills/$S/SKILL.md | tr -d ' ')
+  [ "$L" -le 150 ] && _ok "$S core stays under 150 lines ($L)" || _fail "$S core stays under 150 lines" "$L lines"
+done
 
 # --- the shared learning loop ---------------------------------------------
 LOOP=skills/god-ceo/references/learning-loop.md

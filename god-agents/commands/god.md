@@ -1,5 +1,5 @@
 ---
-description: Route a request through the God chain — god-cos plans, each specialist runs inline in this session
+description: Route a request through the God chain — god-ceo plans, each specialist runs inline in this session
 ---
 
 # /god
@@ -14,7 +14,7 @@ any step unless the user explicitly asked for subagents in this request.
 
 ## 1. Plan
 
-Invoke the `god-cos` skill with the request verbatim and produce its plan as
+Invoke the `god-ceo` skill with the request verbatim and produce its plan as
 strict JSON:
 
 ```json
