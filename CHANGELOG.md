@@ -2,7 +2,7 @@
 
 All notable changes to `god-skills` and `god-agents`. Dates are release dates.
 
-## 3.1.0 — 2026-09-22
+## 3.0.1 — 2026-09-23
 
 ### Added
 - **God Zen's daily report.** `/god-zen` now prints a Zen Score out of 10 for the day, a 30-day graph of it, what the month is costing, and one thing to change tomorrow. Fully passive — it never asks a question, and a source that is missing is named in the footer instead of blocking the score.
