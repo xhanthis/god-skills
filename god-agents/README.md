@@ -67,7 +67,6 @@ compares to prove it.
 | Agent | Tools | Model |
 |---|---|---|
 | god-cos | Read, Grep, Glob | haiku |
-| god-architect | Read, Grep, Glob, Write | opus |
 | god-dev | Read, Write, Edit, Grep, Glob, Bash, Skill, ToolSearch, Claude Docs (guide, batch, update, read) | opus |
 | god-qa | Read, Write, Edit, Bash, Grep, Glob, Skill, ToolSearch, Claude Docs (guide, batch, update, read) | opus |
 | god-scout | Read, Grep, Glob, WebSearch | opus |

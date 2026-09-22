@@ -4,13 +4,8 @@
     "tools": "Read, Grep, Glob",
     "model": "haiku"
   },
-  "god-architect": {
-    "description": "Subagent form of the god-architect skill — opt-in only. By default invoke the god-architect skill inline with the Skill tool so the user watches the design work. Use this subagent only when the user explicitly asks for a subagent, a parallel fan-out, or a headless run. Writes design docs only — never source code.",
-    "tools": "Read, Grep, Glob, Write",
-    "model": "opus"
-  },
   "god-dev": {
-    "description": "Subagent form of the god-dev skill — opt-in only. By default invoke the god-dev skill inline with the Skill tool so the user watches the implementation. Use this subagent only when the user explicitly asks for a subagent, a parallel fan-out, or a headless run. Picks a mode (small / normal / deep), syncs git, loads repo profile + lessons, plans with a shared risk list, self-scores 1–5, hands to god-tester, learns a lesson per finding, closes with a formatted summary and a flowchart doc. Work is not done until god-tester has returned PASS.",
+    "description": "Subagent form of the god-dev skill — opt-in only. By default invoke the god-dev skill inline with the Skill tool so the user watches the implementation. Use this subagent only when the user explicitly asks for a subagent, a parallel fan-out, or a headless run. Picks a mode (small / normal / deep), designs the architecture first in deep mode, removes before it adds, syncs git, loads repo profile + lessons, plans with a shared risk list, self-scores 1–5, hands to god-qa, learns a lesson per finding, closes with a formatted summary and a flowchart doc. Work is not done until god-qa has returned PASS.",
     "tools": "Read, Write, Edit, Grep, Glob, Bash, Skill, ToolSearch, mcp__claude_ai_Claude_Docs__guide, mcp__claude_ai_Claude_Docs__batch, mcp__claude_ai_Claude_Docs__update, mcp__claude_ai_Claude_Docs__read",
     "model": "opus"
   },
