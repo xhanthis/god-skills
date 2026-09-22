@@ -18,6 +18,40 @@ const { version } = require("../package.json");
 const PACKAGE_ROOT = path.join(__dirname, "..");
 const SOURCE_DIR = path.join(PACKAGE_ROOT, "skills");
 
+/**
+ * Skills this package used to ship. 3.0 folded them into the seven that remain, so an
+ * install removes their folders — but only a folder whose SKILL.md still names itself
+ * as that skill, never a user's own folder that happens to share the name.
+ */
+const RETIRED = [
+  "god", "god-architect", "god-cmo", "god-context", "god-cos", "god-customer", "god-da",
+  "god-data", "god-designer", "god-editor", "god-growth", "god-health", "god-historian",
+  "god-ops", "god-pl", "god-plan", "god-police", "god-pricer", "god-researcher",
+  "god-reverse", "god-sales", "god-scout", "god-security", "god-simplifier",
+  "god-strategist", "god-tester", "god-write"
+];
+
+/** True when <dir>/SKILL.md exists and its frontmatter names exactly this skill. */
+function isOurRetiredSkill(dir, name) {
+  const file = path.join(dir, "SKILL.md");
+  if (!fs.existsSync(file)) return false;
+  const head = fs.readFileSync(file, "utf8").slice(0, 400);
+  return new RegExp(`^name:\\s*${name}\\s*$`, "m").test(head);
+}
+
+/** Removes retired skill folders under <skillsDir> that are recognisably ours. Returns the names removed. */
+function removeRetired(skillsDir) {
+  const removed = [];
+  for (const name of RETIRED) {
+    const dir = path.join(skillsDir, name);
+    if (isOurRetiredSkill(dir, name)) {
+      fs.rmSync(dir, { recursive: true, force: true });
+      removed.push(name);
+    }
+  }
+  return removed;
+}
+
 const GLOBAL_BASE = path.join(os.homedir(), ".claude");
 const PROJECT_BASE = path.join(process.cwd(), ".claude");
 
@@ -56,7 +90,7 @@ function availableSkills() {
 function describeSkill(name) {
   const file = path.join(SOURCE_DIR, name, "SKILL.md");
   const text = fs.readFileSync(file, "utf8");
-  const match = text.match(/^description:\s*(.+)$/m);
+  const match = text.match(/^description:\s*"?(.+?)"?\s*$/m);
   if (!match) {
     return "";
   }
@@ -199,6 +233,7 @@ async function install(options) {
 
   const target = path.join(await resolveBase(options), "skills");
   fs.mkdirSync(target, { recursive: true });
+  const retired = removeRetired(target);
 
   const installed = [];
   const skipped = [];
@@ -220,6 +255,10 @@ async function install(options) {
     console.log(`${paint("•", "yellow")} ${skipped.length} already present, left alone: ${skipped.join(", ")}`);
     console.log(paint("  Re-run with --force to overwrite.", "dim"));
   }
+  if (retired.length > 0) {
+    console.log(`${paint("–", "yellow")} ${retired.length} retired skill(s) removed (folded into the 7 in 3.0): ${retired.join(", ")}`);
+  }
+  console.log(paint("  Learnings that help everyone are proposed upstream as PRs; opt out with \"share_learnings\": false in ~/.claude/god/config.json.", "dim"));
   console.log("");
   console.log(paint("Restart Claude Code to load them.", "dim"));
   console.log("");
@@ -250,6 +289,11 @@ function doctor() {
     });
   }
 
+  for (const name of RETIRED) {
+    if (isOurRetiredSkill(path.join(skillsDir, name), name)) {
+      results.push({ ok: false, label: `retired skill ${name} still installed`, hint: "run: npx god-skills --all (removes it)" });
+    }
+  }
   console.log("");
   console.log(paint(`Checking ${skillsDir}`, "bold"));
   console.log("");
