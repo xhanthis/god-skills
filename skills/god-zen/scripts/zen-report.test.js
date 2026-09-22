@@ -401,35 +401,37 @@ test("the advice names the weakest component", () => {
   assert.match(advice.guardrail, /21:00/);
 });
 
-test("the chart draws bars, guide rows and a dated axis", () => {
-  // Arrange: a day off in the middle, so the gap must survive
-  const daily = [3, null, 7, 9];
-  const average = [3, 3, 5, 6];
+test("the chart draws one labelled bar a day, tallest for the best day", () => {
+  // Arrange: a week with a day off in it
+  const daily = [6.4, 7.2, null, 4, 8.8, 1.6, 4.3];
+  const labels = ["2026-09-16", "2026-09-17", "2026-09-18", "2026-09-19", "2026-09-20", "2026-09-21", "2026-09-22"];
 
   // Act
-  const lines = report.chart(daily, average, ["2026-08-24", "2026-08-25", "2026-08-26", "2026-09-22"]);
-  const body = lines.join("\n");
+  const lines = report.chart(daily, labels);
 
   // Assert
-  assert.equal(lines.length, 13, "ten value rows, an axis, a sparkline and a date row");
-  assert.ok(body.includes("█"), "bars are drawn");
+  assert.equal(lines.length, 13, "ten value rows, an axis, a date row and a score row");
   assert.match(lines[2], /^   8 ┼/, "8 is a guide row");
   assert.match(lines[5], /^   5 ┼/, "5 is a guide row");
   assert.match(lines[1], /^   9 ┤/, "every other row is a plain tick");
-  assert.match(lines[11], /^  avg /, "the 7-day average gets its own row");
-  assert.ok(lines[12].includes("24 Aug") && lines[12].includes("22 Sep"), "the axis is dated");
+  assert.ok(lines[11].includes("16 Sep") && lines[11].includes("22 Sep"), "every bar is dated");
+  assert.ok(lines[12].includes("off"), "a day off is named under its slot");
+  assert.ok(lines[12].includes("8.8") && lines[12].includes("1.6"), "each bar carries its score");
   assert.deepEqual(report.chart([], []), ["  not enough history yet"]);
 });
 
-test("a day off leaves a gap rather than a bar", () => {
-  // Arrange
-  const lines = report.chart([10, null, 10], [10, 10, 10], []);
+test("a taller bar means a better day, and a day off has none", () => {
+  // Arrange: one perfect day, one day off
+  const lines = report.chart([10, null], ["2026-09-21", "2026-09-22"]);
 
-  // Act: the top row shows the two scored days and nothing for the day off
+  // Act
   const top = lines[0];
+  const bottom = lines[9];
 
   // Assert
-  assert.match(top, /^  10 ┤██  ██$/, "two columns a day, a blank pair for the day off");
+  assert.match(top, /^  10 ┤ █████$/, "the 10 row is filled for the 10 score only");
+  assert.match(bottom, /^   1 ┤ █████$/, "the bar runs all the way down");
+  assert.ok(!lines[0].includes("██████████"), "the day off contributes no bar");
 });
 
 test("the quote bank is well formed and every mood is covered", () => {
@@ -451,11 +453,47 @@ test("the quote bank is well formed and every mood is covered", () => {
   }
 });
 
-test("the quote is stable within a day and survives an empty history", () => {
+test("a quote is warranted only on a hard day, never twice in a row", () => {
+  // Arrange
+  const hard = { score: 4.3 };
+  const fine = { score: 7.1 };
+  const unscored = { score: null };
+
+  // Act / Assert
+  assert.equal(report.quoteWarranted(fine, "2026-09-22", false, {}), false, "a good day needs no pep talk");
+  assert.equal(report.quoteWarranted(unscored, "2026-09-22", false, {}), false, "a day off needs none either");
+  assert.equal(report.quoteWarranted(hard, "2026-09-22", true, {}), true, "--force bypasses the draw");
+  assert.equal(
+    report.quoteWarranted(hard, "2026-09-22", false, { last_shown: "2026-09-21" }),
+    false,
+    "one shown yesterday blocks another"
+  );
+
+  // A hard day still passes at most one time in twenty
+  let hits = 0;
+  for (let attempt = 0; attempt < 2000; attempt += 1) {
+    if (report.quoteWarranted(hard, "2026-09-22", false, {})) {
+      hits += 1;
+    }
+  }
+  assert.ok(hits / 2000 <= 0.08, `expected at most ~5%, got ${((hits / 2000) * 100).toFixed(1)}%`);
+  assert.ok(hits > 0, "but not never");
+});
+
+test("the report itself never carries a quote", () => {
+  // Arrange
+  const source = fs.readFileSync(path.join(__dirname, "zen-report.js"), "utf8");
+  const renderBody = source.slice(source.indexOf("function render("), source.indexOf("function parseArgs("));
+
+  // Assert
+  assert.ok(!renderBody.includes("pickQuote"), "render must not reach for a quote");
+});
+
+test("the quote is stable within a day and is attributed", () => {
   // Arrange: a home with nothing in it at all
   const home = fs.mkdtempSync(path.join(os.tmpdir(), "zen-quote-"));
   const runQuote = () =>
-    execFileSync(process.execPath, [path.join(__dirname, "zen-report.js"), "--quote"], {
+    execFileSync(process.execPath, [path.join(__dirname, "zen-report.js"), "--quote", "--force"], {
       encoding: "utf8",
       env: { ...process.env, HOME: home },
       timeout: 30000,

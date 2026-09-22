@@ -60,17 +60,21 @@ Sources, read at close (cheap, cached per day): `activity.jsonl`; `git log --all
 
 Scoring lives entirely in the script — day length 35%, sleep 30%, intensity 20%, recovery 15%, with a hard cap of 5 for any activity past midnight or a night under five hours. Never recompute or override a score by hand. Config and history sit in `~/.god-zen/`; the first run backfills 30 days.
 
-## The motivational line
+## The motivational line (rare, and never in the report)
 
-Every report closes with one quote, picked for **how the day actually went** — not at random. The weakest component and today's band choose the mood: a long day or a short night pulls from rest, a burnout-risk band from comeback, a scattered day from focus, a fresh start from momentum. The same quote holds all day, and one is not repeated for 21 days.
+`/god-zen` never carries a quote. The report is numbers and one action; that is the whole job.
 
-**Riding another skill's reply:** when the closing 🧘 line has no specific signal to give — no late night, no meeting, no missed lunch — take the quote instead, and only when the session has been a long or hard one. One line, no preamble:
+Elsewhere, at the end of **another skill's** reply, a single line of encouragement is occasionally worth more than another metric. The script decides when — not you:
 
 ```bash
 node ~/.claude/skills/god-zen/scripts/zen-report.js --quote
 ```
 
-It reads the stored history only, so it returns instantly and costs nothing. Print what it returns verbatim. A specific signal always beats a quote; never print both, and never more than one 🧘 line in a reply.
+It prints **nothing almost every time**. A line comes back only when the day scored under 6, none has been shown in the last 3 days, and a 1-in-20 draw lands — so roughly one closing message in twenty on a hard day, and none at all on a good one. Print exactly what comes back, or nothing.
+
+- **Never write a quote yourself**, never re-use one you saw earlier in the session, and never print one the script did not return.
+- A specific signal always wins. If the 🧘 line has something real to say — third late night, meeting in 8 minutes, no lunch yet — say that and skip the quote entirely. Never both.
+- It reads stored history only, so it returns instantly and costs nothing.
 
 ## Other direct calls
 

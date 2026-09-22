@@ -165,7 +165,13 @@ assert_eq "$(printf '%s\n' "$SIG" | wc -l | tr -d ' ')" "1" "the signature snipp
 if command -v zsh >/dev/null; then
   NAMES=$(for _ in $(seq 120); do zsh -c "$SNIP" 2>&1; done | sed -E 's/.*\[([^]]*)\].*/\1/' | sort -u)
   assert_not_contains "$NAMES" "Authored by" "the signature never comes out blank under zsh"
-  assert_contains "$NAMES" "Rajinikanth" "zsh can pick the last name in the list"
+  DISTINCT=$(printf '%s\n' "$NAMES" | grep -c .)
+  [ "$DISTINCT" -ge 5 ] && _ok "zsh spreads across the list ($DISTINCT names in 120 runs)" || _fail "zsh spreads across the list" "only $DISTINCT distinct names"
+  # The last entry is the one 0-based indexing drops, so address it directly rather than
+  # waiting for a 1-in-N draw to land — that made this assertion flaky.
+  LAST_NAME=$(printf '%s\n' "$SNIP" | sed -n '1p' | grep -oE '"[^"]+"' | tail -1 | tr -d '"' | cut -d'|' -f2)
+  LAST_PICK=$(zsh -c "$(printf '%s\n' "$SNIP" | sed 's/RANDOM % \$# + 1/\$#/; s/(( RANDOM % 2 )) \&\&/((1)) \&\&/')" 2>&1)
+  assert_contains "$LAST_PICK" "$LAST_NAME" "zsh can address the last name in the list ($LAST_NAME)"
 fi
 assert_contains "$DEV" "boring beats clever" "god-dev keeps the body line the agent test pins"
 assert_file "skills/god-dev/references/architecture.md" "god-dev ships the architecture pass"

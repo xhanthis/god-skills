@@ -27,6 +27,9 @@ const HISTORY_FILE = path.join(DIR, "history.jsonl");
 const SEEN_FILE = path.join(DIR, "quotes-seen.json");
 const QUOTES_FILE = path.join(__dirname, "quotes.json");
 const QUOTE_COOLDOWN_DAYS = 21;
+const QUOTE_RATE = 0.05;
+const QUOTE_GAP_DAYS = 3;
+const QUOTE_SCORE_CEILING = 6;
 const HOOK_ACTIVITY = path.join(HOME, ".claude", "god", "god-zen", "activity.jsonl");
 const CLAUDE_PROJECTS = path.join(HOME, ".claude", "projects");
 const DAY_MS = 86400000;
@@ -36,9 +39,10 @@ const BASELINE_DAYS = 28;
 const SESSION_GAP_MS = 30 * 60000;
 const MAX_LOG_BYTES = 256 * 1024 * 1024;
 const CHART_MAX = 10;
-const CHART_STEP = 2;
+const CHART_DAYS = 7;
+const CHART_CELL = 7;
+const CHART_BAR = 5;
 const CHART_GUIDES = [5, 8];
-const SPARKS = ["▁", "▂", "▃", "▄", "▅", "▆", "▇", "█"];
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 const SKIP_DIRS = new Set(["node_modules", "Library", "Applications", "Pictures", "Movies", "Music", ".Trash"]);
 
@@ -792,53 +796,50 @@ function rollingAverage(days, index, window) {
 }
 
 /**
- * Draws the score history as vertical bars, with the 7-day average on its own row beneath.
- * Bars beat a line here: a score is a level, not a path, and one column per day stays
- * readable in a terminal and in any monospace renderer.
- * Args: daily (number[]), average (number[]), labels (string[]) — one "YYYY-MM-DD" per point
- * Returns: array of printable lines — y-axis 0–10, guides at 5 and 8, a sparkline row,
- *          and the first and last date underneath
- * Handles: days off (left as a gap, which the legend explains), an empty or single-point
- *          series, labels being absent
+ * Draws the last seven days as one labelled bar each.
+ * Seven fat bars with gaps read at a glance where thirty thin ones blur together; the
+ * x-axis carries the date under every bar and its score under that, and the y-axis is the
+ * score itself — taller is a better day.
+ * Args: daily (number[]), labels (string[]) — one "YYYY-MM-DD" per point, same order
+ * Returns: array of printable lines — y-axis 10 down to 1, guides at 5 and 8, an axis,
+ *          a date row and a score row
+ * Handles: days off (no bar, "off" under the date), an empty series, missing labels
  */
-function chart(daily, average, labels = []) {
+function chart(daily, labels = []) {
   if (!daily.length) {
     return ["  not enough history yet"];
   }
-  const columns = CHART_STEP;
-  const width = daily.length * columns;
+  const lead = Math.floor((CHART_CELL - CHART_BAR) / 2);
+  const trail = CHART_CELL - CHART_BAR - lead;
+  const width = daily.length * CHART_CELL;
   const lines = [];
 
   for (let level = CHART_MAX; level >= 1; level -= 1) {
-    const tick = CHART_GUIDES.includes(level) ? "┼" : "┤";
+    const guide = CHART_GUIDES.includes(level);
+    const background = guide ? "┄" : " ";
     let row = "";
     for (const value of daily) {
-      let glyph = CHART_GUIDES.includes(level) ? "┄" : " ";
+      let bar = background;
       if (value != null) {
         if (value >= level) {
-          glyph = "█";
+          bar = "█";
         } else if (value >= level - 0.5) {
-          glyph = "▄";
+          bar = "▄";
         }
       }
-      row += glyph.repeat(columns);
+      row += background.repeat(lead) + bar.repeat(CHART_BAR) + background.repeat(trail);
     }
-    lines.push(`  ${String(level).padStart(2)} ${tick}${row.replace(/\s+$/, "")}`);
+    lines.push(`  ${String(level).padStart(2)} ${guide ? "┼" : "┤"}${row.replace(/\s+$/, "")}`);
   }
   lines.push(`     └${"─".repeat(width)}`);
 
-  let spark = "";
-  for (const value of average) {
-    spark += (value == null ? " " : SPARKS[Math.min(SPARKS.length - 1, Math.max(0, Math.round((value / CHART_MAX) * (SPARKS.length - 1))))]).repeat(columns);
-  }
-  lines.push(`  avg ${spark.replace(/\s+$/, "")}`);
-
-  const first = monthDay(labels[0]);
-  const last = monthDay(labels[labels.length - 1]);
-  if (first || last) {
-    const gap = Math.max(1, width - first.length - last.length);
-    lines.push(`      ${first}${" ".repeat(gap)}${last}`);
-  }
+  const centre = (text) => {
+    const clipped = (text || "").slice(0, CHART_CELL);
+    const left = Math.floor((CHART_CELL - clipped.length) / 2);
+    return " ".repeat(left) + clipped + " ".repeat(CHART_CELL - clipped.length - left);
+  };
+  lines.push(`      ${daily.map((value, position) => centre(monthDay(labels[position]))).join("").replace(/\s+$/, "")}`);
+  lines.push(`      ${daily.map((value) => centre(value == null ? "off" : value.toFixed(1))).join("").replace(/\s+$/, "")}`);
   return lines;
 }
 
@@ -933,6 +934,43 @@ function advise(day, config) {
 }
 
 /**
+ * Reads the record of which quotes have been shown and when.
+ * Args: none
+ * Returns: object mapping quote id to the date it was last shown, plus `last_shown`
+ * Handles: no file yet, a corrupt file (both give an empty record)
+ */
+function readSeen() {
+  try {
+    return JSON.parse(fs.readFileSync(SEEN_FILE, "utf8"));
+  } catch (error) {
+    return {};
+  }
+}
+
+/**
+ * Decides whether a motivational line is warranted at all — it almost never is.
+ * A quote only earns its place on a day that was genuinely hard, never twice inside a few
+ * days, and then only one time in twenty, so it stays a surprise rather than wallpaper.
+ * Args: day (dayRecord), date (string "YYYY-MM-DD"), force (boolean) — bypasses the gate,
+ *       seen (object) — the shown-record, read from disk when not supplied
+ * Returns: boolean
+ * Handles: a day that was never scored, a missing or corrupt seen-file, the caller
+ *          asking twice in a row (the gap check stops a cluster)
+ */
+function quoteWarranted(day, date, force, seen = readSeen()) {
+  if (force) {
+    return true;
+  }
+  if (day.score == null || day.score >= QUOTE_SCORE_CEILING) {
+    return false;
+  }
+  if (seen.last_shown && seen.last_shown > shiftKey(date, -QUOTE_GAP_DAYS)) {
+    return false;
+  }
+  return Math.random() < QUOTE_RATE;
+}
+
+/**
  * Picks the one line worth reading, chosen for how the day actually went rather than at random.
  * Args: mood (string) — from advise(); band (string) — today's band; date (string "YYYY-MM-DD")
  * Returns: {id, text, author} or null when the bank cannot be read
@@ -949,14 +987,15 @@ function pickQuote(mood, band, date) {
   if (!Array.isArray(bank) || !bank.length) {
     return null;
   }
-  let seen = {};
-  try {
-    seen = JSON.parse(fs.readFileSync(SEEN_FILE, "utf8"));
-  } catch (error) {
-    seen = {};
-  }
+  const seen = readSeen();
   const cutoff = shiftKey(date, -QUOTE_COOLDOWN_DAYS);
   const fresh = (quote) => !seen[quote.id] || seen[quote.id] < cutoff || seen[quote.id] === date;
+  const bankIds = new Set(bank.map((quote) => quote.id));
+  for (const key of Object.keys(seen)) {
+    if (key !== "last_shown" && !bankIds.has(key)) {
+      delete seen[key];
+    }
+  }
   const wanted = [mood, band === "Burnout risk" ? "comeback" : band === "Balanced" ? "balanced" : "momentum"];
 
   let pool = bank.filter((quote) => fresh(quote) && quote.moods.some((tag) => wanted.includes(tag)));
@@ -972,6 +1011,7 @@ function pickQuote(mood, band, date) {
   }
   const chosen = pool[hash % pool.length];
   seen[chosen.id] = date;
+  seen.last_shown = date;
   try {
     fs.mkdirSync(DIR, { recursive: true });
     fs.writeFileSync(SEEN_FILE, JSON.stringify(seen));
@@ -1044,13 +1084,12 @@ function render(days, config, sourcesUsed, sourcesMissing) {
     out.push(`  ${label.padEnd(11)}${bold((value == null ? "—" : value.toFixed(1)).padStart(4))}   ${raw}`);
   }
 
-  const window = days.slice(-HISTORY_DAYS);
+  const window = days.slice(-CHART_DAYS);
   out.push("");
-  out.push(`  ${bold(`Last ${window.length} days`)}${" ".repeat(Math.max(1, 22 - String(window.length).length))}█ daily    ▄ 7-day avg    ┄ guides at 5 and 8    gap = day off`);
+  out.push(`  ${bold(`Last ${window.length} days`)}   score out of 10, taller is better   ┄ guides at 5 and 8   no bar = day off`);
   out.push("");
   for (const line of chart(
     window.map((day) => day.score),
-    window.map((day, position) => rollingAverage(window, position, 7)),
     window.map((day) => day.date)
   )) {
     out.push(line);
@@ -1097,16 +1136,10 @@ function render(days, config, sourcesUsed, sourcesMissing) {
     `  ${"".padEnd(11)}${bold(today.max_parallel_sessions)} parallel session${today.max_parallel_sessions === 1 ? "" : "s"}  ·  ${today.meeting_minutes ? `${duration(today.meeting_minutes / 60)} of meetings` : "no meetings"}`
   );
 
-  const { action, guardrail, mood } = advise(today, config);
+  const { action, guardrail } = advise(today, config);
   out.push("");
   out.push(`  ${bold("Do this".padEnd(11))}${action}`);
   out.push(`  ${"".padEnd(11)}${guardrail}`);
-  const quote = pickQuote(mood, today.band, today.date);
-  if (quote) {
-    out.push("");
-    out.push(`  ${"🧘".padEnd(11)}${bold(`"${quote.text}"`)}`);
-    out.push(`  ${"".padEnd(11)}— ${quote.author}`);
-  }
   out.push("");
   out.push(`  ${rule}`);
   out.push(`  ${"sources".padEnd(11)}${sourcesUsed.join("  ·  ") || "none"}`);
@@ -1120,12 +1153,12 @@ function render(days, config, sourcesUsed, sourcesMissing) {
 /**
  * Parses the command line.
  * Args: argv (string[])
- * Returns: {mcp, date, json, rebuild, quote}
+ * Returns: {mcp, date, json, rebuild, quote, force}
  * Handles: --mcp-file pointing nowhere, flags in any order, unknown flags (ignored),
  *          a --date that is not a real YYYY-MM-DD (dropped, so today is used)
  */
 function parseArgs(argv) {
-  const args = { mcp: null, date: null, json: false, rebuild: false, quote: false };
+  const args = { mcp: null, date: null, json: false, rebuild: false, quote: false, force: false };
   for (let index = 0; index < argv.length; index += 1) {
     const flag = argv[index];
     if (flag === "--mcp") {
@@ -1144,6 +1177,8 @@ function parseArgs(argv) {
       args.json = true;
     } else if (flag === "--quote") {
       args.quote = true;
+    } else if (flag === "--force") {
+      args.force = true;
     } else if (flag === "--rebuild") {
       args.rebuild = true;
     }
@@ -1171,6 +1206,9 @@ function main(argv) {
   if (args.quote) {
     const known = scoreDays(keys.map((key) => history.get(key) || blankDay(key)), config);
     const latest = known[known.length - 1];
+    if (!quoteWarranted(latest, latest.date, args.force)) {
+      return;
+    }
     const line = pickQuote(advise(latest, config).mood, latest.band, latest.date);
     if (line) {
       process.stdout.write(`🧘 "${line.text}" — ${line.author}\n`);
@@ -1239,6 +1277,7 @@ module.exports = {
   collectSleep,
   findRepos,
   pickQuote,
+  quoteWarranted,
   blankDay,
   DEFAULT_CONFIG,
 };
