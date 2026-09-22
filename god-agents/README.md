@@ -69,7 +69,7 @@ compares to prove it.
 | god-cos | Read, Grep, Glob | haiku |
 | god-architect | Read, Grep, Glob, Write | opus |
 | god-dev | Read, Write, Edit, Grep, Glob, Bash | opus |
-| god-tester | Read, Write, Edit, Bash, Grep, Glob | opus |
+| god-tester | Read, Write, Edit, Bash, Grep, Glob, Skill, ToolSearch, Claude Docs (guide, batch, update, read) | opus |
 | god-security | Read, Grep, Glob | opus |
 | god-police | Read, Grep, Bash | sonnet |
 | god-scout | Read, Grep, Glob, WebSearch | opus |

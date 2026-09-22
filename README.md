@@ -126,7 +126,7 @@ Failure loops: `tester → dev → tester` · `security → dev → tester → s
 
 **No fabrication.** Numbers come from the repo, your analytics, or a named public source. Unknown impact is reported as unknown, plus what to instrument to find out. Legal sections and citations are verified, never remembered.
 
-**Proof over claims.** god-tester writes tests and actually runs them. Tests that could not run return `UNVERIFIED`, never `PASS`. On `FAIL` it fixes and retests, capped at three cycles before it hands the failure back.
+**Proof over claims.** god-tester opens with a devil's-advocate pass (what could go wrong: input, state, access, environment, scale, UI) and turns every scenario into a test case. It writes tests and actually runs them: backend, frontend at four viewports (mobile 390×844, tablet 820×1180, 14" laptop 1512×982, 15" laptop 1440×900) through gstack browse, accessibility, page and API perf with a 50-call burst on local/staging only, and simulated low network. Past failures are re-run first from a per-repo memory. Every issue gets a 1–5 score (5 = cannot go live, 4 = deploy but fix first, 3 = high, 2 = later, 1 = backlog); any 5 or two 4s is `FAIL`. Tests that could not run return `UNVERIFIED`, never `PASS`. On `FAIL` it fixes and retests, capped at three cycles before it hands the failure back. It ends with a one-screen verdict plus two Claude Docs: the full test-case list with results, and a manual guide with ready-to-run curls.
 
 **Adversarial before final.** Nothing significant reaches a decision without god-da trying to destroy it first.
 
