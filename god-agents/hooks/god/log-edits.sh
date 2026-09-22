@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Gate 3 — audit trail. PostToolUse on Edit|Write.
 # Appends {ts, agent, tool, file} to <project>/.claude/logs/chain.jsonl.
-# This log is what god-police samples and what require-tester-pass.sh reads.
+# This log is what god-qa's integrity pass samples and what require-qa-pass.sh reads.
 set -u
 . "$(dirname "$0")/lib.sh"
 
