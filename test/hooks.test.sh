@@ -235,4 +235,26 @@ printf '%s' '{"tool_input":{"file_path":"/a.py","content":"r = requests.get(url)
   | PATH="$BIN" "$H/block-loose-ends.sh" >/dev/null 2>&1
 assert_eq "$?" "2" "the loose-ends gate works without jq"
 
+# --- god-zen collector ------------------------------------------------------
+ZEN="$WORK/zen"; mkdir -p "$ZEN"
+GOD_ZEN_DIR="$ZEN" hook zen-activity.sh "{\"hook_event_name\":\"SessionStart\",\"cwd\":\"$PROJ\"}" >/dev/null
+GOD_ZEN_DIR="$ZEN" hook zen-activity.sh "{\"hook_event_name\":\"UserPromptSubmit\",\"cwd\":\"$PROJ\",\"prompt\":\"hi\"}" >/dev/null
+GOD_ZEN_DIR="$ZEN" hook zen-activity.sh "{\"hook_event_name\":\"Stop\",\"cwd\":\"$PROJ\"}" >/dev/null
+assert_eq "$(wc -l < "$ZEN/activity.jsonl" | tr -d ' ')" "3" "zen logs one line per session event"
+assert_contains "$(cat "$ZEN/activity.jsonl")" '"event":"prompt"' "zen records prompt events"
+assert_eq "$(GOD_ZEN_DIR="$ZEN" hook zen-activity.sh "{\"hook_event_name\":\"UserPromptSubmit\",\"cwd\":\"$PROJ\"}")" "" "zen stays silent with no next.json"
+SOON=$(( $(date +%s) + 300 ))
+printf '{"next_meeting_ts":%s}' "$SOON" > "$ZEN/next.json"
+OUT=$(GOD_ZEN_DIR="$ZEN" hook zen-activity.sh "{\"hook_event_name\":\"UserPromptSubmit\",\"cwd\":\"$PROJ\"}")
+assert_contains "$OUT" "meeting in 5 min" "zen warns before a meeting that starts in 5 minutes"
+assert_contains "$OUT" "ask in one line whether to continue" "zen asks before continuing on a strong signal"
+LATER=$(( $(date +%s) + 7200 ))
+printf '{"next_meeting_ts":%s}' "$LATER" > "$ZEN/next.json"
+assert_eq "$(GOD_ZEN_DIR="$ZEN" hook zen-activity.sh "{\"hook_event_name\":\"UserPromptSubmit\",\"cwd\":\"$PROJ\"}")" "" "zen is quiet when the meeting is two hours away"
+printf '{"next_meeting_ts":%s,"quiet_until":%s}' "$SOON" "$LATER" > "$ZEN/next.json"
+assert_eq "$(GOD_ZEN_DIR="$ZEN" hook zen-activity.sh "{\"hook_event_name\":\"UserPromptSubmit\",\"cwd\":\"$PROJ\"}")" "" "zen respects quiet_until"
+printf '{"next_meeting_ts":%s}' "$SOON" > "$ZEN/next.json"; touch "$ZEN/off-$(date +%F)"
+assert_eq "$(GOD_ZEN_DIR="$ZEN" hook zen-activity.sh "{\"hook_event_name\":\"UserPromptSubmit\",\"cwd\":\"$PROJ\"}")" "" "'zen off' silences it for the day"
+assert_eq "$(run_gate zen-activity.sh 'not json')" "0" "zen never blocks on bad input"
+
 finish

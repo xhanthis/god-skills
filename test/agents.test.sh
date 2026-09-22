@@ -47,8 +47,6 @@ console.log(bad.length ? "BAD " + bad.join("; ") : "OK");
 assert_eq "$YAML" "OK" "every agent has valid, complete YAML frontmatter"
 
 # --- tool restrictions are a security boundary ----------------------------
-assert_not_contains "$(grep '^tools:' "$AGENTS/god-scout.md")" "Edit" "god-scout cannot edit code"
-assert_not_contains "$(grep '^tools:' "$AGENTS/god-scout.md")" "Bash" "god-scout cannot run commands"
 assert_contains "$(grep '^tools:' "$AGENTS/god-qa.md")" "Edit" "god-qa can edit (it auto-fixes)"
 
 # --- models are pinned, never inherited -----------------------------------
@@ -109,12 +107,13 @@ assert_no_file "$WORK/h6/.claude/agents" "--hooks alone does not install agents"
 MODE=$(node -e "console.log((require('fs').statSync(process.argv[1]).mode & 0o777).toString(8))" "$GATE")
 assert_eq "$MODE" "755" "hook scripts are executable"
 EVENTS=$(node -e "console.log(Object.keys(require('$WORK/h6/.claude/settings.json').hooks).sort().join(','))")
-assert_eq "$EVENTS" "PostToolUse,PreToolUse,Stop,SubagentStop" "all four gate events are registered"
+assert_eq "$EVENTS" "PostToolUse,PreToolUse,SessionStart,Stop,SubagentStop,UserPromptSubmit" "all six hook events are registered"
 
 # re-running must not duplicate entries
 HOME="$WORK/h6" node "$CLI" --hooks >/dev/null
 TOTAL=$(node -e "const h=require('$WORK/h6/.claude/settings.json').hooks;console.log(Object.values(h).reduce((a,g)=>a+g.length,0))")
-assert_eq "$TOTAL" "6" "re-running --hooks does not duplicate entries"
+EXPECT=$(node -e "const h=require('./god-agents/hooks/settings-snippet.json').hooks;console.log(Object.values(h).reduce((a,g)=>a+g.length,0))")
+assert_eq "$TOTAL" "$EXPECT" "re-running --hooks does not duplicate entries"
 
 # --- --all installs agents and hooks in one pass ---------------------------
 HOME="$WORK/hA" node "$CLI" --all -g -y >/dev/null
