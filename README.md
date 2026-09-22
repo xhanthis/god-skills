@@ -11,7 +11,7 @@ Two packages ship from this repo:
 
 | Package | What it installs |
 |---|---|
-| **[`god-skills`](https://www.npmjs.com/package/god-skills)** | the 30 skills — knowledge, loaded into your session |
+| **[`god-skills`](https://www.npmjs.com/package/god-skills)** | the 7 skills — knowledge, loaded into your session |
 | **[`god-agents`](https://www.npmjs.com/package/god-agents)** | subagents generated from those skills, hook gates that enforce them, and an unattended runner ([docs](god-agents/README.md)) |
 
 ## Install
@@ -75,11 +75,7 @@ Restart Claude Code after installing — skills load at session start.
 |---|---|
 | **god-pm** | What should we build, why, for whom, how does it run, and how is the competitor built? |
 | **god-zen** | Is this pace sustainable — and should you be working right now? |
-| **god-growth** | Where is the real bottleneck? |
-| **god-designer** | How should the experience work? |
 | **god-cfo** | Do the numbers reconcile, what should we charge, and what does the data say? |
-| **god-cmo** | How do we get the right people to care? |
-| **god-sales** | How do we convert the right prospects? |
 | **god-dev** | How do we design and implement this correctly, fast, and better than last time? |
 | **god-qa** | Does it actually work, is it safe, and can we prove it? |
 | **god-ceo** | What is the real problem, is it worth doing, who does it, and what is the final call? |

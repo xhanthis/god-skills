@@ -83,6 +83,19 @@ assert_contains "$(cat "$WORK/h1/.claude/commands/god.md")" "sequentially from t
   "the router runs the chain from the main session, not nested in the ceo"
 assert_contains "$(cat skills/god-ceo/SKILL.md skills/god-ceo/references/routing.md)" '"chain"' "god-ceo declares its JSON output contract"
 
+# --- retired agents and hooks are removed on install -----------------------
+OLDA="$WORK/hR/.claude/agents"; mkdir -p "$OLDA" "$WORK/hR/.claude/hooks/god"
+printf -- '---\nname: god-tester\ndescription: "Subagent form of the god-tester skill"\ntools: Read\nmodel: opus\n---\n' > "$OLDA/god-tester.md"
+printf -- '---\nname: god-tester\ndescription: "the user\x27s own agent"\ntools: Read\nmodel: opus\n---\n' > "$OLDA/god-tester-mine.md"
+: > "$WORK/hR/.claude/hooks/god/require-tester-pass.sh"
+OUT=$(HOME="$WORK/hR" node "$CLI" -g -y)
+assert_contains "$OUT" "retired agent(s) removed: god-tester" "install removes the agent it once generated"
+assert_no_file "$OLDA/god-tester.md" "the retired generated agent is gone"
+assert_file "$OLDA/god-tester-mine.md" "a user's own agent file is untouched"
+HOME="$WORK/hR" node "$CLI" --hooks >/dev/null
+assert_no_file "$WORK/hR/.claude/hooks/god/require-tester-pass.sh" "the retired hook script is removed by --hooks"
+assert_file "$WORK/hR/.claude/hooks/god/require-qa-pass.sh" "the new gate is installed in its place"
+
 # --- installs are idempotent without --force ------------------------------
 OUT=$(HOME="$WORK/h1" node "$CLI" -g -y)
 assert_contains "$OUT" "already present" "a second install leaves existing agents alone"
