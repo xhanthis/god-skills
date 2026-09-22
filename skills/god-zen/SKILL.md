@@ -51,14 +51,26 @@ Sources, read at close (cheap, cached per day): `activity.jsonl`; `git log --all
 
 1. **Gather MCP timestamps first, silently.** For every connected tool, fetch today's timestamps only — never message or event content. Google Calendar → each event's start and end; Slack and Gmail → the time each message was **sent by the user**; Linear and Notion → the time of each update they made. A tool that is not connected is skipped without a word.
 2. **Build one JSON payload:** `{"timestamps":["<ISO>",…],"meetings":[{"start":"<ISO>","end":"<ISO>"},…],"sources":["google_calendar","slack",…]}`. No payload is fine — pass nothing.
-3. **Run it and print the output verbatim:**
+3. **Run it, and print the output inside a fenced code block** so the bars and columns keep their alignment:
    ```bash
    node ~/.claude/skills/god-zen/scripts/zen-report.js --mcp '<payload>'
    ```
-   (`./.claude/skills/…` on a project install; `--json` returns the same numbers as data.)
+   (`./.claude/skills/…` on a project install; `--json` returns the same numbers as data.) The report is already laid out — never re-wrap it, re-order it, or turn it into a table.
 4. Add at most one line of your own, only if the report missed something a tool told you.
 
 Scoring lives entirely in the script — day length 35%, sleep 30%, intensity 20%, recovery 15%, with a hard cap of 5 for any activity past midnight or a night under five hours. Never recompute or override a score by hand. Config and history sit in `~/.god-zen/`; the first run backfills 30 days.
+
+## The motivational line
+
+Every report closes with one quote, picked for **how the day actually went** — not at random. The weakest component and today's band choose the mood: a long day or a short night pulls from rest, a burnout-risk band from comeback, a scattered day from focus, a fresh start from momentum. The same quote holds all day, and one is not repeated for 21 days.
+
+**Riding another skill's reply:** when the closing 🧘 line has no specific signal to give — no late night, no meeting, no missed lunch — take the quote instead, and only when the session has been a long or hard one. One line, no preamble:
+
+```bash
+node ~/.claude/skills/god-zen/scripts/zen-report.js --quote
+```
+
+It reads the stored history only, so it returns instantly and costs nothing. Print what it returns verbatim. A specific signal always beats a quote; never print both, and never more than one 🧘 line in a reply.
 
 ## Other direct calls
 
