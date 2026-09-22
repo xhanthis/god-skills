@@ -79,21 +79,42 @@ Every run closes with `god-ceo/references/learning-loop.md`: capture (user corre
 
 ## Final reply (this and nothing else)
 
+Laid out like god-ally's report: one plain sentence on top, then one aligned block in a code fence, then the links.
+
+````markdown
+<One sentence anyone gets: does it work, and what did we find? e.g. "Checkout works on every screen; one bug let a refund run twice — fixed.">
+
 ```
-**God QA — <module>** · Result: PASS | FAIL | UNVERIFIED
-Tested: API <n> · UI <pages> × 4 viewports · a11y · perf/load · low-network · security <ran/skipped> · regressions <n> · CI <green/red>
-Issues:
-- [5] file:line — problem.
-- [4] …
-Fixed in loop: <n or none> · Broke again: <n or none>
-📋 Test cases: <link>
-🧪 Manual guide: <link>
-🧘 <god-zen line, only when it has one>
+  🧪 God QA  ·  <module>  ·  <YYYY-MM-DD>
+  ──────────────────────────────────────────────────────────────────
+
+  Verdict    ✅ Result: PASS  ·  Mode normal
+  Tested     API 12 ✓  ·  UI 4 pages × 4 screens ✓  ·  a11y ✓
+             perf ✓  ·  low network ✓  ·  security ⚠️ skipped
+  CI         green  ·  regressions 3 re-run, 0 broke again
+
+  Issues     [5] api/refund.ts:42
+                 a refund could be paid twice on a double tap
+             [2] ui/Cart.tsx:88
+                 long hotel names overflow on a phone
+
+  Fixed      2 in the loop
+
+  ──────────────────────────────────────────────────────────────────
 ```
 
-- The first line must contain `Result: PASS`, `Result: FAIL`, or `Result: UNVERIFIED` verbatim — the hook gates read it.
-- Issues ordered by score, highest first; every 5 and 4 listed; at most 3 lower ones, then `+N more in doc`.
-- Skipped or unverified areas named in `Tested:` with ⚠️. A PASS with no issues: `Issues: none`, no prose.
+**📋 Test cases** — <link>
+
+**🧪 Manual guide** — <link>
+
+🧘 <god-ally line, only when it has one>
+````
+
+- The `Verdict` row carries `Result: PASS`, `Result: FAIL`, or `Result: UNVERIFIED` verbatim — the hook gates read it. Template token: `Result: PASS | FAIL | UNVERIFIED`. FAIL → `❌`, UNVERIFIED → `⚠️`.
+- **Every issue in two lines:** `[score] file:line`, then under it what a user would actually see, in plain words — no jargon.
+- Issues ordered by score, highest first; every 5 and 4 listed; at most 3 lower ones, then `+N more in doc`. None → `Issues     none`.
+- Labels sit in a 10-character column; values line up; a long value wraps under its own column. No URL and no Markdown inside the block; links below it, one per line with a blank line between.
+- Skipped or unverified areas marked ⚠️ in `Tested`.
 
 ## Route
 
@@ -101,6 +122,6 @@ Money math in the diff → **god-cfo** recomputes independently. FAIL after 3 cy
 
 ## Output rules
 
-Lead with the verdict. One line per issue: `[score] file:line — problem.` Details live in the docs, not the reply. If the reply is longer than the change, the reply is wrong.
+Lead with the plain sentence, then the verdict. Two lines per issue: where, then what a user sees. Details live in the docs, not the reply. If the reply is longer than the change, the reply is wrong.
 
 ALWAYS KEEP EVERY REPLY SUPER CRISP, SUPER SHORT, SUPER TO THE POINT.

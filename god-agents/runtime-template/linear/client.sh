@@ -170,13 +170,6 @@ cmd_file() {
   cmd_create "$title" "$body" "$@"
 }
 
-# list-scout-titles — titles of open scout issues, for conceptual dedup.
-cmd_list_scout_titles() {
-  gql 'query($team:ID!){ issues(filter:{team:{id:{eq:$team}}, state:{type:{nin:["completed","canceled"]}}}, first:100){ nodes{ title } } }' \
-      "$(jq -nc --arg team "$LINEAR_TEAM_ID" '{team:$team}')" \
-    | jq -r '.data.issues.nodes[]?.title | select(startswith("[god-scout]"))'
-}
-
 # runner-failure <message> <log-file> — files a runner failure with a log tail.
 cmd_runner_failure() {
   local msg="$1" log="${2:-}" tmp
@@ -213,8 +206,7 @@ case "${1:-}" in
   comment)           shift; cmd_comment "$@" ;;
   reopen)            shift; cmd_reopen "$@" ;;
   file)              shift; cmd_file "$@" ;;
-  list-scout-titles) shift; cmd_list_scout_titles "$@" ;;
   runner-failure)    shift; cmd_runner_failure "$@" ;;
   whoami)            shift; cmd_whoami "$@" ;;
-  *) echo "usage: client.sh {search|create|comment|reopen|file|list-scout-titles|runner-failure|whoami} ..." >&2; exit 1 ;;
+  *) echo "usage: client.sh {search|create|comment|reopen|file|runner-failure|whoami} ..." >&2; exit 1 ;;
 esac

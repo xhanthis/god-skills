@@ -8,17 +8,12 @@
 # Repos the nightly tester works on. Needs a runnable test suite.
 REPOS=({{REPO_PATHS}})                 # e.g. ("$HOME/code/backend" "$HOME/code/admin_app")
 
-# Repos the weekly scout reads. May include repos with no test harness,
-# since scout is read-only analysis.
-SCOUT_REPOS=({{SCOUT_REPO_PATHS}})
-
 # Branch the nightly runner branches from and never commits to.
 DEFAULT_BRANCH="{{DEFAULT_BRANCH}}"
 
 # Guardrails. Enforced in shell, not in prompts: a prompt can be talked out
 # of a limit, a script cannot.
 GOD_COST_CAP="${GOD_COST_CAP:-10}"           # USD per nightly run, all repos
-GOD_SCOUT_COST_CAP="${GOD_SCOUT_COST_CAP:-8}" # USD per weekly scout run
 GOD_PR_CAP="${GOD_PR_CAP:-3}"                # PRs per repo per night
 
 # Linear. Prefer reading the token from the Keychain over hardcoding it here.

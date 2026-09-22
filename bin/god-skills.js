@@ -24,11 +24,11 @@ const SOURCE_DIR = path.join(PACKAGE_ROOT, "skills");
  * as that skill, never a user's own folder that happens to share the name.
  */
 const RETIRED = [
-  "god", "god-architect", "god-cmo", "god-context", "god-cos", "god-customer", "god-da",
+  "god", "god-architect", "god-context", "god-cos", "god-customer", "god-da",
   "god-data", "god-designer", "god-editor", "god-growth", "god-health", "god-historian",
   "god-ops", "god-pl", "god-plan", "god-police", "god-pricer", "god-researcher",
   "god-reverse", "god-sales", "god-scout", "god-security", "god-simplifier",
-  "god-strategist", "god-tester", "god-write"
+  "god-strategist", "god-tester", "god-write", "god-writer", "god-zen"
 ];
 
 /** True when <dir>/SKILL.md exists and its frontmatter names exactly this skill. */

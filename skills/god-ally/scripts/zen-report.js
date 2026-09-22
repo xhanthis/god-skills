@@ -2,16 +2,18 @@
 "use strict";
 
 /**
- * God Zen's daily wellbeing report.
+ * God Ally's daily wellbeing report.
  *
  * Collects timestamps and counts — never content — from three local sources: git commits
  * authored by the user, Claude Code token usage, and Apple Health sleep exported to iCloud.
  * Timestamps gathered from MCP tools (calendar, Slack, Gmail, Linear, Notion) are passed in
  * by the skill with --mcp. Everything is scored by scripts/zen-score.js and printed as one
- * terminal report. Nothing is ever uploaded and nothing leaves ~/.god-zen.
+ * terminal report. Nothing is ever uploaded and nothing leaves ~/.god-ally.
  *
  * Usage:
  *   node zen-report.js [--mcp '<json>'] [--mcp-file <path>] [--date YYYY-MM-DD] [--json] [--rebuild]
+ *   node zen-report.js --quote [--force]        brief for a fresh line, or nothing
+ *   node zen-report.js --quote-said '<line>'    remember the line that was shown
  */
 
 const fs = require("fs");
@@ -21,16 +23,15 @@ const { execFileSync } = require("child_process");
 const score = require("./zen-score");
 
 const HOME = os.homedir();
-const DIR = path.join(HOME, ".god-zen");
+const DIR = path.join(HOME, ".god-ally");
 const CONFIG_FILE = path.join(DIR, "config.json");
 const HISTORY_FILE = path.join(DIR, "history.jsonl");
 const SEEN_FILE = path.join(DIR, "quotes-seen.json");
-const QUOTES_FILE = path.join(__dirname, "quotes.json");
-const QUOTE_COOLDOWN_DAYS = 21;
+const QUOTE_AVOID_COUNT = 30;
 const QUOTE_RATE = 0.05;
 const QUOTE_GAP_DAYS = 3;
 const QUOTE_SCORE_CEILING = 6;
-const HOOK_ACTIVITY = path.join(HOME, ".claude", "god", "god-zen", "activity.jsonl");
+const HOOK_ACTIVITY = path.join(HOME, ".claude", "god", "god-ally", "activity.jsonl");
 const CLAUDE_PROJECTS = path.join(HOME, ".claude", "projects");
 const DAY_MS = 86400000;
 const HISTORY_DAYS = 30;
@@ -52,7 +53,7 @@ const DEFAULT_CONFIG = {
   authorEmails: [],
   timezone: "Asia/Kolkata",
   dayStartHour: 5,
-  healthFolder: "~/Library/Mobile Documents/com~apple~CloudDocs/GodZen/sleep",
+  healthFolder: "~/Library/Mobile Documents/com~apple~CloudDocs/GodAlly/sleep",
   stopBy: "21:00",
   useCcusage: true,
 };
@@ -71,7 +72,7 @@ function expandHome(target) {
 }
 
 /**
- * Reads ~/.god-zen/config.json, writing it with defaults on first run.
+ * Reads ~/.god-ally/config.json, writing it with defaults on first run.
  * Args: none
  * Returns: config object merged over the defaults
  * Handles: a missing directory, a corrupt file (falls back to defaults without throwing),
@@ -424,7 +425,7 @@ function collectSleep(folder) {
 }
 
 /**
- * Reads the timestamps the god-zen hook appends on every session, prompt and stop.
+ * Reads the timestamps the god-ally hook appends on every session, prompt and stop.
  * Args: sinceEpoch (number)
  * Returns: array of epoch milliseconds
  * Handles: the hook never having run, partially written lines
@@ -719,7 +720,7 @@ function blankDay(date) {
 }
 
 /**
- * Reads ~/.god-zen/history.jsonl.
+ * Reads ~/.god-ally/history.jsonl.
  * Args: none
  * Returns: Map of date to stored record
  * Handles: no history yet, lines corrupted by an interrupted write
@@ -971,54 +972,59 @@ function quoteWarranted(day, date, force, seen = readSeen()) {
 }
 
 /**
- * Picks the one line worth reading, chosen for how the day actually went rather than at random.
- * Args: mood (string) — from advise(); band (string) — today's band; date (string "YYYY-MM-DD")
- * Returns: {id, text, author} or null when the bank cannot be read
- * Handles: a missing or corrupt quotes file, a bank exhausted by the cooldown (it resets),
- *          two runs on the same day (the same quote both times, never a reshuffle)
+ * Describes the moment a fresh line should speak to. There is no quote bank: the skill
+ * writes or picks a new line for this exact situation, so it is never canned.
+ * Args: day (dayRecord), advice ({action, mood}) — from advise(), date (string "YYYY-MM-DD")
+ * Returns: {said} when a line was already shown today (repeat it, never a second one),
+ *          otherwise {brief} — one line naming the mood, the day and the lines to avoid
+ * Handles: a missing or corrupt seen-file, a said-list longer than is worth reading
  */
-function pickQuote(mood, band, date) {
-  let bank = [];
-  try {
-    bank = JSON.parse(fs.readFileSync(QUOTES_FILE, "utf8"));
-  } catch (error) {
-    return null;
-  }
-  if (!Array.isArray(bank) || !bank.length) {
-    return null;
-  }
+function quoteBrief(day, advice, date) {
   const seen = readSeen();
-  const cutoff = shiftKey(date, -QUOTE_COOLDOWN_DAYS);
-  const fresh = (quote) => !seen[quote.id] || seen[quote.id] < cutoff || seen[quote.id] === date;
-  const bankIds = new Set(bank.map((quote) => quote.id));
-  for (const key of Object.keys(seen)) {
-    if (key !== "last_shown" && !bankIds.has(key)) {
-      delete seen[key];
-    }
+  const said = Array.isArray(seen.said) ? seen.said : [];
+  const today = said.filter((entry) => entry.date === date).pop();
+  if (today) {
+    return { said: today.text };
   }
-  const wanted = [mood, band === "Burnout risk" ? "comeback" : band === "Balanced" ? "balanced" : "momentum"];
-
-  let pool = bank.filter((quote) => fresh(quote) && quote.moods.some((tag) => wanted.includes(tag)));
-  if (!pool.length) {
-    pool = bank.filter(fresh);
-  }
-  if (!pool.length) {
-    pool = bank;
-  }
-  let hash = 0;
-  for (const character of date) {
-    hash = (hash * 31 + character.charCodeAt(0)) >>> 0;
-  }
-  const chosen = pool[hash % pool.length];
-  seen[chosen.id] = date;
   seen.last_shown = date;
   try {
     fs.mkdirSync(DIR, { recursive: true });
     fs.writeFileSync(SEEN_FILE, JSON.stringify(seen));
   } catch (error) {
-    return chosen;
+    // the gap check degrades to the 1-in-20 draw; the brief is still worth giving
   }
-  return chosen;
+  const avoid = said.slice(-QUOTE_AVOID_COUNT).map((entry) => JSON.stringify(entry.text));
+  const scored = day.score == null ? "unscored" : `${day.score.toFixed(1)}/10 ${day.band}`;
+  return {
+    brief: `brief · mood ${advice.mood} · ${scored} · ${advice.action}${avoid.length ? ` · never reuse: ${avoid.join(", ")}` : ""}`,
+  };
+}
+
+/**
+ * Remembers a line that was shown, so it is never used again.
+ * Args: text (string) — the line exactly as printed, date (string "YYYY-MM-DD")
+ * Returns: boolean — whether it was stored
+ * Handles: an empty line (ignored), the same line twice (stored once), an unwritable home
+ */
+function recordQuote(text, date) {
+  const line = String(text || "").trim();
+  if (!line) {
+    return false;
+  }
+  const seen = readSeen();
+  const said = Array.isArray(seen.said) ? seen.said : [];
+  if (!said.some((entry) => entry.text === line)) {
+    said.push({ date, text: line });
+  }
+  seen.said = said.slice(-365);
+  seen.last_shown = date;
+  try {
+    fs.mkdirSync(DIR, { recursive: true });
+    fs.writeFileSync(SEEN_FILE, JSON.stringify(seen));
+  } catch (error) {
+    return false;
+  }
+  return true;
 }
 
 /**
@@ -1057,7 +1063,7 @@ function render(days, config, sourcesUsed, sourcesMissing) {
   const boundary = String(config.dayStartHour).padStart(2, "0");
   const out = [""];
   const rule = "─".repeat(66);
-  out.push(`  🧘 ${bold("God Zen")}  ·  ${today.date}  ·  ${config.timezone}, day runs ${boundary}:00 → ${boundary}:00`);
+  out.push(`  🧘 ${bold("God Ally")}  ·  ${today.date}  ·  ${config.timezone}, day runs ${boundary}:00 → ${boundary}:00`);
   out.push(`  ${rule}`);
   out.push("");
   out.push(`  ${"Zen Score".padEnd(11)}${bold(today.score == null ? "—" : `${today.score} / 10`)}   ${bold(today.band)}`);
@@ -1153,12 +1159,12 @@ function render(days, config, sourcesUsed, sourcesMissing) {
 /**
  * Parses the command line.
  * Args: argv (string[])
- * Returns: {mcp, date, json, rebuild, quote, force}
+ * Returns: {mcp, date, json, rebuild, quote, quoteSaid, force}
  * Handles: --mcp-file pointing nowhere, flags in any order, unknown flags (ignored),
  *          a --date that is not a real YYYY-MM-DD (dropped, so today is used)
  */
 function parseArgs(argv) {
-  const args = { mcp: null, date: null, json: false, rebuild: false, quote: false, force: false };
+  const args = { mcp: null, date: null, json: false, rebuild: false, quote: false, quoteSaid: null, force: false };
   for (let index = 0; index < argv.length; index += 1) {
     const flag = argv[index];
     if (flag === "--mcp") {
@@ -1177,6 +1183,8 @@ function parseArgs(argv) {
       args.json = true;
     } else if (flag === "--quote") {
       args.quote = true;
+    } else if (flag === "--quote-said") {
+      args.quoteSaid = argv[++index] || "";
     } else if (flag === "--force") {
       args.force = true;
     } else if (flag === "--rebuild") {
@@ -1203,16 +1211,18 @@ function main(argv) {
   for (let back = HISTORY_DAYS - 1; back >= 0; back -= 1) {
     keys.push(shiftKey(today, -back));
   }
+  if (args.quoteSaid != null) {
+    recordQuote(args.quoteSaid, today);
+    return;
+  }
   if (args.quote) {
     const known = scoreDays(keys.map((key) => history.get(key) || blankDay(key)), config);
     const latest = known[known.length - 1];
     if (!quoteWarranted(latest, latest.date, args.force)) {
       return;
     }
-    const line = pickQuote(advise(latest, config).mood, latest.band, latest.date);
-    if (line) {
-      process.stdout.write(`🧘 "${line.text}" — ${line.author}\n`);
-    }
+    const result = quoteBrief(latest, advise(latest, config), latest.date);
+    process.stdout.write(`${result.said || result.brief}\n`);
     return;
   }
   const firstRun = args.rebuild || !keys.slice(0, -1).every((key) => history.has(key));
@@ -1276,7 +1286,8 @@ module.exports = {
   advise,
   collectSleep,
   findRepos,
-  pickQuote,
+  quoteBrief,
+  recordQuote,
   quoteWarranted,
   blankDay,
   DEFAULT_CONFIG,
