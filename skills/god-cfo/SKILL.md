@@ -31,51 +31,58 @@ Every mismatch is scored on god-qa's 1–5 scale (wrong money reaching a custome
 
 ## Learn
 
-Close every run with `god-ceo/references/learning-loop.md`. Capture: a definition that had to be pinned mid-run (repo), a recomputation that disagreed with code (repo or universal if the pattern is general — e.g. float money), a forecast later proven off by > 20% (universal reasoning lesson), a self-review line.
+Close every run with `god-ceo/references/learning-loop.md`. Capture: a definition that had to be pinned mid-run (repo), a recomputation that disagreed with code (repo or universal if the pattern is general — e.g. float money), a forecast later proven off by > 20% (universal reasoning lesson), a self-review line. Every lesson stays on this machine; only a universal rule leaves it, as the loop's upstream PR — never in a doc or an artifact.
 
 ## Final reply
 
-Laid out like god-ally's report: one plain sentence on top, one aligned block in a code fence, then questions if any remain.
+A numbers memo in native Markdown: the verdict as the title, the answer in one sentence, the definition, a worked example as a table, a picture, then issues and questions. No code fence around any of it.
 
-````markdown
-<The answer in one sentence a 15-year-old gets. e.g. "Yes — on every ₹1,000 booking the partner gets ₹900 and we keep ₹100, and the code does it right.">
+```markdown
+# 💰 RECONCILES · <topic>
 
-```
-  💰 God CFO  ·  <topic>  ·  <YYYY-MM-DD>
-  ──────────────────────────────────────────────────────────────────
+### <The answer in one sentence a 15-year-old gets. e.g. "Yes — on every ₹1,000 booking the partner gets ₹900 and we keep ₹100, and the code does it right.">
 
-  Verdict    ✅ RECONCILES  ·  confidence High (3 slabs, 40 bookings)
-  Means      "Revenue" = the booking price, without GST, before refunds
+**Confidence** — High (3 slabs, 40 bookings)
 
-  Example    one ₹1,000 booking
-               ₹1,000   booking price
-             +   ₹180   GST 18%, passed on to the government
-             = ₹1,180   what the guest pays
+**Means** — "Revenue" is the booking price, without GST, before refunds
 
-               ₹1,000 × 90%  =  ₹900   partner share
-               ₹1,000 − ₹900 =  ₹100   ours
+**One ₹1,000 booking**
 
-  Where each ₹1,180 goes
-             partner  ███████████████████████████████░░░░░░░░░  ₹900
-             GST      ██████░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░  ₹180
-             us       ███░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░  ₹100
+| Step | ₹ |
+|---|---:|
+| booking price | 1,000 |
+| + GST 18%, passed on to the government | 180 |
+| = what the guest pays | **1,180** |
+| partner share, 90% of 1,000 | 900 |
+| ours, 1,000 − 900 | 100 |
 
-  Issues     [5] payout.ts:31
-                 ₹9,999.50 rounds up into the next slab, so the
-                 partner is paid ₹12 too much on that booking
+**Where each ₹1,180 goes**
 
-  ──────────────────────────────────────────────────────────────────
-```
+| Who | Share | ₹ |
+|---|---|---:|
+| partner | `████████████████░░░░` | 900 |
+| GST | `███░░░░░░░░░░░░░░░░░` | 180 |
+| us | `██░░░░░░░░░░░░░░░░░░` | 100 |
+
+**Issues**
+
+| Score | Where | Money effect |
+|---|---|---|
+| 5 | `payout.ts:31` | ₹9,999.50 rounds up into the next slab, so the partner is paid ₹12 too much on that booking |
 
 **❓ Quick questions** — only if something is still unclear, 1–3, one line each.
-````
 
-- **Top sentence:** the answer, no jargon. A term the reader may not know (GST, take rate, LTV, slab) is explained in the `Means` row in everyday words.
-- **Always an example** with real, round numbers the reader can redo in their head, one step per line, each line saying what the step is.
-- **Always a picture** that fits the question: split → the `Where each ₹` bars; trend or forecast → a small bar chart like god-ally's; slabs → a ladder showing the edges (`₹0 ─ 5% ─ ₹10k ─ 8% ─ ₹50k ─ 10%`); money moving between parties → a flow line (`Guest ₹1,180 → Us → Partner ₹900`). Bars scale to the largest value; numbers on the right, aligned.
+---
+
+> 🧘 <god-ally's status callout — always, pasted verbatim from zen-report.js --line>
+> 🧘 <one more quoted line only when god-ally has something specific>
+```
+
+- **Title:** 💰 and the verdict `RECONCILES | MISMATCH | UNVERIFIED`, then the topic. **Sentence:** the answer, no jargon. A term the reader may not know (GST, take rate, LTV, slab) is explained in `Means` in everyday words.
+- **Always an example** with real, round numbers the reader can redo in their head — one table row per step, each row saying what the step is, numbers right-aligned.
+- **Always a picture** that fits the question: a split → the `Who | Share | ₹` table, bars in backticks so they line up; a trend or forecast → one row per period with a bar; slabs → a ladder in backticks (`₹0 ─ 5% ─ ₹10k ─ 8% ─ ₹50k ─ 10%`); money moving between parties → a flow line (`Guest ₹1,180 → Us → Partner ₹900`). Bars scale to the largest value.
 - **Policy** (a rule, a tax, a refund policy) → one plain sentence of what it means, then one example of it applied.
-- Every issue in two lines: `[score] file:line`, then the money effect in plain words and rupees. Verdict: `RECONCILES | MISMATCH | UNVERIFIED`.
-- Labels in a 10-character column; values line up; no Markdown or URL inside the block. Deeper math goes to a doc, not the block.
+- **Issues** is a table: score, `file:line`, the money effect in plain words and rupees (no `|` inside a cell). None → `**Issues** — none`. Deeper math stays in the reply, or goes to a doc only when the user asks for one.
 
 ## Route
 
@@ -83,6 +90,6 @@ Fixes → **god-dev** → **god-qa** → re-check here. Legal or tax provision q
 
 ## Output rules
 
-Lead with the plain sentence. Show the example and the picture; cut every generic finding. Simple beats complete — if a reader would need to re-read it, rewrite it.
+Verdict in the title, the answer in one sentence. Show the example and the picture; cut every generic finding. Simple beats complete — if a reader would need to re-read it, rewrite it.
 
 ALWAYS KEEP EVERY REPLY SUPER CRISP, SUPER SHORT, SUPER TO THE POINT.
