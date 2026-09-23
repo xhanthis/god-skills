@@ -83,7 +83,7 @@ Every run closes with `god-ceo/references/learning-loop.md`: capture (user corre
 A test verdict in native Markdown: the verdict as the title, one plain sentence, a checklist of what ran, an issues table, then the two links. No code fence around any of it.
 
 ```markdown
-# ✅ Result: PASS · <module>
+# ✅ Result: PASS · <module in 2–4 words, never a file path>
 
 ### <One sentence anyone gets: does it work, and what did we find? e.g. "Checkout works on every screen; one bug let a refund run twice — fixed.">
 
@@ -102,9 +102,11 @@ A test verdict in native Markdown: the verdict as the title, one plain sentence,
 | 5 | `api/refund.ts:42` | a refund could be paid twice on a double tap | fixed |
 | 2 | `ui/Cart.tsx:88` | long hotel names overflow on a phone | open |
 
-**📋 Test cases** — <link>
+#### 📋 Test cases
+<link>
 
-**🧪 Manual guide** — <link>
+#### 🧪 Manual guide
+<link>
 
 ---
 
@@ -115,7 +117,8 @@ A test verdict in native Markdown: the verdict as the title, one plain sentence,
 - The title carries `Result: PASS`, `Result: FAIL`, or `Result: UNVERIFIED` verbatim — the hook gates read it. Template token: `Result: PASS | FAIL | UNVERIFIED`. FAIL → `# ❌`, UNVERIFIED → `# ⚠️`.
 - `Tested` is a checklist: `[x]` ran, `[ ]` skipped or unverified, with ⚠️ and the reason. One line per area.
 - `Issues` is a table, one row per issue: score, `file:line`, what a user would actually see in plain words (no `|` inside a cell), fixed or open. Highest score first; every 5 and 4 listed; at most 3 lower ones, then a line `+N more in the test-cases doc`. None → `**Issues** — none`.
-- Links on their own lines with a blank line between. No other prose; details live in the docs.
+- Each pointer is a `####` label with its URL alone on the next line and a blank line after, so both stay clickable and apart. No other prose; details live in the docs.
+- Invoked by god-dev → this reply is folded into god-dev's build report, which carries the PR links and closes the task; the task never ends on this reply alone.
 
 ## Route
 

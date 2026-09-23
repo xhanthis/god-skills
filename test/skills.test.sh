@@ -158,6 +158,8 @@ done
 assert_contains "$TESTER" "Any **5** → **FAIL**" "god-qa fails the module on a score-5 issue"
 assert_contains "$TESTER" "# ✅ Result: PASS" "god-qa's title carries the hook verdict token"
 assert_contains "$TESTER" "- [x] API" "god-qa lists what it tested as a checklist"
+assert_contains "$TESTER" "never a file path" "god-qa's title stays short instead of carrying a path"
+assert_contains "$TESTER" "#### 📋 Test cases" "god-qa's pointers are labelled lines with the URL below"
 assert_contains "$TESTER" "| Score | Where | What a user sees |" "god-qa lists every issue as a table row in a user's words"
 assert_contains "$TESTER" "Manual Test Guide" "god-qa produces the manual curl guide"
 for REF in frontend security compliance-india integrity docs; do
@@ -179,7 +181,8 @@ assert_contains "$DEV" "returned \`Result: PASS\`" "god-dev's done requires god-
 for MEM in "profiles/<repo-slug>.json" "lessons/<repo-slug>.md" "scorecard.jsonl"; do
   assert_contains "$DEV" "$MEM" "god-dev keeps $MEM"
 done
-assert_contains "$DEV" "**🧪 Manual checks**" "god-dev's final message carries the manual-checks link"
+assert_contains "$DEV" "#### 🧪 Manual checks" "god-dev's final message carries the manual-checks pointer as its own labelled line"
+assert_contains "$DEV" "always the task's last message" "a god-dev task never ends on god-qa's reply without the PR link"
 assert_contains "$DEV" "https://github.com/<owner>/<repo>/pull/<n>" "god-dev lists PRs as plain URLs"
 assert_contains "$DEV" "run god-qa yourself" "god-dev tests by default by running god-qa itself"
 assert_contains "$DEV" "never type a verdict god-qa did not return" "god-dev may only relay god-qa's real verdict"
