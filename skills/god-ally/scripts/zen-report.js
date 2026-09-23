@@ -516,7 +516,8 @@ function maxParallelSessions(events) {
 
 /**
  * Folds every collected source into one record per Zen day.
- * Args: sources (object), config (object), keys (string[]) — the days to build
+ * Args: sources (object), config (object), keys (string[]) — the days to build,
+ *       now (number) — epoch ms, the clock to clamp against; tests pass their own
  * Returns: {"YYYY-MM-DD": dayRecord}
  * Handles: days with no activity anywhere (marked day_off), sources that returned nothing,
  *          tokens falling back from ccusage to the raw session logs
