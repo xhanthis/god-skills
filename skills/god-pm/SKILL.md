@@ -72,7 +72,8 @@ A product brief in native Markdown: the recommendation as the title and in one s
 
 **Win means** — card-step drop-off below 20%
 
-**📄 PRD** — <doc url, only when one was written>
+#### 📄 PRD
+<doc url, only when one was written>
 
 **❓ Quick questions** — only genuinely open ones, 1–3, one line each.
 

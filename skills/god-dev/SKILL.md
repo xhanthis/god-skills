@@ -98,15 +98,20 @@ A build report in native Markdown — headings, bold labels, bullets, plain link
 
 ### <One sentence a 15-year-old gets: what's different now and why it matters.>
 
-**PR #<n>** — https://github.com/<owner>/<repo>/pull/<n>
+#### PR #<n>
+https://github.com/<owner>/<repo>/pull/<n>
 
-**PR #<n+1>** — https://github.com/<owner>/<repo>/pull/<n+1>
+#### PR #<n+1>
+https://github.com/<owner>/<repo>/pull/<n+1>
 
-**🗺️ Flowchart + details** — <doc url>
+#### 🗺️ Flowchart + details
+<doc url>
 
-**📋 Test cases** — <doc url>
+#### 📋 Test cases
+<doc url>
 
-**🧪 Manual checks** — <doc url>
+#### 🧪 Manual checks
+<doc url>
 
 ---
 
@@ -124,7 +129,8 @@ A build report in native Markdown — headings, bold labels, bullets, plain link
 > 🧘 <one more quoted line only when god-ally has something specific>
 ```
 
-- **Order is fixed:** the `#` title, the `###` sentence, then every link (PRs first, as plain URLs so they are clickable anywhere), then one `---`, then the details. A blank line between every block and between every link. No tables; the only rules are the one above the details and the one god-ally's callout brings.
+- **Order is fixed:** the `#` title (3–6 words, never a file path), the `###` sentence, then every pointer — PRs first — each a `####` label with its URL alone on the line below and a blank line after, so a PR never hides in a stack of links and stays clickable anywhere; then one `---`, then the details. A blank line between every block. No tables; the only rules are the one above the details and the one god-ally's callout brings.
+- **This build report is always the task's last message.** god-qa's verdict is folded into the `QA` line; a run never ends on god-qa's reply alone, because that reply carries no PR.
 - The `QA` line carries god-qa's `Result: PASS | FAIL | UNVERIFIED` verbatim — the hook gates read it. On FAIL the title is `# ❌ …`, `QA` reads `Result: FAIL`, and `**Needs you**` moves up under the sentence, listing every open 4 and 5 before any link.
 - Deep adds `**Money** — <what god-cfo checked>` after `QA`. Week = Monday–Sunday from `scorecard.jsonl`, arrow vs the previous week. Nothing left for the user → `**Needs you** — nothing, ready to merge`.
 - Anything beyond the template — a deviation from the spec, something the user should know — goes in its own short paragraph after `Needs you`, one idea per paragraph, before god-ally's callout.
