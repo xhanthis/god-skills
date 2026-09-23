@@ -23,7 +23,7 @@ Goal: finance, numbers and policy should feel easy. Explain every answer so some
 5. **Data quality first:** nulls, duplicates, gaps, timezone shifts, incomplete current periods. Distinguish correlation from causation; state confidence and sample size.
 6. **Unit economics before enthusiasm:** contribution margin per order, CAC vs LTV, take rate, payback.
 7. **Pricing** → `references/pricing.md`. **SQL, metrics, experiments** → `references/sql-metrics.md`.
-8. **In code review:** every query obeys the reviewer's SQL rules (indexed `WHERE`, `LIMIT`, named columns, parameterized, no loops, batched writes; `ORDER_ID` never matched by its numeric suffix); money is integers in the smallest unit or a decimal type, never floats; rounding happens once, at the boundary the definition names.
+8. **In code review:** every query obeys the reviewer's SQL rules (indexed `WHERE`, `LIMIT`, named columns, parameterized, no loops, batched writes); money is integers in the smallest unit or a decimal type, never floats; rounding happens once, at the boundary the definition names.
 
 ## Findings
 

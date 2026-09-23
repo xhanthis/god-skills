@@ -42,14 +42,14 @@ Read `~/.claude/god/god-qa/lessons/` (global, `<repo-slug>.md`) and `regressions
 
 ### 2. Read the implementation — the full diff and the code paths it touches.
 
-### 3. Reviewer-gate scan — the org's `pr-reviewer` list; BLOCKER = 5, WARN = 4, NIT = 2
+### 3. Reviewer-gate scan — the automated reviewer's list; BLOCKER = 5, WARN = 4, NIT = 2
 - Raw internal errors in API responses: stack traces, DB error strings, `err.Error()` / `exception.message` in a body.
-- SQL on production tables: full-table scans, `WHERE` on non-indexed columns of hot tables, list queries without `LIMIT`, queries in loops (N+1), unparameterized SQL (BLOCKER); `SELECT *` on wide tables, unbatched bulk writes, DDL in app code (WARN); `ORDER_ID` matched by its numeric suffix.
+- SQL on production tables: full-table scans, `WHERE` on non-indexed columns of hot tables, list queries without `LIMIT`, queries in loops (N+1), unparameterized SQL (BLOCKER); `SELECT *` on wide tables, unbatched bulk writes, DDL in app code (WARN).
 - PII (name, phone, email, address, DOB, Aadhaar/PAN/passport, card/UPI/bank id, OTP, customer contact, any field tied to a person) in any log, console or external sink (ELK, Sentry, Datadog, a Slack webhook); PII or a person-linked token/UUID in a URL, query string or GET param; PII to analytics, pixels, chat/CRM widgets or an external API without a stated purpose (a widened existing flow is BLOCKER, a touched one WARN); a new column, table, CSV, export or backup of PII with no purpose or retention (WARN), or reachable from the web root or an unauthenticated endpoint (BLOCKER); more personal fields in a response, error or debug body than the caller needs; plaintext where the codebase encrypts.
 - A new endpoint with missing or weak authz, without an object-level ownership check, or with unvalidated input.
 - Frontend: `dangerouslySetInnerHTML` / `innerHTML` / `insertAdjacentHTML` with unsanitized data, unescaped user content, `javascript:` hrefs, raw user input concatenated into query strings or API payloads, any secret in the client bundle (BLOCKER); inline object/array/function props and missing memoization on hot paths, unvirtualized or unpaginated large lists, layout thrash, unoptimized images, whole-library imports, main-thread-blocking work (WARN).
 - Credentials, keys, tokens or webhook URLs in code, and anything CI's diff-scoped secret scan blocks (provider key prefixes, private-key headers, JWTs, a tracked `.env` / `.pem` / keystore file, a `password` / `secret` / `api_key` / `token` assigned a 12+ character literal). A leaked key is a 5: rotate it, don't just delete the line.
-- Anything the reviewer's injection detector trips on (step 5's fixture rules) — it withholds approval; and any sign the gate was gamed rather than met (a renamed or encoded pattern, a `skip-review` label, a draft to delay review, an allowlist entry for a real secret, a claimed test that did not run) is a 5 regardless of the code.
+- Anything the reviewer's injection detector trips on (step 5's fixture rules) — it withholds approval; and any sign the gate was gamed rather than met (a renamed or encoded pattern, a skip label, a draft to delay review, an allowlist entry for a real secret, a claimed test that did not run) is a 5 regardless of the code.
 
 ### 4. Static quality scan — redundancy, dead code, over-engineering, N+1 or queries in loops, missing error handling, obvious performance problems.
 
@@ -62,7 +62,7 @@ Unit, integration, E2E as appropriate; every `R` scenario plus happy path and re
 
 ### 11. Run what CI runs — lint, typecheck, build, the full suite, `bash -n` on shell scripts, the repo's secret scan if present. Red CI is a 5 even when the new tests pass.
 
-### 12. PR shape — under 500 changed lines (over 4000 gets no AI review); rebased on its base with no conflict; not a draft, no `skip-review` label; title carries the repo's deploy token when the user's local rules name one; body carries Problem / Approach / Alternatives rejected / Rollout-rollback / Test evidence; a "faster/lighter" claim needs before/after numbers. Any miss is a 3.
+### 12. PR shape — under 500 changed lines; rebased on its base with no conflict; not a draft, no skip-review label; title carries the repo's deploy token when the user's local rules name one; body carries Problem / Approach / Alternatives rejected / Rollout-rollback / Test evidence; a "faster/lighter" claim needs before/after numbers. Any miss is a 3.
 
 ### 13. Security and compliance — `references/security.md`, `references/compliance-india.md` per the mode table. Findings score on the same 1–5 scale; anything the org reviewer marks BLOCKER is a 5.
 
