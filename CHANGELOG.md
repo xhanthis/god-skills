@@ -2,11 +2,13 @@
 
 All notable changes to `god-skills` and `god-agents`. Dates are release dates.
 
+## 3.0.3 — 2026-09-23
+
+- **Vendor-neutral skills.** Examples use generic orders and customers, the reviewer gate describes any strict automated reviewer rather than one team's, and no skill carries a company-specific ID format, label or repo name. Keep rules like that in your own CLAUDE.md.
+
 ## 3.0.2 — 2026-09-23
 
 Also ships everything under 3.1.0 below, which was drafted but never published to npm.
-
-- **Vendor-neutral skills.** Examples use generic orders and customers, the reviewer gate describes any strict automated reviewer rather than one team's, and no skill carries a company-specific ID format, label or repo name. Keep rules like that in your own CLAUDE.md.
 
 ### Added
 - **`zen-report.js --line`, god-ally's status callout at the end of every skill's reply:** a divider, then `> 🧘 Zen 8/10 (7d: 7.1 ↑13%) · intensity 6/10 (30d: 7.4 ↓19%) · T: $49.53 (30d: $1.3K)` — today's Zen Score against the previous 7 scored days, today's intensity score against the previous 30, and dollars burned today with the 30-day total. Computed from the same records as the daily report, never by hand; a number the script cannot know prints as `—`. It reuses the history when it was written in the last 10 minutes and recollects otherwise.
