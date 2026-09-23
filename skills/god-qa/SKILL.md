@@ -62,7 +62,7 @@ Unit, integration, E2E as appropriate; every `R` scenario plus happy path and re
 
 ### 11. Run what CI runs — lint, typecheck, build, the full suite, `bash -n` on shell scripts, the repo's secret scan if present. Red CI is a 5 even when the new tests pass.
 
-### 12. PR shape — under 500 changed lines (over 4000 gets no AI review); rebased on its base with no conflict; not a draft, no `skip-review` label; title carries `--deploy` (and `--all` on the node backend); body carries Problem / Approach / Alternatives rejected / Rollout-rollback / Test evidence; a "faster/lighter" claim needs before/after numbers. Any miss is a 3.
+### 12. PR shape — under 500 changed lines (over 4000 gets no AI review); rebased on its base with no conflict; not a draft, no `skip-review` label; title carries the repo's deploy token when the user's local rules name one; body carries Problem / Approach / Alternatives rejected / Rollout-rollback / Test evidence; a "faster/lighter" claim needs before/after numbers. Any miss is a 3.
 
 ### 13. Security and compliance — `references/security.md`, `references/compliance-india.md` per the mode table. Findings score on the same 1–5 scale; anything the org reviewer marks BLOCKER is a 5.
 
