@@ -272,6 +272,36 @@ test("commits, sessions and meetings fold into one day record", () => {
   assert.equal(day.last_ts, ist("2026-09-23", "00:29"));
 });
 
+test("a timestamp ahead of the clock never counts, whichever source it came from", () => {
+  // Arrange: the clock says 12:00, one real session at 09:00, then a session log and a commit stamped this evening
+  const now = ist("2026-09-22", "12:00");
+  const sources = {
+    commits: [{ ts: ist("2026-09-22", "22:30"), repo: "api" }],
+    ccusage: { days: {}, ok: false },
+    claude: {
+      events: [
+        { ts: ist("2026-09-22", "09:00"), session: "s1", cwd: "api" },
+        { ts: ist("2026-09-22", "21:00"), session: "s2", cwd: "api" },
+      ],
+      tokenStamps: [],
+      ok: true,
+    },
+    sleep: {},
+    hookActivity: [],
+    mcp: { timestamps: [], meetings: [], sources: [] },
+  };
+
+  // Act
+  const day = report.buildDays(sources, CONFIG, ["2026-09-22"], now)["2026-09-22"];
+  const onlyFuture = report.buildDays({ ...sources, claude: { events: [], tokenStamps: [], ok: false } }, CONFIG, ["2026-09-22"], now)["2026-09-22"];
+
+  // Assert
+  assert.equal(day.first_ts, ist("2026-09-22", "09:00"));
+  assert.equal(day.last_ts, ist("2026-09-22", "09:00"), "the evening stamps did not stretch the day");
+  assert.equal(day.commits, 0);
+  assert.equal(onlyFuture.day_off, true, "a day whose only activity is ahead of the clock is a day off");
+});
+
 test("a 00:29 finish caps the scored day at 5", () => {
   // Arrange: a short, light day that happens to end after midnight
   const days = [
