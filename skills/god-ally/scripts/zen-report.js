@@ -13,6 +13,7 @@
  * Usage:
  *   node zen-report.js [--mcp '<json>'] [--mcp-file <path>] [--date YYYY-MM-DD] [--json] [--rebuild]
  *   node zen-report.js --quote [--force]        brief for a fresh line, or nothing
+ *   node zen-report.js --line                   the one-line status every skill prints after its reply
  *   node zen-report.js --quote-said '<line>'    remember the line that was shown
  */
 
@@ -41,6 +42,7 @@ const SESSION_GAP_MS = 30 * 60000;
 const MAX_LOG_BYTES = 256 * 1024 * 1024;
 const CHART_MAX = 10;
 const CHART_DAYS = 7;
+const LINE_CACHE_MS = 10 * 60000;
 const CHART_CELL = 7;
 const CHART_BAR = 5;
 const CHART_GUIDES = [5, 8];
@@ -797,6 +799,90 @@ function rollingAverage(days, index, window) {
 }
 
 /**
+ * Averages one field over the days before an index, skipping days off and blanks.
+ * Args: days (dayRecord[] oldest first), index (number) — the day being compared,
+ *       window (number) — how many prior days to look back, field (string)
+ * Returns: number or null when no prior day in the window carries a usable value
+ * Handles: a window reaching before the start of the history, zero token days (skipped,
+ *          they are not working days), a score of exactly 0 (kept)
+ */
+function priorAverage(days, index, window, field) {
+  const values = [];
+  for (let back = 1; back <= window; back += 1) {
+    const day = days[index - back];
+    if (!day || day.day_off || day[field] == null) {
+      continue;
+    }
+    if (field === "score" || day[field] > 0) {
+      values.push(day[field]);
+    }
+  }
+  if (!values.length) {
+    return null;
+  }
+  return values.reduce((sum, value) => sum + value, 0) / values.length;
+}
+
+/**
+ * Formats a score the way the report prints it: whole numbers bare, the rest to one decimal.
+ * Args: value (number|null)
+ * Returns: string, "—" for a missing score
+ */
+function formatScore(value) {
+  if (value == null || !Number.isFinite(value)) {
+    return "—";
+  }
+  return Number.isInteger(value) ? String(value) : value.toFixed(1);
+}
+
+/**
+ * The one-line status every skill prints after its reply: dollars burned today, today's
+ * token intensity against the previous 7 and 30 working days, and today's Zen Score
+ * against the previous 7 scored days. Every number comes from the same records the daily
+ * report uses, so the line and the report never disagree.
+ * Args: days (dayRecord[] oldest first, already scored)
+ * Returns: string — one line starting with the 🧘 marker; a number that cannot be known
+ *          prints as — rather than a guess
+ * Handles: no cost source (ccusage off or unavailable), a day off or unscored today, a
+ *          history too short for a baseline, a 7-day average of zero
+ */
+function statusLine(days) {
+  const index = days.length - 1;
+  const today = days[index];
+  const cost = today.cost > 0 ? `$${today.cost.toFixed(2)}` : "$—";
+  const ratio = (window) => {
+    const average = priorAverage(days, index, window, "tokens");
+    return average && today.tokens > 0 ? `${(today.tokens / average).toFixed(1)}×` : "—";
+  };
+  const week = priorAverage(days, index, 7, "score");
+  let weekText = week == null ? "7d avg —" : `7d avg ${week.toFixed(1)}`;
+  if (week != null && week > 0 && today.score != null) {
+    const change = Math.round(((today.score - week) / week) * 100);
+    weekText += ` (${change >= 0 ? "+" : ""}${change}%)`;
+  }
+  return `🧘 ${cost} today · intensity ${ratio(7)} vs 7d · ${ratio(30)} vs 30d · Zen ${formatScore(today.score)} · ${weekText}`;
+}
+
+/**
+ * Whether the stored history is fresh enough to print the status line from, without
+ * recollecting — a full collection takes seconds and the line follows every skill reply.
+ * Args: history (Map), today (string "YYYY-MM-DD")
+ * Returns: boolean — true when today is in the history and the file was written in the
+ *          last LINE_CACHE_MS
+ * Handles: no history file yet, an unreadable file (both mean not fresh)
+ */
+function historyFresh(history, today) {
+  if (!history.has(today)) {
+    return false;
+  }
+  try {
+    return Date.now() - fs.statSync(HISTORY_FILE).mtimeMs < LINE_CACHE_MS;
+  } catch (error) {
+    return false;
+  }
+}
+
+/**
  * Draws the last seven days as one labelled bar each.
  * Seven fat bars with gaps read at a glance where thirty thin ones blur together; the
  * x-axis carries the date under every bar and its score under that, and the y-axis is the
@@ -1159,12 +1245,12 @@ function render(days, config, sourcesUsed, sourcesMissing) {
 /**
  * Parses the command line.
  * Args: argv (string[])
- * Returns: {mcp, date, json, rebuild, quote, quoteSaid, force}
+ * Returns: {mcp, date, json, rebuild, quote, quoteSaid, force, line}
  * Handles: --mcp-file pointing nowhere, flags in any order, unknown flags (ignored),
  *          a --date that is not a real YYYY-MM-DD (dropped, so today is used)
  */
 function parseArgs(argv) {
-  const args = { mcp: null, date: null, json: false, rebuild: false, quote: false, quoteSaid: null, force: false };
+  const args = { mcp: null, date: null, json: false, rebuild: false, quote: false, quoteSaid: null, force: false, line: false };
   for (let index = 0; index < argv.length; index += 1) {
     const flag = argv[index];
     if (flag === "--mcp") {
@@ -1183,6 +1269,8 @@ function parseArgs(argv) {
       args.json = true;
     } else if (flag === "--quote") {
       args.quote = true;
+    } else if (flag === "--line") {
+      args.line = true;
     } else if (flag === "--quote-said") {
       args.quoteSaid = argv[++index] || "";
     } else if (flag === "--force") {
@@ -1225,6 +1313,11 @@ function main(argv) {
     process.stdout.write(`${result.said || result.brief}\n`);
     return;
   }
+  if (args.line && historyFresh(history, today)) {
+    const known = scoreDays(keys.map((key) => history.get(key) || blankDay(key)), config);
+    process.stdout.write(`${statusLine(known)}\n`);
+    return;
+  }
   const firstRun = args.rebuild || !keys.slice(0, -1).every((key) => history.has(key));
   const rebuildKeys = firstRun ? keys : [today];
   const sinceEpoch = Date.parse(`${rebuildKeys[0]}T00:00:00Z`) - DAY_MS;
@@ -1258,6 +1351,10 @@ function main(argv) {
     missing.push("mcp tools");
   }
 
+  if (args.line) {
+    process.stdout.write(`${statusLine(days)}\n`);
+    return;
+  }
   if (args.json) {
     process.stdout.write(`${JSON.stringify({ today: days[days.length - 1], days, sources: { used, missing } }, null, 2)}\n`);
     return;
@@ -1289,6 +1386,10 @@ module.exports = {
   quoteBrief,
   recordQuote,
   quoteWarranted,
+  statusLine,
+  priorAverage,
+  formatScore,
+  historyFresh,
   blankDay,
   DEFAULT_CONFIG,
 };

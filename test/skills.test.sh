@@ -112,6 +112,28 @@ console.log(bad.length ? "BAD " + bad.join("; ") : "OK");
 ')
 assert_eq "$BAD" "OK" "every skill has a name and a description"
 
+# --- every reply template is well-formed Markdown --------------------------
+# Fences balance and every table row carries the header's cell count (an
+# unescaped pipe inside a cell splits it in GFM), so no template renders as
+# a broken box in chat, an IDE or a terminal.
+LINT=$(node -e '
+const fs = require("fs");
+const bad = [];
+for (const name of fs.readdirSync("skills")) {
+  const lines = fs.readFileSync("skills/" + name + "/SKILL.md", "utf8").split("\n");
+  if (lines.filter((l) => /^`{3,}/.test(l)).length % 2) bad.push(name + " has an unbalanced code fence");
+  let cols = 0;
+  for (const [i, l] of lines.entries()) {
+    if (!/^\|.*\|\s*$/.test(l)) { cols = 0; continue; }
+    const n = l.split(/(?<!\\)\|/).length - 2;
+    if (cols && n !== cols) bad.push(name + ":" + (i + 1) + " has " + n + " cells, header has " + cols);
+    cols = cols || n;
+  }
+}
+console.log(bad.length ? "BAD " + bad.join("; ") : "OK");
+')
+assert_eq "$LINT" "OK" "every skill template has balanced fences and even table rows"
+
 # --- the published tarball carries the skills, not the agent package ------
 MANIFEST=$(npm pack --dry-run --json 2>/dev/null | node -e '
 let raw = "";
@@ -134,13 +156,17 @@ for VP in 390x844 820x1180 1512x982 1440x900; do
   assert_contains "$TESTER" "$VP" "god-qa tests the $VP viewport"
 done
 assert_contains "$TESTER" "Any **5** → **FAIL**" "god-qa fails the module on a score-5 issue"
-assert_contains "$TESTER" "Laid out like god-ally's report" "god-qa's reply follows god-ally's layout"
-assert_contains "$TESTER" "Verdict    ✅ Result: PASS" "god-qa's verdict row carries the hook token"
+assert_contains "$TESTER" "# ✅ Result: PASS" "god-qa's title carries the hook verdict token"
+assert_contains "$TESTER" "- [x] API" "god-qa lists what it tested as a checklist"
+assert_contains "$TESTER" "| Score | Where | What a user sees |" "god-qa lists every issue as a table row in a user's words"
 assert_contains "$TESTER" "Manual Test Guide" "god-qa produces the manual curl guide"
 for REF in frontend security compliance-india integrity docs; do
   assert_file "skills/god-qa/references/$REF.md" "god-qa ships references/$REF.md"
 done
 assert_contains "$(cat skills/god-qa/SKILL.md)" "integrity.md\` runs before **every** PASS" "god-qa runs the integrity pass before any PASS"
+assert_contains "$TESTER" "BLOCKER = 5, WARN = 4, NIT = 2" "god-qa maps the reviewer's severities onto its scores"
+assert_contains "$TESTER" "title carries \`--deploy\`" "god-qa's PR-shape check wants the deploy token"
+assert_contains "$TESTER" "gamed rather than met" "god-qa scores a gamed gate as a 5"
 
 # --- god-dev contract ------------------------------------------------------
 DEV=$(cat skills/god-dev/SKILL.md)
@@ -162,9 +188,16 @@ assert_contains "$DEV" "](https://www.npmjs.com/package/god-skills)" "god-dev si
 assert_contains "$DEV" "there is no list to pick from" "the PR signature is written fresh, not drawn from a list"
 assert_contains "$DEV" "signatures.jsonl" "god-dev remembers signatures so none repeats"
 assert_not_contains "$DEV" "set -- \"" "god-dev ships no hardcoded signer list"
-assert_contains "$DEV" "Laid out like god-ally's report" "god-dev's final message follows god-ally's layout"
-assert_contains "$DEV" "QA         Result: PASS" "the verdict row carries god-qa's token for the hooks"
+assert_contains "$DEV" "# ✅ <Task name in 3–6 words>" "god-dev's final message opens with an H1 title"
+assert_contains "$DEV" "### <One sentence" "god-dev's plain-English line sits under the title as a heading"
+assert_contains "$DEV" "**QA** — Result: PASS" "the QA line carries god-qa's token for the hooks"
 assert_contains "$DEV" "boring beats clever" "god-dev keeps the body line the agent test pins"
+assert_contains "$DEV" "meet the gate, never game it" "god-dev meets the reviewer's gate instead of gaming it"
+assert_contains "$DEV" "**Known gaps**" "god-dev writes an unmet rule into the PR body instead of hiding it"
+assert_contains "$DEV" "description --deploy" "god-dev puts --deploy in every PR title"
+assert_contains "$DEV" "appends \` --all\` as well" "god-dev adds --all on the node backend"
+assert_contains "$DEV" "layout thrash" "god-dev's ship gate carries the reviewer's frontend perf list"
+assert_contains "$DEV" "error and debug bodies" "god-dev's ship gate covers PII in error and debug bodies"
 assert_file "skills/god-dev/references/architecture.md" "god-dev ships the architecture pass"
 assert_contains "$DEV" "Remove first" "god-dev removes before it adds"
 assert_contains "$DEV" "learning-loop.md" "god-dev closes with the shared learning loop"
@@ -177,9 +210,7 @@ for V in BUILD "DO NOT BUILD" DEFER SHIP STOP; do
 done
 assert_contains "$CEO" "Known fact → Evidence → Inference → Assumption → Unknown" "god-ceo classifies claims before deciding"
 assert_contains "$CEO" "Weekly review" "god-ceo runs the weekly review"
-for S in god-ceo god-pm god-cmo; do
-  assert_contains "$(cat skills/$S/SKILL.md)" "Laid out like god-ally's report" "$S's reply follows god-ally's layout"
-done
+assert_contains "$CEO" "| Before | After |" "god-ceo's memo shows the change as a before/after table"
 assert_contains "$(cat skills/god-ally/SKILL.md)" "laid out exactly like the daily report" "god-ally's week view matches the daily report"
 assert_contains "$CEO" "Sensei" "god-ceo is the escalation point for stuck skills"
 for REF in routing decisions learning-loop; do assert_file "skills/god-ceo/references/$REF.md" "god-ceo ships references/$REF.md"; done
@@ -189,17 +220,19 @@ assert_contains "$CFO" "Recompute independently" "god-cfo recomputes money a sec
 assert_contains "$CFO" "Pop questions first" "god-cfo asks quick questions when something is unclear"
 assert_contains "$CFO" "Always an example" "god-cfo explains with a worked example"
 assert_contains "$CFO" "Always a picture" "god-cfo explains with a graph or illustration"
-assert_contains "$CFO" "Laid out like god-ally's report" "god-cfo's reply follows god-ally's layout"
+assert_contains "$CFO" "| Step | ₹ |" "god-cfo's worked example is a table"
 for REF in pricing sql-metrics; do assert_file "skills/god-cfo/references/$REF.md" "god-cfo ships references/$REF.md"; done
 WRITER=$(cat skills/god-cmo/SKILL.md)
 assert_contains "$WRITER" "## Editor pass" "god-cmo runs the editor pass"
 assert_contains "$WRITER" "references/ai-patterns.md" "god-cmo loads the pattern catalog on demand"
 assert_file "skills/god-cmo/references/ai-patterns.md" "the AI-pattern catalog ships"
 assert_contains "$(cat skills/god-cmo/references/ai-patterns.md)" "## Full Example" "the catalog keeps the worked example"
+assert_contains "$WRITER" "✍️ **Edit note**" "god-cmo closes the rewrite with a short edit note"
 PM=$(cat skills/god-pm/SKILL.md)
 for REF in research ops reverse; do assert_file "skills/god-pm/references/$REF.md" "god-pm ships references/$REF.md"; done
 assert_contains "$PM" "filed only after the user says yes" "god-pm files scouted ideas only on a yes"
 assert_contains "$PM" "WHO** hits **WHAT** pain **WHEN" "god-pm starts from a problem statement"
+assert_contains "$PM" "| What | Number | Source |" "god-pm's brief carries its evidence in a table with sources"
 ZEN=$(cat skills/god-ally/SKILL.md)
 assert_contains "$ZEN" "never leaves the machine, never a PR" "god-ally data stays local"
 assert_contains "$ZEN" "ask before continuing" "god-ally asks before work on a strong signal"
@@ -208,6 +241,31 @@ assert_contains "$ZEN" "Never** diagnoses" "god-ally never diagnoses"
 assert_file "skills/god-ally/scripts/zen-report.js" "god-ally ships its daily report script"
 assert_file "skills/god-ally/scripts/zen-score.js" "god-ally ships its scoring module"
 assert_file "$WORK/h1/.claude/skills/god-ally/scripts/zen-report.js" "the installer copies skill scripts"
+# Only god-ally prints a code-fenced report; every other skill replies in its
+# own native-Markdown shape so it reads the same in a terminal, chat and IDE.
+for S in god-ceo god-cfo god-cmo god-qa god-dev god-pm; do
+  assert_not_contains "$(cat skills/$S/SKILL.md)" "Laid out like god-ally's report" "$S replies in its own shape, not god-ally's fenced block"
+done
+assert_contains "$ZEN" "inside a fenced code block" "god-ally keeps its fenced report"
+for S in god-ceo god-cfo god-cmo god-qa god-dev god-pm; do
+  assert_contains "$(cat skills/$S/SKILL.md)" "🧘 <god-ally's status line — always" "$S's reply ends with god-ally's status line"
+  assert_contains "$(cat skills/$S/SKILL.md)" "Every lesson stays on this machine" "$S keeps its lessons local"
+done
+
+# --- nothing in a skill trips the org reviewer's injection detector -------
+# Skills are copied into reviewed repos on a project install, so their text
+# must never read like talk to a reviewer or spell a credential name. The
+# detector's own pattern sits here base64-encoded so this file cannot trip it.
+MARKERS=$(printf '%s' 'KGlnbm9yZXxkaXNyZWdhcmR8Zm9yZ2V0fG92ZXJyaWRlKVtbOnNwYWNlOl1dKyhhbGxbWzpzcGFjZTpdXSspPyh0aGVbWzpzcGFjZTpdXSspPyhwcmV2aW91c3xwcmlvcnxhYm92ZXxlYXJsaWVyfHN5c3RlbSlbWzpzcGFjZTpdXSsoaW5zdHJ1Y3Rpb258cHJvbXB0fHJ1bGV8ZGlyZWN0aW9uKXx5b3VbWzpzcGFjZTpdXSthcmVbWzpzcGFjZTpdXStub3dbWzpzcGFjZTpdXXxuZXdbWzpzcGFjZTpdXSsoc3lzdGVtW1s6c3BhY2U6XV0rKT9pbnN0cnVjdGlvbnM/fDxcfGltXyhzdGFydHxlbmQpXHw+fFxbXFtTWVNURU1cXVxdfHByaW50W1s6c3BhY2U6XV0rKG91dFtbOnNwYWNlOl1dKyk/KHRoZVtbOnNwYWNlOl1dKyk/KGNvbnRlbnRzP3x2YWx1ZSlzP1tbOnNwYWNlOl1dK29mfEdIX1RPS0VOfENMQVVERV9DT0RFX09BVVRIX1RPS0VOfEFOVEhST1BJQ19BUElfS0VZfFNMQUNLX1dFQkhPT0t8L3Byb2Mvc2VsZi9lbnZpcm9ufFwuY3JlZGVudGlhbHNcLmpzb258c2VjcmV0c1wuZW52fGFsd2F5c1tbOnNwYWNlOl1dK2FwcHJvdmV8cmVwbHlbWzpzcGFjZTpdXSt3aXRoW1s6c3BhY2U6XV0rYXBwcm92ZQ==' | base64 -d)
+HITS=$(grep -rnaEio "$MARKERS" skills | head -3)
+if [ -z "$HITS" ]; then _ok "no skill text trips the reviewer's injection detector"; else _fail "no skill text trips the reviewer's injection detector" "$HITS"; fi
+
+# --- nothing in a skill trips the org CI's provider-credential scan -------
+# The same diff-scoped regex the org's security-scan workflow blocks on, so a
+# skill copied into a reviewed repo cannot fail its CI. Base64 for the same reason.
+SHAPES=$(printf '%s' 'KEFLSUFbMC05QS1aXXsxNn18QVNJQVswLTlBLVpdezE2fXxBSXphWzAtOUEtWmEtel8tXXszNX18c2tfbGl2ZV9bMC05YS16QS1aXXsyNCx9fHJ6cF9saXZlX1swLTlhLXpBLVpdezE0LH18Z2hbcG91c3JdX1swLTlBLVphLXpdezM2fXxnaXRodWJfcGF0X1swLTlBLVphLXpfXXs1MCx9fHhveFtiYXByc2VdLVswLTlBLVphLXotXXsxMCx9fEJFR0lOIFtBLVogXSpQUklWQVRFIEtFWSk=' | base64 -d)
+HITS=$(grep -rnaEo "$SHAPES" skills | head -3)
+if [ -z "$HITS" ]; then _ok "no skill text trips the org CI's provider-credential scan"; else _fail "no skill text trips the org CI's provider-credential scan" "$HITS"; fi
 for S in god-ceo god-cfo god-cmo god-qa god-dev god-pm god-ally; do
   L=$(wc -l < skills/$S/SKILL.md | tr -d ' ')
   [ "$L" -le 150 ] && _ok "$S core stays under 150 lines ($L)" || _fail "$S core stays under 150 lines" "$L lines"
@@ -225,6 +283,10 @@ assert_contains "$LOOPTXT" "never a PR, even after 100 sightings" "personal less
 assert_contains "$LOOPTXT" "value ≥ 18" "a high-value universal lesson is promoted on first sighting"
 assert_contains "$LOOPTXT" '"share_learnings": false' "users can opt out of upstream PRs"
 assert_contains "$LOOPTXT" "Never merge" "the loop never merges its own PRs"
+assert_contains "$LOOPTXT" "Learnings stay on this machine" "the loop keeps every learning local"
+assert_contains "$LOOPTXT" "Only three documents" "the loop names the only three docs any skill publishes"
+assert_contains "$LOOPTXT" "god-ally's line" "the loop's last step decides god-ally's line for the closing skill"
+assert_contains "$LOOPTXT" "zen-report.js --line" "the loop prints the status line from the script, never by hand"
 assert_file "$WORK/h1/.claude/skills/god-ceo/references/learning-loop.md" "the installer copies skill references"
 WF=.github/workflows/test.yml
 assert_file "$WF" "CI workflow exists"

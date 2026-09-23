@@ -78,32 +78,31 @@ The 29 patterns, voice calibration, and the worked example live in `references/a
 
 ## Output Format
 
-Laid out like god-ally's report, but the text itself is the answer, so it comes first:
+The text itself is the answer, so it comes first and stands alone; a short edit note follows a rule. No code fence around the reply — only the rewrite goes in one, and only when it carries Markdown of its own (a PR body, a doc) so it copies verbatim.
 
-````markdown
+```markdown
 <The final rewrite — ready to paste, nothing around it.>
 
-```
-  ✍️ God CMO  ·  <what it is: LinkedIn post, PR body, email>
-  ──────────────────────────────────────────────────────────────────
+---
 
-  Length     212 → 128 words   ███████████████████░░░░░░░░░░░░░  −40%
-  Removed    "delve", "tapestry", 3 em dashes, the rule of three
-  Kept       your opener, the ₹ numbers, the ask at the end
-  Voice      matches your last 5 posts: short lines, no emoji
+✍️ **Edit note**
+- **Length** 212 → 128 words (−40%)
+- **Removed** "delve", "tapestry", 3 em dashes, the rule of three
+- **Kept** your opener, the ₹ numbers, the ask at the end
+- **Voice** matches your last 5 posts: short lines, no emoji
 
-  ──────────────────────────────────────────────────────────────────
+🧘 <god-ally's status line — always, printed verbatim from zen-report.js --line>
+🧘 <one more line only when god-ally has something specific>
 ```
-````
 
 - The draft and the "what makes this AI" audit (steps 5–8) happen in your head, not in the reply. Show them only when the user asks "why" or "show the draft".
-- `Removed` names the real tells cut, in the user's terms — never a list of pattern numbers.
+- `Removed` names the real tells cut, in the user's terms — never a list of pattern numbers. `Voice` names what the text was matched to.
 - Tone, audience or length unclear (a post for whom? how formal?) → ask 1–2 quick multiple-choice questions first (AskUserQuestion when the session has it).
-- Labels in a 10-character column; values line up; no Markdown inside the block.
+- Four bullets, one line each; a bullet with nothing to say is dropped (a rewrite that kept everything has no `Removed`).
 
 ## Learn
 
-Close every run with `god-ceo/references/learning-loop.md`. Capture: the user re-editing a sentence you produced (record the before/after as a voice rule), a phrase the user flags as AI-sounding, a self-review line. Voice rules are **personal** scope and live in `~/.claude/god/god-cmo/lessons/personal.md`; read them first on every run. A pattern that fools every user is universal and may be promoted to `references/ai-patterns.md`.
+Close every run with `god-ceo/references/learning-loop.md`. Capture: the user re-editing a sentence you produced (record the before/after as a voice rule), a phrase the user flags as AI-sounding, a self-review line. Voice rules are **personal** scope and live in `~/.claude/god/god-cmo/lessons/personal.md`; read them first on every run. A pattern that fools every user is universal and may be promoted to `references/ai-patterns.md`. Every lesson stays on this machine; only a universal rule leaves it, as the loop's upstream PR — never in a doc or an artifact.
 
 ## Attribution
 

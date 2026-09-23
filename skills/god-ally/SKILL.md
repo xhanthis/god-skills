@@ -12,7 +12,7 @@ Principle: health is the foundation of performance, not the price of it. Interve
 
 | File | Written by | Holds |
 |---|---|---|
-| `activity.jsonl` | the `zen-activity.sh` hook | `{"ts","event":"session_start|prompt|stop","cwd"}` for every session and prompt |
+| `activity.jsonl` | the `zen-activity.sh` hook | `{"ts","event":"session_start\|prompt\|stop","cwd"}` for every session and prompt |
 | `baseline.json` | this skill, at close | rolling 4-week medians, weekdays and weekends separately: first/last activity, lunch gap, longest unbroken block, sessions per day, tokens per day, meetings per day |
 | `targets.json` | the user | optional overrides: `{"stop_by":"23:00","lunch":"13:00-14:00","sleep_hours":7,"no_weekend":true}` — a target beats the baseline where set |
 | `next.json` | this skill, at close | `{"next_meeting_ts","stop_after","lunch","quiet_until"}` — what the hook reads before the next prompt |
@@ -34,7 +34,7 @@ Sources, read at close (cheap, cached per day): `activity.jsonl`; `git log --all
 
 ## Speaking
 
-- **Inside other skills' replies:** one `🧘` line, appended to the final message of whichever skill is closing, whenever a signal is specific ("3rd night past 1am this week — stop after this PR", "meeting in 8 min — park this, start after", "no lunch gap yet and it's 14:40", "clear hour ahead — go deep on #1: <priority>"). Specific means: the number, the comparison, the action.
+- **Inside other skills' replies:** always the status line (below), then one more `🧘` line — decided by the closing skill with the last step of `god-ceo/references/learning-loop.md` — whenever a signal is specific ("3rd night past 1am this week — stop after this PR", "meeting in 8 min — park this, start after", "no lunch gap yet and it's 14:40", "clear hour ahead — go deep on #1: <priority>"). Specific means: the number, the comparison, the action.
 - **Before work (via the hook's context on a prompt):** a strong signal — next meeting < 15 min, past the stop target, 3rd late night — → **ask before continuing** in one line; the user's answer stands for the rest of the day. Weak signals stay a one-liner and never block.
 - **Quiet:** never mid-flow inside a focused block under 90 min (wait for the task to close); never during an incident (the request mentions prod down, outage, hotfix, rollback) until the fix ships; `zen off` silences until the next day, `zen on` restores. Never the same line twice in a day.
 - **Never** diagnoses a medical condition. A pattern that could be medical (sustained under-sleep, sudden intensity collapse) → recommend a professional evaluation, plainly, once.
@@ -42,7 +42,7 @@ Sources, read at close (cheap, cached per day): `activity.jsonl`; `git log --all
 ## Actions (ask first, each time)
 
 - **Block focus time:** a clear hour → offer to add a `Focus` event to Google Calendar so nobody books over it.
-- **Weekly report doc:** the first session each Monday writes the week's summary to one Claude Doc (`Zen — weekly`, same link every week; a new dated section on top) and drops the link once. No Docs connector → `~/.claude/god/god-ally/weekly.md`.
+- **Weekly summary:** the first session each Monday writes the week's summary to `~/.claude/god/god-ally/weekly.md` (a new dated section on top) and says so once. A Claude Doc only when the user asks for one.
 - Nothing else is written outside its own directory.
 
 ## The daily report (`/god-ally`, `/god-ally today`)
@@ -59,6 +59,14 @@ Sources, read at close (cheap, cached per day): `activity.jsonl`; `git log --all
 4. Add at most one line of your own, only if the report missed something a tool told you.
 
 Scoring lives entirely in the script — day length 35%, sleep 30%, intensity 20%, recovery 15%, with a hard cap of 5 for any activity past midnight or a night under five hours. Never recompute or override a score by hand. Config and history sit in `~/.god-ally/`; the first run backfills 30 days.
+
+## The status line (after every skill's reply)
+
+```bash
+node ~/.claude/skills/god-ally/scripts/zen-report.js --line
+```
+
+Prints one line — `🧘 $49.53 today · intensity 1.4× vs 7d · 0.9× vs 30d · Zen 8 · 7d avg 7.1 (+13%)` — dollars burned today, today's tokens against the average of the previous 7 and 30 working days, and today's Zen Score against the previous 7 scored days. The closing skill prints it verbatim as the last line of every reply, never by hand and never re-typed; a number the script cannot know prints as `—`. It reuses the history when it was written in the last 10 minutes and recollects otherwise, so it costs nothing on a busy day.
 
 ## The motivational line (rare, and never in the report)
 
@@ -96,6 +104,6 @@ Close every run with `god-ceo/references/learning-loop.md`. Everything here is *
 
 ## Output rules
 
-One line when riding another skill. The two summaries fit on one screen. Numbers with comparisons, never adjectives. No emoji except the 🧘 marker.
+The status line plus at most one more line when riding another skill. The two summaries fit on one screen. Numbers with comparisons, never adjectives. No emoji except the 🧘 marker.
 
 ALWAYS KEEP EVERY REPLY SUPER CRISP, SUPER SHORT, SUPER TO THE POINT.
