@@ -2,7 +2,9 @@
 
 All notable changes to `god-skills` and `god-agents`. Dates are release dates.
 
-## Unreleased
+## 3.0.2 — 2026-09-23
+
+Also ships everything under 3.1.0 below, which was drafted but never published to npm.
 
 ### Added
 - **`zen-report.js --line`, god-ally's status callout at the end of every skill's reply:** a divider, then `> 🧘 Zen 8/10 (7d: 7.1 ↑13%) · intensity 6/10 (30d: 7.4 ↓19%) · T: $49.53 (30d: $1.3K)` — today's Zen Score against the previous 7 scored days, today's intensity score against the previous 30, and dollars burned today with the 30-day total. Computed from the same records as the daily report, never by hand; a number the script cannot know prints as `—`. It reuses the history when it was written in the last 10 minutes and recollects otherwise.
@@ -26,7 +28,7 @@ All notable changes to `god-skills` and `god-agents`. Dates are release dates.
 - **Removed the weekly scout runner** (`run-scout.sh`, `prompts/weekly-scout.md`, the `godscout` launchd plist, `SCOUT_REPOS` / `GOD_SCOUT_COST_CAP`, and Linear's `list-scout-titles`). god-scout was folded into god-pm in 3.0; the nightly tester is the only scheduled runner now.
 - god-ally keeps its data in `~/.god-ally/` and `~/.claude/god/god-ally/`; move the old `god-zen` folders there to keep your history.
 
-## 3.1.0 — 2026-09-22
+## 3.1.0 — never published, shipped in 3.0.2
 
 ### Added
 - **God Zen's daily report.** `/god-zen` now prints a Zen Score out of 10 for the day, a 30-day graph of it, what the month is costing, and one thing to change tomorrow. Fully passive — it never asks a question, and a source that is missing is named in the footer instead of blocking the score.
