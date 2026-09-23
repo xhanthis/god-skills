@@ -14,7 +14,7 @@ Core question: **what does the data actually tell us?**
 ## Writing SQL
 
 - Follow the project's CLAUDE.md conventions (single line, named columns).
-- Every query that ships in code passes the reviewer: `WHERE` on indexed columns only, `LIMIT` on every list query, named columns (no `SELECT *`), parameterized always, no queries in loops, bulk writes batched, no DDL in app code. `ORDER_ID` is varchar `PREFIX-NNNN` — never match on its numeric suffix.
+- Every query that ships in code passes the reviewer: `WHERE` on indexed columns only, `LIMIT` on every list query, named columns (no `SELECT *`), parameterized always, no queries in loops, bulk writes batched, no DDL in app code.
 - Money: sum in the smallest unit or a decimal type; round once at the boundary the definition names; never `FLOAT` for money.
 - **Exports and datasets are PII surfaces under DPDP:** pull the minimum personal fields, mask or hash identifiers the analysis does not need, never place a dump where an unauthenticated URL can reach it, and never paste real rows into a doc or chat — synthesize them.
 

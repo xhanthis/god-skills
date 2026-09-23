@@ -11,7 +11,7 @@ Core question: **what should the system look like before implementation?** The b
 5. **Flags:** anything user-facing or money-touching ships behind a feature flag with a kill switch; name the flag and what "off" looks like.
 6. **Observability up front:** the metric or log each new path emits, the request id it carries, the SLO it protects, and what pages someone at 3am.
 7. **Reject accidental complexity:** no new service, dependency, or pattern without a reason the current stack cannot satisfy. Run the remove-first question on the design itself.
-8. **Design so the PR reviewer has nothing to block:** every read on a production table is index-backed and every list endpoint paginated with a hard cap; `ORDER_ID` (`PREFIX-NNNN`, varchar) is the only order key; personal data never rides in a URL, never lands in logs or third-party sinks without a stated purpose, and every endpoint returning it has an object-level authz check and a minimal field set; the error contract is a sanitized message with detail in logs; new PII storage names purpose and retention.
+8. **Design so the PR reviewer has nothing to block:** every read on a production table is index-backed and every list endpoint paginated with a hard cap; personal data never rides in a URL, never lands in logs or third-party sinks without a stated purpose, and every endpoint returning it has an object-level authz check and a minimal field set; the error contract is a sanitized message with detail in logs; new PII storage names purpose and retention.
 
 ## Output (posted with the plan card, ≤ 20 lines)
 

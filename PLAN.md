@@ -64,7 +64,7 @@ M4 and it must work before the nightly runner (M5) ever executes.
 | Autonomous runtime | Mac, `launchd` (fires on wake; cron misses sleeping Macs) |
 | Findings store | Linear, **existing team**; agent writes authored as `God` via OAuth actor=app and tagged with the `god` label |
 | Headless autonomy | Fix + open PR (never touches `main`) |
-| Target repos | the org (Go backend + admin-web): nightly tester. Ownspce (React Native): scout only, read-only — no cheap headless E2E path exists |
+| Target repos | a Go backend + admin web app: nightly tester. Ownspce (React Native): scout only, read-only — no cheap headless E2E path exists |
 | Repo split | Public layer (agents, hooks, installer, templates) lives in **this repo**. Private runtime (`~/.god-agents`: prompts with business context, launchd, Linear config) lives in a separate **private** repo `xhanthis/god-agents-runtime`, seeded from `god-agents/runtime-template/` shipped here |
 | Agent authoring | Agents are **generated** from `skills/*/SKILL.md` + `god-agents/agents/manifest.json` at install time. One source of truth, zero drift. Never hand-maintain duplicate bodies |
 | Skills | Keep shipping unchanged. Skills remain the knowledge layer; agents are a thin execution wrapper |
@@ -347,7 +347,7 @@ date +%s > "$ROOT/logs/last-success"
 # Part B — private repo (user performs; builder ships the template)
 
 1. Create private repo `xhanthis/god-agents-runtime`; copy `god-agents/runtime-template/` in.
-2. Fill placeholders: repo paths (the org backend, admin-web, Ownspce),
+2. Fill placeholders: repo paths (backend, admin web app, Ownspce),
    default branches, Linear team ID for the **God Agents** team, FY27 KRA context
    in `weekly-scout.md`, macOS username in plists.
 3. Clone to `~/.god-agents`, `export LINEAR_API_KEY` (or read from Keychain in
