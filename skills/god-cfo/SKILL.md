@@ -72,8 +72,10 @@ A numbers memo in native Markdown: the verdict as the title, the answer in one s
 
 **❓ Quick questions** — only if something is still unclear, 1–3, one line each.
 
-🧘 <god-ally's status line — always, printed verbatim from zen-report.js --line>
-🧘 <one more line only when god-ally has something specific>
+---
+
+> 🧘 <god-ally's status callout — always, pasted verbatim from zen-report.js --line>
+> 🧘 <one more quoted line only when god-ally has something specific>
 ```
 
 - **Title:** 💰 and the verdict `RECONCILES | MISMATCH | UNVERIFIED`, then the topic. **Sentence:** the answer, no jargon. A term the reader may not know (GST, take rate, LTV, slab) is explained in `Means` in everyday words.
