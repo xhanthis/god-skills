@@ -106,8 +106,10 @@ A test verdict in native Markdown: the verdict as the title, one plain sentence,
 
 **🧪 Manual guide** — <link>
 
-🧘 <god-ally's status line — always, printed verbatim from zen-report.js --line>
-🧘 <one more line only when god-ally has something specific>
+---
+
+> 🧘 <god-ally's status callout — always, pasted verbatim from zen-report.js --line>
+> 🧘 <one more quoted line only when god-ally has something specific>
 ```
 
 - The title carries `Result: PASS`, `Result: FAIL`, or `Result: UNVERIFIED` verbatim — the hook gates read it. Template token: `Result: PASS | FAIL | UNVERIFIED`. FAIL → `# ❌`, UNVERIFIED → `# ⚠️`.

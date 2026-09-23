@@ -76,8 +76,10 @@ A product brief in native Markdown: the recommendation as the title and in one s
 
 **❓ Quick questions** — only genuinely open ones, 1–3, one line each.
 
-🧘 <god-ally's status line — always, printed verbatim from zen-report.js --line>
-🧘 <one more line only when god-ally has something specific>
+---
+
+> 🧘 <god-ally's status callout — always, pasted verbatim from zen-report.js --line>
+> 🧘 <one more quoted line only when god-ally has something specific>
 ```
 
 - **Title:** 🧭, the recommendation in 3–6 words, the pass(es) run. **Sentence:** the recommendation and the one reason, no jargon.

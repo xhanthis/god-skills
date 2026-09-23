@@ -75,8 +75,10 @@ A decision memo in native Markdown: the verdict as the title, the call in one se
 
 **Chain** — god-dev → god-qa → god-cfo
 
-🧘 <god-ally's status line — always, printed verbatim from zen-report.js --line>
-🧘 <one more line only when god-ally has something specific>
+---
+
+> 🧘 <god-ally's status callout — always, pasted verbatim from zen-report.js --line>
+> 🧘 <one more quoted line only when god-ally has something specific>
 ```
 
 - **Title:** 👑, the verdict word from `references/decisions.md`, the topic. **Sentence:** the call and the one reason, no jargon.

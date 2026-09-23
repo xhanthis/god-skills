@@ -91,8 +91,10 @@ The text itself is the answer, so it comes first and stands alone; a short edit 
 - **Kept** your opener, the ₹ numbers, the ask at the end
 - **Voice** matches your last 5 posts: short lines, no emoji
 
-🧘 <god-ally's status line — always, printed verbatim from zen-report.js --line>
-🧘 <one more line only when god-ally has something specific>
+---
+
+> 🧘 <god-ally's status callout — always, pasted verbatim from zen-report.js --line>
+> 🧘 <one more quoted line only when god-ally has something specific>
 ```
 
 - The draft and the "what makes this AI" audit (steps 5–8) happen in your head, not in the reply. Show them only when the user asks "why" or "show the draft".

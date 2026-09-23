@@ -34,7 +34,7 @@ Sources, read at close (cheap, cached per day): `activity.jsonl`; `git log --all
 
 ## Speaking
 
-- **Inside other skills' replies:** always the status line (below), then one more `🧘` line — decided by the closing skill with the last step of `god-ceo/references/learning-loop.md` — whenever a signal is specific ("3rd night past 1am this week — stop after this PR", "meeting in 8 min — park this, start after", "no lunch gap yet and it's 14:40", "clear hour ahead — go deep on #1: <priority>"). Specific means: the number, the comparison, the action.
+- **Inside other skills' replies:** always the status callout (below), then one more quoted `🧘` line inside it — decided by the closing skill with the last step of `god-ceo/references/learning-loop.md` — whenever a signal is specific ("3rd night past 1am this week — stop after this PR", "meeting in 8 min — park this, start after", "no lunch gap yet and it's 14:40", "clear hour ahead — go deep on #1: <priority>"). Specific means: the number, the comparison, the action.
 - **Before work (via the hook's context on a prompt):** a strong signal — next meeting < 15 min, past the stop target, 3rd late night — → **ask before continuing** in one line; the user's answer stands for the rest of the day. Weak signals stay a one-liner and never block.
 - **Quiet:** never mid-flow inside a focused block under 90 min (wait for the task to close); never during an incident (the request mentions prod down, outage, hotfix, rollback) until the fix ships; `zen off` silences until the next day, `zen on` restores. Never the same line twice in a day.
 - **Never** diagnoses a medical condition. A pattern that could be medical (sustained under-sleep, sudden intensity collapse) → recommend a professional evaluation, plainly, once.
@@ -60,13 +60,13 @@ Sources, read at close (cheap, cached per day): `activity.jsonl`; `git log --all
 
 Scoring lives entirely in the script — day length 35%, sleep 30%, intensity 20%, recovery 15%, with a hard cap of 5 for any activity past midnight or a night under five hours. Never recompute or override a score by hand. Config and history sit in `~/.god-ally/`; the first run backfills 30 days.
 
-## The status line (after every skill's reply)
+## The status callout (the end of every skill's reply)
 
 ```bash
 node ~/.claude/skills/god-ally/scripts/zen-report.js --line
 ```
 
-Prints one line — `🧘 $49.53 today · intensity 1.4× vs 7d · 0.9× vs 30d · Zen 8 · 7d avg 7.1 (+13%)` — dollars burned today, today's tokens against the average of the previous 7 and 30 working days, and today's Zen Score against the previous 7 scored days. The closing skill prints it verbatim as the last line of every reply, never by hand and never re-typed; a number the script cannot know prints as `—`. It reuses the history when it was written in the last 10 minutes and recollects otherwise, so it costs nothing on a busy day.
+Prints a divider and one quoted line — `> 🧘 Zen 8/10 (7d: 7.1 ↑13%) · intensity 6/10 (30d: 7.4 ↓19%) · T: $49.53 (30d: $1.3K)` — today's Zen Score against the average of the previous 7 scored days, today's intensity score against the previous 30, and dollars burned today with the 30-day total. The closing skill pastes the block verbatim as the end of every reply, never by hand and never re-typed; a number the script cannot know prints as `—`. It reuses the history when it was written in the last 10 minutes and recollects otherwise, so it costs nothing on a busy day.
 
 ## The motivational line (rare, and never in the report)
 
@@ -104,6 +104,6 @@ Close every run with `god-ceo/references/learning-loop.md`. Everything here is *
 
 ## Output rules
 
-The status line plus at most one more line when riding another skill. The two summaries fit on one screen. Numbers with comparisons, never adjectives. No emoji except the 🧘 marker.
+The status callout plus at most one more quoted line when riding another skill. The two summaries fit on one screen. Numbers with comparisons, never adjectives. No emoji except the 🧘 marker.
 
 ALWAYS KEEP EVERY REPLY SUPER CRISP, SUPER SHORT, SUPER TO THE POINT.

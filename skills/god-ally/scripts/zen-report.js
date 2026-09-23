@@ -13,7 +13,7 @@
  * Usage:
  *   node zen-report.js [--mcp '<json>'] [--mcp-file <path>] [--date YYYY-MM-DD] [--json] [--rebuild]
  *   node zen-report.js --quote [--force]        brief for a fresh line, or nothing
- *   node zen-report.js --line                   the one-line status every skill prints after its reply
+ *   node zen-report.js --line                   the status callout every skill ends its reply with
  *   node zen-report.js --quote-said '<line>'    remember the line that was shown
  */
 
@@ -799,22 +799,23 @@ function rollingAverage(days, index, window) {
 }
 
 /**
- * Averages one field over the days before an index, skipping days off and blanks.
+ * Averages what a picker returns over the days before an index, skipping days off and blanks.
  * Args: days (dayRecord[] oldest first), index (number) — the day being compared,
- *       window (number) — how many prior days to look back, field (string)
- * Returns: number or null when no prior day in the window carries a usable value
- * Handles: a window reaching before the start of the history, zero token days (skipped,
- *          they are not working days), a score of exactly 0 (kept)
+ *       window (number) — how many prior days to look back,
+ *       pick (function) — day → number, or null to leave that day out
+ * Returns: number or null when no prior day in the window yields a value
+ * Handles: a window reaching before the start of the history, a picker returning null or NaN
  */
-function priorAverage(days, index, window, field) {
+function priorAverage(days, index, window, pick) {
   const values = [];
   for (let back = 1; back <= window; back += 1) {
     const day = days[index - back];
-    if (!day || day.day_off || day[field] == null) {
+    if (!day || day.day_off) {
       continue;
     }
-    if (field === "score" || day[field] > 0) {
-      values.push(day[field]);
+    const value = pick(day);
+    if (value != null && Number.isFinite(value)) {
+      values.push(value);
     }
   }
   if (!values.length) {
@@ -836,31 +837,74 @@ function formatScore(value) {
 }
 
 /**
- * The one-line status every skill prints after its reply: dollars burned today, today's
- * token intensity against the previous 7 and 30 working days, and today's Zen Score
- * against the previous 7 scored days. Every number comes from the same records the daily
- * report uses, so the line and the report never disagree.
- * Args: days (dayRecord[] oldest first, already scored)
+ * Formats a dollar amount: two decimals as spent today, or compact ($820, $1.3K, $12K, $2.5M)
+ * for a running total.
+ * Args: value (number|null), compact (boolean)
+ * Returns: string, "$—" when the amount cannot be known
+ */
+function formatMoney(value, compact = false) {
+  if (value == null || !Number.isFinite(value)) {
+    return "$—";
+  }
+  if (!compact) {
+    return `$${value.toFixed(2)}`;
+  }
+  if (value < 1000) {
+    return `$${Math.round(value)}`;
+  }
+  const [unit, suffix] = value >= 1e6 ? [1e6, "M"] : [1e3, "K"];
+  const scaled = value / unit;
+  return `$${scaled >= 10 ? Math.round(scaled) : scaled.toFixed(1)}${suffix}`;
+}
+
+/**
+ * Today against an average, as an arrow and a whole percentage: " ↑33%", " ↓50%", " ±0%".
+ * Args: value (number|null), average (number|null)
+ * Returns: string, empty when either side is missing or the average is zero
+ */
+function versus(value, average) {
+  if (value == null || average == null || !(average > 0)) {
+    return "";
+  }
+  const percent = Math.round(((value - average) / average) * 100);
+  const arrow = percent > 0 ? "↑" : percent < 0 ? "↓" : "±";
+  return ` ${arrow}${Math.abs(percent)}%`;
+}
+
+/**
+ * The status every skill ends its reply with, as one line: today's Zen Score against the
+ * previous 7 scored days, today's intensity score against the previous 30, and dollars burned
+ * today with the 30-day total. Every number comes from the same records as the daily report,
+ * so the line and the report never disagree.
+ * Args: days (dayRecord[] oldest first, already scored, the last one today)
  * Returns: string — one line starting with the 🧘 marker; a number that cannot be known
  *          prints as — rather than a guess
- * Handles: no cost source (ccusage off or unavailable), a day off or unscored today, a
- *          history too short for a baseline, a 7-day average of zero
+ * Handles: a day off or unscored today, no cost source (ccusage off or unavailable), a
+ *          history too short for an average, an average of zero
  */
 function statusLine(days) {
   const index = days.length - 1;
   const today = days[index];
-  const cost = today.cost > 0 ? `$${today.cost.toFixed(2)}` : "$—";
-  const ratio = (window) => {
-    const average = priorAverage(days, index, window, "tokens");
-    return average && today.tokens > 0 ? `${(today.tokens / average).toFixed(1)}×` : "—";
-  };
-  const week = priorAverage(days, index, 7, "score");
-  let weekText = week == null ? "7d avg —" : `7d avg ${week.toFixed(1)}`;
-  if (week != null && week > 0 && today.score != null) {
-    const change = Math.round(((today.score - week) / week) * 100);
-    weekText += ` (${change >= 0 ? "+" : ""}${change}%)`;
-  }
-  return `🧘 ${cost} today · intensity ${ratio(7)} vs 7d · ${ratio(30)} vs 30d · Zen ${formatScore(today.score)} · ${weekText}`;
+  const intensity = today.components ? today.components.intensity : null;
+  const week = priorAverage(days, index, 7, (day) => day.score);
+  const month = priorAverage(days, index, 30, (day) => (day.components ? day.components.intensity : null));
+  const priced = days.filter((day) => day.cost != null && Number.isFinite(day.cost));
+  const total = priced.length ? priced.reduce((sum, day) => sum + day.cost, 0) : null;
+  const average = (value) => (value == null ? "—" : value.toFixed(1));
+  return [
+    `🧘 Zen ${formatScore(today.score)}/10 (7d: ${average(week)}${versus(today.score, week)})`,
+    `intensity ${formatScore(intensity)}/10 (30d: ${average(month)}${versus(intensity, month)})`,
+    `T: ${formatMoney(today.cost)} (30d: ${formatMoney(total, true)})`,
+  ].join(" · ");
+}
+
+/**
+ * The status line as the callout a reply ends with: a divider, a blank line, the line quoted.
+ * Args: days (dayRecord[] oldest first, already scored)
+ * Returns: string — three lines, ready to paste into Markdown
+ */
+function statusCallout(days) {
+  return `---\n\n> ${statusLine(days)}`;
 }
 
 /**
@@ -1315,7 +1359,7 @@ function main(argv) {
   }
   if (args.line && historyFresh(history, today)) {
     const known = scoreDays(keys.map((key) => history.get(key) || blankDay(key)), config);
-    process.stdout.write(`${statusLine(known)}\n`);
+    process.stdout.write(`${statusCallout(known)}\n`);
     return;
   }
   const firstRun = args.rebuild || !keys.slice(0, -1).every((key) => history.has(key));
@@ -1352,7 +1396,7 @@ function main(argv) {
   }
 
   if (args.line) {
-    process.stdout.write(`${statusLine(days)}\n`);
+    process.stdout.write(`${statusCallout(days)}\n`);
     return;
   }
   if (args.json) {
@@ -1387,8 +1431,10 @@ module.exports = {
   recordQuote,
   quoteWarranted,
   statusLine,
+  statusCallout,
   priorAverage,
   formatScore,
+  formatMoney,
   historyFresh,
   blankDay,
   DEFAULT_CONFIG,

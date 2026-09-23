@@ -248,7 +248,7 @@ for S in god-ceo god-cfo god-cmo god-qa god-dev god-pm; do
 done
 assert_contains "$ZEN" "inside a fenced code block" "god-ally keeps its fenced report"
 for S in god-ceo god-cfo god-cmo god-qa god-dev god-pm; do
-  assert_contains "$(cat skills/$S/SKILL.md)" "🧘 <god-ally's status line — always" "$S's reply ends with god-ally's status line"
+  assert_contains "$(cat skills/$S/SKILL.md)" "> 🧘 <god-ally's status callout — always" "$S's reply ends with god-ally's status callout"
   assert_contains "$(cat skills/$S/SKILL.md)" "Every lesson stays on this machine" "$S keeps its lessons local"
 done
 

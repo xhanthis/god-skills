@@ -118,14 +118,16 @@ A build report in native Markdown — headings, bold labels, bullets, plain link
 - merge #<n> then #<n+1>
 - <anything left, one per bullet>
 
-🧘 <god-ally's status line — always, printed verbatim from zen-report.js --line>
-🧘 <one more line only when god-ally has something specific>
+---
+
+> 🧘 <god-ally's status callout — always, pasted verbatim from zen-report.js --line>
+> 🧘 <one more quoted line only when god-ally has something specific>
 ```
 
-- **Order is fixed:** the `#` title, the `###` sentence, then every link (PRs first, as plain URLs so they are clickable anywhere), then one `---`, then the details. A blank line between every block and between every link. No tables, no second `---`.
+- **Order is fixed:** the `#` title, the `###` sentence, then every link (PRs first, as plain URLs so they are clickable anywhere), then one `---`, then the details. A blank line between every block and between every link. No tables; the only rules are the one above the details and the one god-ally's callout brings.
 - The `QA` line carries god-qa's `Result: PASS | FAIL | UNVERIFIED` verbatim — the hook gates read it. On FAIL the title is `# ❌ …`, `QA` reads `Result: FAIL`, and `**Needs you**` moves up under the sentence, listing every open 4 and 5 before any link.
 - Deep adds `**Money** — <what god-cfo checked>` after `QA`. Week = Monday–Sunday from `scorecard.jsonl`, arrow vs the previous week. Nothing left for the user → `**Needs you** — nothing, ready to merge`.
-- Anything beyond the template — a deviation from the spec, something the user should know — goes in its own short paragraph after `Needs you`, one idea per paragraph, before the 🧘 lines.
+- Anything beyond the template — a deviation from the spec, something the user should know — goes in its own short paragraph after `Needs you`, one idea per paragraph, before god-ally's callout.
 
 ## Route
 

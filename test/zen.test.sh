@@ -42,10 +42,13 @@ assert_not_contains "$(cat "$HOME_DIR/.god-ally/history.jsonl")" "message" "hist
 JSON_OUT=$(HOME="$HOME_DIR" node "$SCRIPTS/zen-report.js" --json 2>&1)
 assert_contains "$JSON_OUT" '"sources"' "--json returns the same run as data"
 LINE=$(HOME="$HOME_DIR" node "$SCRIPTS/zen-report.js" --line 2>&1)
-assert_eq "$(printf '%s' "$LINE" | grep -c .)" "1" "--line prints exactly one line"
-assert_contains "$LINE" "🧘 " "the status line carries the god-ally marker"
-assert_contains "$LINE" "today · intensity" "the status line names today's spend and intensity"
-assert_contains "$LINE" "Zen " "the status line carries the Zen Score"
+assert_eq "$(printf '%s\n' "$LINE" | grep -c '^---$')" "1" "--line opens with one divider"
+assert_eq "$(printf '%s' "$LINE" | grep -c '🧘')" "1" "--line carries exactly one status line"
+assert_contains "$LINE" "> 🧘 Zen " "the status line is quoted as a callout and leads with the Zen Score"
+assert_contains "$LINE" "/10 (7d: " "the Zen Score is shown against the 7-day average"
+assert_contains "$LINE" "intensity " "the status line carries the intensity score"
+assert_contains "$LINE" "(30d: " "intensity and spend are shown against 30 days"
+assert_contains "$LINE" "T: \$" "the status line ends with today's spend"
 rm -rf "$HOME_DIR"
 
 # --- what the skill promises -----------------------------------------------

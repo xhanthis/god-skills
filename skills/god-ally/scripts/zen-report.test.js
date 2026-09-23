@@ -541,37 +541,54 @@ test("the report runs end to end with every source missing", () => {
   fs.rmSync(home, { recursive: true, force: true });
 });
 
-test("the status line carries dollars, intensity and the score against the week", () => {
-  // Arrange: seven prior working days at 50 tokens and a score of 6, today at 100 tokens scoring 8
+test("the status line reads Zen, intensity and spend, each against its average", () => {
+  // Arrange: seven prior working days scoring 6 with intensity 8 and $5 each, today scoring 8
+  // with intensity 4 and $49.53, plus one day off that must not count
   const days = [];
   for (let back = 8; back >= 1; back -= 1) {
-    days.push({ date: `2026-09-${String(22 - back).padStart(2, "0")}`, day_off: back === 8, tokens: 50, cost: 5, score: 6 });
+    const off = back === 8;
+    days.push({ date: `2026-09-${String(22 - back).padStart(2, "0")}`, day_off: off, tokens: 50, cost: off ? null : 5, score: off ? null : 6, components: off ? {} : { intensity: 8 } });
   }
-  days.push({ date: "2026-09-22", day_off: false, tokens: 100, cost: 49.529, score: 8 });
+  days.push({ date: "2026-09-22", day_off: false, tokens: 100, cost: 49.529, score: 8, components: { intensity: 4 } });
 
   // Act
   const line = report.statusLine(days);
 
   // Assert
-  assert.equal(line, "🧘 $49.53 today · intensity 2.0× vs 7d · 2.0× vs 30d · Zen 8 · 7d avg 6.0 (+33%)");
+  assert.equal(line, "🧘 Zen 8/10 (7d: 6.0 ↑33%) · intensity 4/10 (30d: 8.0 ↓50%) · T: $49.53 (30d: $85)");
+  assert.equal(report.statusCallout(days), `---\n\n> ${line}`);
 });
 
 test("the status line prints — for every number it cannot know", () => {
-  // Arrange: a first day with no history, no cost source and no score
-  const alone = [{ date: "2026-09-22", day_off: false, tokens: 0, cost: null, score: null }];
+  // Arrange: a first day with no history, no cost source and no score; then a day off after one scored day
+  const alone = [{ date: "2026-09-22", day_off: false, tokens: 0, cost: null, score: null, components: { intensity: null } }];
   const off = [
-    { date: "2026-09-21", day_off: false, tokens: 40, cost: 4, score: 7 },
-    { date: "2026-09-22", day_off: true, tokens: 0, cost: null, score: null },
+    { date: "2026-09-21", day_off: false, tokens: 40, cost: 4, score: 7, components: { intensity: 9 } },
+    { date: "2026-09-22", day_off: true, tokens: 0, cost: null, score: null, components: {} },
+  ];
+  const level = [
+    { date: "2026-09-21", day_off: false, tokens: 40, cost: 4, score: 6, components: { intensity: 6 } },
+    { date: "2026-09-22", day_off: false, tokens: 40, cost: 4, score: 6, components: { intensity: 6 } },
   ];
 
   // Act / Assert
-  assert.equal(report.statusLine(alone), "🧘 $— today · intensity — vs 7d · — vs 30d · Zen — · 7d avg —");
-  assert.equal(report.statusLine(off), "🧘 $— today · intensity — vs 7d · — vs 30d · Zen — · 7d avg 7.0");
+  assert.equal(report.statusLine(alone), "🧘 Zen —/10 (7d: —) · intensity —/10 (30d: —) · T: $— (30d: $—)");
+  assert.equal(report.statusLine(off), "🧘 Zen —/10 (7d: 7.0) · intensity —/10 (30d: 9.0) · T: $— (30d: $4)");
+  assert.equal(report.statusLine(level), "🧘 Zen 6/10 (7d: 6.0 ±0%) · intensity 6/10 (30d: 6.0 ±0%) · T: $4.00 (30d: $8)");
   assert.equal(report.formatScore(3.25), "3.3");
   assert.equal(report.formatScore(10), "10");
 });
 
-test("the prior average skips days off and zero-token days but keeps a zero score", () => {
+test("money is exact for today and compact for a running total", () => {
+  assert.equal(report.formatMoney(54.5), "$54.50");
+  assert.equal(report.formatMoney(null), "$—");
+  assert.equal(report.formatMoney(820.4, true), "$820");
+  assert.equal(report.formatMoney(1300, true), "$1.3K");
+  assert.equal(report.formatMoney(12400, true), "$12K");
+  assert.equal(report.formatMoney(2500000, true), "$2.5M");
+});
+
+test("the prior average skips days off and whatever the picker leaves out, but keeps a zero score", () => {
   // Arrange
   const days = [
     { date: "d1", day_off: false, tokens: 0, score: 0 },
@@ -579,14 +596,15 @@ test("the prior average skips days off and zero-token days but keeps a zero scor
     { date: "d3", day_off: false, tokens: 30, score: 4 },
     { date: "d4", day_off: false, tokens: 10, score: 2 },
   ];
+  const tokens = (day) => (day.tokens > 0 ? day.tokens : null);
 
   // Act / Assert
-  assert.equal(report.priorAverage(days, 3, 7, "tokens"), 30);
-  assert.equal(report.priorAverage(days, 3, 7, "score"), 2);
-  assert.equal(report.priorAverage(days, 0, 7, "tokens"), null);
+  assert.equal(report.priorAverage(days, 3, 7, tokens), 30);
+  assert.equal(report.priorAverage(days, 3, 7, (day) => day.score), 2);
+  assert.equal(report.priorAverage(days, 0, 7, tokens), null);
 });
 
-test("--line prints one status line even with every source missing", () => {
+test("--line prints the callout even with every source missing", () => {
   // Arrange: an empty HOME, so nothing can be collected
   const home = fs.mkdtempSync(path.join(os.tmpdir(), "zen-line-"));
   fs.mkdirSync(path.join(home, ".god-ally"));
@@ -607,10 +625,8 @@ test("--line prints one status line even with every source missing", () => {
   const cached = run();
 
   // Assert
-  assert.equal(first.split("\n").filter(Boolean).length, 1, first);
-  assert.match(first, /^🧘 \$— today · intensity .* vs 7d · .* vs 30d · Zen .* · 7d avg/);
-  assert.equal(cached, first, "a second call inside the cache window prints the same line from history");
+  assert.equal(first, "---\n\n> 🧘 Zen —/10 (7d: —) · intensity —/10 (30d: —) · T: $— (30d: $—)\n", first);
+  assert.equal(cached, first, "a second call inside the cache window prints the same callout from history");
   assert.equal(report.historyFresh(history, "1999-01-01"), false, "a day the history has never seen is not fresh");
   fs.rmSync(home, { recursive: true, force: true });
 });
-
