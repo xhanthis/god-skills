@@ -43,6 +43,7 @@ const MAX_LOG_BYTES = 256 * 1024 * 1024;
 const CHART_MAX = 10;
 const CHART_DAYS = 7;
 const LINE_CACHE_MS = 10 * 60000;
+const CLOCK_SKEW_MS = 5 * 60000;
 const CHART_CELL = 7;
 const CHART_BAR = 5;
 const CHART_GUIDES = [5, 8];
@@ -519,9 +520,12 @@ function maxParallelSessions(events) {
  * Returns: {"YYYY-MM-DD": dayRecord}
  * Handles: days with no activity anywhere (marked day_off), sources that returned nothing,
  *          tokens falling back from ccusage to the raw session logs
+ *          a timestamp ahead of the clock (ignored, whichever source it came from, so a
+ *          lying source cannot stretch the day or fake a late night)
  */
-function buildDays(sources, config, keys) {
+function buildDays(sources, config, keys, now = Date.now()) {
   const days = {};
+  const horizon = now + CLOCK_SKEW_MS;
   for (const key of keys) {
     days[key] = {
       date: key,
@@ -544,7 +548,7 @@ function buildDays(sources, config, keys) {
   }
   const touch = (key, ts) => {
     const day = days[key];
-    if (!day) {
+    if (!day || !(ts <= horizon)) {
       return null;
     }
     day.day_off = false;
