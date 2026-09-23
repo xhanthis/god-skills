@@ -272,6 +272,36 @@ test("commits, sessions and meetings fold into one day record", () => {
   assert.equal(day.last_ts, ist("2026-09-23", "00:29"));
 });
 
+test("a timestamp ahead of the clock never counts, whichever source it came from", () => {
+  // Arrange: the clock says 12:00, one real session at 09:00, then a session log and a commit stamped this evening
+  const now = ist("2026-09-22", "12:00");
+  const sources = {
+    commits: [{ ts: ist("2026-09-22", "22:30"), repo: "api" }],
+    ccusage: { days: {}, ok: false },
+    claude: {
+      events: [
+        { ts: ist("2026-09-22", "09:00"), session: "s1", cwd: "api" },
+        { ts: ist("2026-09-22", "21:00"), session: "s2", cwd: "api" },
+      ],
+      tokenStamps: [],
+      ok: true,
+    },
+    sleep: {},
+    hookActivity: [],
+    mcp: { timestamps: [], meetings: [], sources: [] },
+  };
+
+  // Act
+  const day = report.buildDays(sources, CONFIG, ["2026-09-22"], now)["2026-09-22"];
+  const onlyFuture = report.buildDays({ ...sources, claude: { events: [], tokenStamps: [], ok: false } }, CONFIG, ["2026-09-22"], now)["2026-09-22"];
+
+  // Assert
+  assert.equal(day.first_ts, ist("2026-09-22", "09:00"));
+  assert.equal(day.last_ts, ist("2026-09-22", "09:00"), "the evening stamps did not stretch the day");
+  assert.equal(day.commits, 0);
+  assert.equal(onlyFuture.day_off, true, "a day whose only activity is ahead of the clock is a day off");
+});
+
 test("a 00:29 finish caps the scored day at 5", () => {
   // Arrange: a short, light day that happens to end after midnight
   const days = [
@@ -538,5 +568,95 @@ test("the report runs end to end with every source missing", () => {
   assert.match(output, /^  missing {4}/m);
   assert.match(output, /ccusage/);
   assert.ok(fs.existsSync(path.join(home, ".god-ally", "history.jsonl")), "history is written on the first run");
+  fs.rmSync(home, { recursive: true, force: true });
+});
+
+test("the status line reads Zen, intensity and spend, each against its average", () => {
+  // Arrange: seven prior working days scoring 6 with intensity 8 and $5 each, today scoring 8
+  // with intensity 4 and $49.53, plus one day off that must not count
+  const days = [];
+  for (let back = 8; back >= 1; back -= 1) {
+    const off = back === 8;
+    days.push({ date: `2026-09-${String(22 - back).padStart(2, "0")}`, day_off: off, tokens: 50, cost: off ? null : 5, score: off ? null : 6, components: off ? {} : { intensity: 8 } });
+  }
+  days.push({ date: "2026-09-22", day_off: false, tokens: 100, cost: 49.529, score: 8, components: { intensity: 4 } });
+
+  // Act
+  const line = report.statusLine(days);
+
+  // Assert
+  assert.equal(line, "🧘 Zen 8/10 (7d: 6.0 ↑33%) · intensity 4/10 (30d: 8.0 ↓50%) · T: $49.53 (30d: $85)");
+  assert.equal(report.statusCallout(days), `---\n\n> ${line}`);
+});
+
+test("the status line prints — for every number it cannot know", () => {
+  // Arrange: a first day with no history, no cost source and no score; then a day off after one scored day
+  const alone = [{ date: "2026-09-22", day_off: false, tokens: 0, cost: null, score: null, components: { intensity: null } }];
+  const off = [
+    { date: "2026-09-21", day_off: false, tokens: 40, cost: 4, score: 7, components: { intensity: 9 } },
+    { date: "2026-09-22", day_off: true, tokens: 0, cost: null, score: null, components: {} },
+  ];
+  const level = [
+    { date: "2026-09-21", day_off: false, tokens: 40, cost: 4, score: 6, components: { intensity: 6 } },
+    { date: "2026-09-22", day_off: false, tokens: 40, cost: 4, score: 6, components: { intensity: 6 } },
+  ];
+
+  // Act / Assert
+  assert.equal(report.statusLine(alone), "🧘 Zen —/10 (7d: —) · intensity —/10 (30d: —) · T: $— (30d: $—)");
+  assert.equal(report.statusLine(off), "🧘 Zen —/10 (7d: 7.0) · intensity —/10 (30d: 9.0) · T: $— (30d: $4)");
+  assert.equal(report.statusLine(level), "🧘 Zen 6/10 (7d: 6.0 ±0%) · intensity 6/10 (30d: 6.0 ±0%) · T: $4.00 (30d: $8)");
+  assert.equal(report.formatScore(3.25), "3.3");
+  assert.equal(report.formatScore(10), "10");
+});
+
+test("money is exact for today and compact for a running total", () => {
+  assert.equal(report.formatMoney(54.5), "$54.50");
+  assert.equal(report.formatMoney(null), "$—");
+  assert.equal(report.formatMoney(820.4, true), "$820");
+  assert.equal(report.formatMoney(1300, true), "$1.3K");
+  assert.equal(report.formatMoney(12400, true), "$12K");
+  assert.equal(report.formatMoney(2500000, true), "$2.5M");
+});
+
+test("the prior average skips days off and whatever the picker leaves out, but keeps a zero score", () => {
+  // Arrange
+  const days = [
+    { date: "d1", day_off: false, tokens: 0, score: 0 },
+    { date: "d2", day_off: true, tokens: 900, score: null },
+    { date: "d3", day_off: false, tokens: 30, score: 4 },
+    { date: "d4", day_off: false, tokens: 10, score: 2 },
+  ];
+  const tokens = (day) => (day.tokens > 0 ? day.tokens : null);
+
+  // Act / Assert
+  assert.equal(report.priorAverage(days, 3, 7, tokens), 30);
+  assert.equal(report.priorAverage(days, 3, 7, (day) => day.score), 2);
+  assert.equal(report.priorAverage(days, 0, 7, tokens), null);
+});
+
+test("--line prints the callout even with every source missing", () => {
+  // Arrange: an empty HOME, so nothing can be collected
+  const home = fs.mkdtempSync(path.join(os.tmpdir(), "zen-line-"));
+  fs.mkdirSync(path.join(home, ".god-ally"));
+  fs.writeFileSync(
+    path.join(home, ".god-ally", "config.json"),
+    JSON.stringify({ ...report.DEFAULT_CONFIG, repoRoots: [path.join(home, "empty")], authorEmails: ["nobody@example.invalid"], useCcusage: false })
+  );
+  const run = () =>
+    execFileSync(process.execPath, [path.join(__dirname, "zen-report.js"), "--line"], {
+      encoding: "utf8",
+      env: { ...process.env, HOME: home },
+      timeout: 60000,
+    });
+
+  // Act
+  const first = run();
+  const history = new Map([[report.dayKey(Date.now(), report.DEFAULT_CONFIG), {}]]);
+  const cached = run();
+
+  // Assert
+  assert.equal(first, "---\n\n> 🧘 Zen —/10 (7d: —) · intensity —/10 (30d: —) · T: $— (30d: $—)\n", first);
+  assert.equal(cached, first, "a second call inside the cache window prints the same callout from history");
+  assert.equal(report.historyFresh(history, "1999-01-01"), false, "a day the history has never seen is not fresh");
   fs.rmSync(home, { recursive: true, force: true });
 });

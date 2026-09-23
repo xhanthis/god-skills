@@ -4,6 +4,12 @@ Every god skill learns the same way. This file is the only copy of the rules; a 
 `## Learn` section points here. Read it at the **close** of a run, not at the start —
 the start only reads the lesson files.
 
+## Where things live (fundamental)
+
+- **Learnings stay on this machine.** Every lesson, candidate, scorecard and decision record is a local file under `~/.claude/god/<skill>/` (or the repo's own `docs/decisions/` when it keeps one). None is ever written to a Claude Doc, an artifact, Linear, Slack or any other service.
+- **Only three documents are ever published as private artifacts**, by the skills that own them: god-dev's flowchart + change log, god-qa's test cases, god-qa's manual test guide. No other skill creates a doc unless the user asks for one by name.
+- **A lesson that would help every user of these skills leaves the machine exactly one way:** as the upstream pull request Step 4 opens automatically, carrying the general rule and nothing else. Repo-specific and personal lessons never leave.
+
 ## Memory (`~/.claude/god/<skill>/`)
 
 | File | Holds |
@@ -101,3 +107,11 @@ Worked examples:
 
 Append one line per run. The weekly first-time-PASS rate is the one number to watch; a skill whose
 rate falls two weeks running gets its lessons re-read for a rule that is not working.
+
+## Step 6 — god-ally's line (last, right before the final message)
+
+Every skill's final message ends with god-ally's status callout, always, and with at most one more quoted `🧘` line inside it when god-ally has something specific. The closing skill decides both here, once per run:
+
+1. Run `node ~/.claude/skills/god-ally/scripts/zen-report.js --line` (`./.claude/skills/…` on a project install; skip silently if the script is missing) and paste what it returns verbatim as the end of the message: a divider and one quoted line — Zen Score vs the week, intensity vs the month, spend today and over 30 days. Never type or adjust those numbers by hand.
+2. Then `--json` and `~/.claude/god/god-ally/next.json` against god-ally's Signals: activity past midnight, hours well past the usual stop, a 3rd late night this week, a meeting within 15 minutes, no lunch gap after the usual window, tokens over 2× the baseline, days since a day off. A specific signal — the number, the comparison, the action — becomes one more quoted line inside the same callout (`> 🧘 3rd night past 1am this week — stop after this PR`). Nothing specific → `--quote`; it speaks rarely and only on a hard day; write the fresh line it briefs and record it with `--quote-said`. Nothing from either → the status callout stands alone.
+3. Never the same extra line twice in a day (`nudges.jsonl`), never during an incident, silent after `zen off`.

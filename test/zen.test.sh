@@ -41,6 +41,14 @@ NUMBERS_ONLY=$(grep -c '"date"' "$HOME_DIR/.god-ally/history.jsonl" 2>/dev/null 
 assert_not_contains "$(cat "$HOME_DIR/.god-ally/history.jsonl")" "message" "history holds numbers, never content"
 JSON_OUT=$(HOME="$HOME_DIR" node "$SCRIPTS/zen-report.js" --json 2>&1)
 assert_contains "$JSON_OUT" '"sources"' "--json returns the same run as data"
+LINE=$(HOME="$HOME_DIR" node "$SCRIPTS/zen-report.js" --line 2>&1)
+assert_eq "$(printf '%s\n' "$LINE" | grep -c '^---$')" "1" "--line opens with one divider"
+assert_eq "$(printf '%s' "$LINE" | grep -c '🧘')" "1" "--line carries exactly one status line"
+assert_contains "$LINE" "> 🧘 Zen " "the status line is quoted as a callout and leads with the Zen Score"
+assert_contains "$LINE" "/10 (7d: " "the Zen Score is shown against the 7-day average"
+assert_contains "$LINE" "intensity " "the status line carries the intensity score"
+assert_contains "$LINE" "(30d: " "intensity and spend are shown against 30 days"
+assert_contains "$LINE" "T: \$" "the status line ends with today's spend"
 rm -rf "$HOME_DIR"
 
 # --- what the skill promises -----------------------------------------------
@@ -51,6 +59,8 @@ assert_contains "$ZEN" '"meetings"' "the skill documents the MCP payload"
 assert_contains "$ZEN" "never message or event content" "MCP gathering is timestamps only"
 assert_contains "$ZEN" "fenced code block" "the report is printed as a code block so it stays aligned"
 assert_contains "$ZEN" "zen-report.js --quote" "the skill can fetch just the motivational line"
+assert_contains "$ZEN" "zen-report.js --line" "the skill documents the status line every skill prints"
+assert_contains "$ZEN" "never by hand" "the status line is computed by the script, never typed"
 assert_contains "$ZEN" "never carries a quote" "/god-ally itself stays free of quotes"
 assert_contains "$ZEN" "Never write a line the script did not ask for" "a quote only when the script asks for one"
 assert_contains "$ZEN" "There is no quote bank" "lines are written fresh for the moment"
