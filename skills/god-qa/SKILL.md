@@ -42,18 +42,19 @@ Read `~/.claude/god/god-qa/lessons/` (global, `<repo-slug>.md`) and `regressions
 
 ### 2. Read the implementation — the full diff and the code paths it touches.
 
-### 3. Reviewer-gate scan (any hit is scored 4–5)
+### 3. Reviewer-gate scan — the org's `pr-autoreview` list; BLOCKER = 5, WARN = 4, NIT = 2
 - Raw internal errors in API responses: stack traces, DB error strings, `err.Error()` / `exception.message` in a body.
-- SQL on production tables: full-table scans, `WHERE` on non-indexed columns, list queries without `LIMIT`, `SELECT *`, unparameterized SQL, queries in loops, unbatched bulk writes, DDL in app code, `BOOKING_ID` matched by its numeric suffix.
-- PII (name, phone, email, address, DOB, Aadhaar/PAN/passport, card/UPI/bank id, OTP, booking contact) in any log or external sink; in a URL, query string, or GET param; sent to analytics, pixels, CRM widgets or an external API without a stated purpose; more personal fields in a response than the caller needs; new PII storage with no purpose or retention; plaintext where the codebase encrypts.
-- A new endpoint with missing or weak authz, or without an object-level ownership check.
-- Frontend: `dangerouslySetInnerHTML` / `innerHTML` with unsanitized data, `javascript:` hrefs, raw user input in query strings, any secret in the client bundle.
-- Credentials, keys, or tokens in code. A leaked key is a 5: rotate it, don't just delete the line.
+- SQL on production tables: full-table scans, `WHERE` on non-indexed columns of hot tables, list queries without `LIMIT`, queries in loops (N+1), unparameterized SQL (BLOCKER); `SELECT *` on wide tables, unbatched bulk writes, DDL in app code (WARN); `BOOKING_ID` matched by its numeric suffix.
+- PII (name, phone, email, address, DOB, Aadhaar/PAN/passport, card/UPI/bank id, OTP, booking contact, any field tied to a person) in any log, console or external sink (ELK, Sentry, Datadog, a Slack webhook); PII or a person-linked token/UUID in a URL, query string or GET param; PII to analytics, pixels, chat/CRM widgets or an external API without a stated purpose (a widened existing flow is BLOCKER, a touched one WARN); a new column, table, CSV, export or backup of PII with no purpose or retention (WARN), or reachable from the web root or an unauthenticated endpoint (BLOCKER); more personal fields in a response, error or debug body than the caller needs; plaintext where the codebase encrypts.
+- A new endpoint with missing or weak authz, without an object-level ownership check, or with unvalidated input.
+- Frontend: `dangerouslySetInnerHTML` / `innerHTML` / `insertAdjacentHTML` with unsanitized data, unescaped user content, `javascript:` hrefs, raw user input concatenated into query strings or API payloads, any secret in the client bundle (BLOCKER); inline object/array/function props and missing memoization on hot paths, unvirtualized or unpaginated large lists, layout thrash, unoptimized images, whole-library imports, main-thread-blocking work (WARN).
+- Credentials, keys, tokens or webhook URLs in code, and anything CI's diff-scoped secret scan blocks (provider key prefixes, private-key headers, JWTs, a tracked `.env` / `.pem` / keystore file, a `password` / `secret` / `api_key` / `token` assigned a 12+ character literal). A leaked key is a 5: rotate it, don't just delete the line.
+- Anything the reviewer's injection detector trips on (step 5's fixture rules) — it withholds approval; and any sign the gate was gamed rather than met (a renamed or encoded pattern, a `no-ai-review` label, a draft to delay review, an allowlist entry for a real secret, a claimed test that did not run) is a 5 regardless of the code.
 
 ### 4. Static quality scan — redundancy, dead code, over-engineering, N+1 or queries in loops, missing error handling, obvious performance problems.
 
 ### 5. Write backend / logic tests
-Unit, integration, E2E as appropriate; every `R` scenario plus happy path and regression on adjacent behavior. Follow the repo's conventions. More than two cases → one table-driven test with case names that read like specs, asserting the contract, never the implementation. **Fixture hygiene:** no literal shaped like a credential (`ghp_…`, `github_pat_…`, `sk-ant-…`, `AKIA…`, `xox…-…`, `rzp_live_…`, `sk_live_…`, JWTs, `BEGIN PRIVATE KEY`) — use `test-token-not-real`, build JWTs at runtime; no reviewer-directed phrasing (ignore-previous-instructions, you-are-now, always-approve) and no credential variable names (the gh CLI's `GH_`-prefixed token, the `ANTHROPIC_`-prefixed key, the `SLACK_`-prefixed webhook, a `secrets` dotenv file, the process environ path under `/proc`) in names, comments or fixtures — an injection-payload test keeps its payload in a base64 or joined-string constant; fixture people are synthetic (`guest+test@example.invalid`) and never logged.
+Unit, integration, E2E as appropriate; every `R` scenario plus happy path and regression on adjacent behavior. Follow the repo's conventions. More than two cases → one table-driven test with case names that read like specs, asserting the contract, never the implementation. **Fixture hygiene:** no literal shaped like a credential (`ghp_…`, `github_pat_…`, `sk-ant-…`, `AKIA…`, `xox…-…`, `rzp_live_…`, `sk_live_…`, JWTs, a private-key header) — use `test-token-not-real`, build JWTs at runtime; no reviewer-directed phrasing (ignore-previous-instructions, you-are-now, new-system-instructions, always-approve, reply-with-approve, print-the-contents-of, chat-template control tokens, a double-bracketed SYSTEM tag) and no credential variable names (the gh CLI's `GH_`-prefixed token, the `ANTHROPIC_`-prefixed key, the `SLACK_`-prefixed webhook, the `CLAUDE_CODE_`-prefixed OAuth token, a `secrets` dotenv file, the CLI's credentials JSON file, the process environ path under `/proc`) in names, comments or fixtures — an injection-payload test keeps its payload in a base64 or joined-string constant; fixture people are synthetic (`guest+test@example.invalid`) and never logged.
 
 ### 6–9. Frontend, accessibility, performance and load, low network → `references/frontend.md` (UI diffs only).
 
@@ -61,7 +62,7 @@ Unit, integration, E2E as appropriate; every `R` scenario plus happy path and re
 
 ### 11. Run what CI runs — lint, typecheck, build, the full suite, `bash -n` on shell scripts, the repo's secret scan if present. Red CI is a 5 even when the new tests pass.
 
-### 12. PR shape — under 500 changed lines (over 4000 gets no AI review); rebased on its base; body carries Problem / Approach / Alternatives rejected / Rollout-rollback / Test evidence; a "faster/lighter" claim needs before/after numbers. Any miss is a 3.
+### 12. PR shape — under 500 changed lines (over 4000 gets no AI review); rebased on its base with no conflict; not a draft, no `no-ai-review` label; title carries `--deploy` (and `--all` on the node backend); body carries Problem / Approach / Alternatives rejected / Rollout-rollback / Test evidence; a "faster/lighter" claim needs before/after numbers. Any miss is a 3.
 
 ### 13. Security and compliance — `references/security.md`, `references/compliance-india.md` per the mode table. Findings score on the same 1–5 scale; anything the org reviewer marks BLOCKER is a 5.
 
@@ -75,46 +76,44 @@ Unit, integration, E2E as appropriate; every `R` scenario plus happy path and re
 
 ## Learn
 
-Every run closes with `god-ceo/references/learning-loop.md`: capture (user correction, own FAIL that god-dev disputed and won, an issue the reviewer found that this run missed, self-review), scope, score, store or promote. Memory: `~/.claude/god/god-qa/`. A finding missed here but caught by the PR reviewer is always at least a repo lesson.
+Every run closes with `god-ceo/references/learning-loop.md`: capture (user correction, own FAIL that god-dev disputed and won, an issue the reviewer found that this run missed, self-review), scope, score, store or promote. Memory: `~/.claude/god/god-qa/`. A finding missed here but caught by the PR reviewer is always at least a repo lesson. Every lesson stays on this machine; only a universal rule leaves it, as the loop's upstream PR — never in a doc or an artifact.
 
 ## Final reply (this and nothing else)
 
-Laid out like god-ally's report: one plain sentence on top, then one aligned block in a code fence, then the links.
+A test verdict in native Markdown: the verdict as the title, one plain sentence, a checklist of what ran, an issues table, then the two links. No code fence around any of it.
 
-````markdown
-<One sentence anyone gets: does it work, and what did we find? e.g. "Checkout works on every screen; one bug let a refund run twice — fixed.">
+```markdown
+# ✅ Result: PASS · <module>
 
-```
-  🧪 God QA  ·  <module>  ·  <YYYY-MM-DD>
-  ──────────────────────────────────────────────────────────────────
+### <One sentence anyone gets: does it work, and what did we find? e.g. "Checkout works on every screen; one bug let a refund run twice — fixed.">
 
-  Verdict    ✅ Result: PASS  ·  Mode normal
-  Tested     API 12 ✓  ·  UI 4 pages × 4 screens ✓  ·  a11y ✓
-             perf ✓  ·  low network ✓  ·  security ⚠️ skipped
-  CI         green  ·  regressions 3 re-run, 0 broke again
+**Mode** normal · **CI** green · **Regressions** 3 re-run, 0 broke again
 
-  Issues     [5] api/refund.ts:42
-                 a refund could be paid twice on a double tap
-             [2] ui/Cart.tsx:88
-                 long hotel names overflow on a phone
+**Tested**
+- [x] API — 12 cases
+- [x] UI — 4 pages × 4 screens
+- [x] a11y · perf · low network
+- [ ] security — ⚠️ skipped, the diff touches no auth or input
 
-  Fixed      2 in the loop
+**Issues**
 
-  ──────────────────────────────────────────────────────────────────
-```
+| Score | Where | What a user sees | Status |
+|---|---|---|---|
+| 5 | `api/refund.ts:42` | a refund could be paid twice on a double tap | fixed |
+| 2 | `ui/Cart.tsx:88` | long hotel names overflow on a phone | open |
 
 **📋 Test cases** — <link>
 
 **🧪 Manual guide** — <link>
 
-🧘 <god-ally line, only when it has one>
-````
+🧘 <god-ally's status line — always, printed verbatim from zen-report.js --line>
+🧘 <one more line only when god-ally has something specific>
+```
 
-- The `Verdict` row carries `Result: PASS`, `Result: FAIL`, or `Result: UNVERIFIED` verbatim — the hook gates read it. Template token: `Result: PASS | FAIL | UNVERIFIED`. FAIL → `❌`, UNVERIFIED → `⚠️`.
-- **Every issue in two lines:** `[score] file:line`, then under it what a user would actually see, in plain words — no jargon.
-- Issues ordered by score, highest first; every 5 and 4 listed; at most 3 lower ones, then `+N more in doc`. None → `Issues     none`.
-- Labels sit in a 10-character column; values line up; a long value wraps under its own column. No URL and no Markdown inside the block; links below it, one per line with a blank line between.
-- Skipped or unverified areas marked ⚠️ in `Tested`.
+- The title carries `Result: PASS`, `Result: FAIL`, or `Result: UNVERIFIED` verbatim — the hook gates read it. Template token: `Result: PASS | FAIL | UNVERIFIED`. FAIL → `# ❌`, UNVERIFIED → `# ⚠️`.
+- `Tested` is a checklist: `[x]` ran, `[ ]` skipped or unverified, with ⚠️ and the reason. One line per area.
+- `Issues` is a table, one row per issue: score, `file:line`, what a user would actually see in plain words (no `|` inside a cell), fixed or open. Highest score first; every 5 and 4 listed; at most 3 lower ones, then a line `+N more in the test-cases doc`. None → `**Issues** — none`.
+- Links on their own lines with a blank line between. No other prose; details live in the docs.
 
 ## Route
 
@@ -122,6 +121,6 @@ Money math in the diff → **god-cfo** recomputes independently. FAIL after 3 cy
 
 ## Output rules
 
-Lead with the plain sentence, then the verdict. Two lines per issue: where, then what a user sees. Details live in the docs, not the reply. If the reply is longer than the change, the reply is wrong.
+Verdict in the title, then the plain sentence. One table row per issue: where, then what a user sees. Details live in the docs, not the reply. If the reply is longer than the change, the reply is wrong.
 
 ALWAYS KEEP EVERY REPLY SUPER CRISP, SUPER SHORT, SUPER TO THE POINT.

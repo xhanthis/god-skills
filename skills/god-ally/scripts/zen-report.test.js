@@ -540,3 +540,77 @@ test("the report runs end to end with every source missing", () => {
   assert.ok(fs.existsSync(path.join(home, ".god-ally", "history.jsonl")), "history is written on the first run");
   fs.rmSync(home, { recursive: true, force: true });
 });
+
+test("the status line carries dollars, intensity and the score against the week", () => {
+  // Arrange: seven prior working days at 50 tokens and a score of 6, today at 100 tokens scoring 8
+  const days = [];
+  for (let back = 8; back >= 1; back -= 1) {
+    days.push({ date: `2026-09-${String(22 - back).padStart(2, "0")}`, day_off: back === 8, tokens: 50, cost: 5, score: 6 });
+  }
+  days.push({ date: "2026-09-22", day_off: false, tokens: 100, cost: 49.529, score: 8 });
+
+  // Act
+  const line = report.statusLine(days);
+
+  // Assert
+  assert.equal(line, "🧘 $49.53 today · intensity 2.0× vs 7d · 2.0× vs 30d · Zen 8 · 7d avg 6.0 (+33%)");
+});
+
+test("the status line prints — for every number it cannot know", () => {
+  // Arrange: a first day with no history, no cost source and no score
+  const alone = [{ date: "2026-09-22", day_off: false, tokens: 0, cost: null, score: null }];
+  const off = [
+    { date: "2026-09-21", day_off: false, tokens: 40, cost: 4, score: 7 },
+    { date: "2026-09-22", day_off: true, tokens: 0, cost: null, score: null },
+  ];
+
+  // Act / Assert
+  assert.equal(report.statusLine(alone), "🧘 $— today · intensity — vs 7d · — vs 30d · Zen — · 7d avg —");
+  assert.equal(report.statusLine(off), "🧘 $— today · intensity — vs 7d · — vs 30d · Zen — · 7d avg 7.0");
+  assert.equal(report.formatScore(3.25), "3.3");
+  assert.equal(report.formatScore(10), "10");
+});
+
+test("the prior average skips days off and zero-token days but keeps a zero score", () => {
+  // Arrange
+  const days = [
+    { date: "d1", day_off: false, tokens: 0, score: 0 },
+    { date: "d2", day_off: true, tokens: 900, score: null },
+    { date: "d3", day_off: false, tokens: 30, score: 4 },
+    { date: "d4", day_off: false, tokens: 10, score: 2 },
+  ];
+
+  // Act / Assert
+  assert.equal(report.priorAverage(days, 3, 7, "tokens"), 30);
+  assert.equal(report.priorAverage(days, 3, 7, "score"), 2);
+  assert.equal(report.priorAverage(days, 0, 7, "tokens"), null);
+});
+
+test("--line prints one status line even with every source missing", () => {
+  // Arrange: an empty HOME, so nothing can be collected
+  const home = fs.mkdtempSync(path.join(os.tmpdir(), "zen-line-"));
+  fs.mkdirSync(path.join(home, ".god-ally"));
+  fs.writeFileSync(
+    path.join(home, ".god-ally", "config.json"),
+    JSON.stringify({ ...report.DEFAULT_CONFIG, repoRoots: [path.join(home, "empty")], authorEmails: ["nobody@example.invalid"], useCcusage: false })
+  );
+  const run = () =>
+    execFileSync(process.execPath, [path.join(__dirname, "zen-report.js"), "--line"], {
+      encoding: "utf8",
+      env: { ...process.env, HOME: home },
+      timeout: 60000,
+    });
+
+  // Act
+  const first = run();
+  const history = new Map([[report.dayKey(Date.now(), report.DEFAULT_CONFIG), {}]]);
+  const cached = run();
+
+  // Assert
+  assert.equal(first.split("\n").filter(Boolean).length, 1, first);
+  assert.match(first, /^🧘 \$— today · intensity .* vs 7d · .* vs 30d · Zen .* · 7d avg/);
+  assert.equal(cached, first, "a second call inside the cache window prints the same line from history");
+  assert.equal(report.historyFresh(history, "1999-01-01"), false, "a day the history has never seen is not fresh");
+  fs.rmSync(home, { recursive: true, force: true });
+});
+

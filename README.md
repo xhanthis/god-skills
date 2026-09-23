@@ -59,6 +59,8 @@ Each copies the 7 skills to `./.god-skills/` and adds one marker-delimited index
 | **god-cmo** | Is this clear, short, and does it read like a human wrote it? | write, editor |
 | **god-ally** | Is this pace sustainable — and should you be working right now? | plan, health |
 
+Each replies in its own shape, in plain Markdown that reads the same in a terminal, in chat and in an IDE: god-dev a build report (title, one-line summary, the links, then QA and what needs you), god-qa a verdict with a checklist and an issues table, god-ceo a decision memo with a before/after, god-cfo a worked example in tables, god-pm a customer moment with sourced evidence, god-cmo the rewrite itself with a short edit note. god-ally alone prints a fenced report, so its bars keep their columns.
+
 Every skill's `SKILL.md` stays under 150 lines; the heavier passes live in `references/` and load only when the task needs them (god-qa's four-viewport frontend pass only when UI changed, its security pass only when auth or input is touched, god-dev's architecture pass only in deep mode).
 
 ## God Ally's daily report
@@ -129,7 +131,7 @@ USER → god-ceo (vague or multi-skill asks only) → god-dev → god-qa → EXE
 - **Proving it** → **god-qa** extends the same risk list, writes and runs tests (backend; frontend at 390×844, 820×1180, 1512×982, 1440×900 via gstack browse; accessibility; perf and a 50-call burst on local/staging only; simulated low network), runs the security and Indian-compliance passes when the diff touches them, re-runs past failures first, spot-checks its own evidence, scores every issue (5 = cannot go live … 1 = backlog; any 5 or two 4s = FAIL), fixes and retests up to three times, and ends with a one-screen verdict plus two Claude Docs — the test cases with results, and a manual guide with ready-to-run curls.
 - **Money in the diff** → **god-cfo** recomputes it a second way before it is trusted.
 - **Any significant decision** → **god-ceo** attacks it, decides (BUILD · MODIFY · CHEAPEST TEST FIRST · DEFER · INVESTIGATE · DO NOT BUILD · SHIP · DO NOT SHIP · STOP), records why in `docs/decisions/`, and answers "why does this exist" later.
-- **Every skill's final message** may carry one 🧘 line from **god-ally** — stop for tonight, take a break, don't start this before the meeting, eat, go deep now — whenever it has something specific. On a strong signal it asks before you continue.
+- **Every skill's final message** ends with **god-ally's** status line — dollars burned today, intensity against the last 7 and 30 days, Zen Score against the week (`zen-report.js --line`) — and one more 🧘 line whenever it has something specific: stop for tonight, take a break, don't start this before the meeting, eat, go deep now. On a strong signal it asks before you continue.
 
 Failure loops: `qa → dev → qa` (max 3) · `cfo → dev → cfo` · stuck anywhere → `god-ceo` (sensei).
 
@@ -145,7 +147,7 @@ One shared loop, `god-ceo/references/learning-loop.md`, used by all seven. A lea
 
 Value = **severity × reach × confidence**. A universal lesson scoring ≥ 18 (or any severity-5 finding) opens a PR on its **first** sighting; 6–17 is stored and promoted as confidence grows; below 6 waits as a candidate. The PR carries a summarized rule only — never code, paths, names or tokens — is opened from the user's fork, labelled `learning`, at most one a day, and is never merged by a machine. On by default; `"share_learnings": false` in `~/.claude/god/config.json` turns it off. CI rejects a learning PR that touches anything but skill text, exceeds 40 lines, lacks its `Scope:` / `Score:` lines, or contains anything identifying.
 
-Memory lives in `~/.claude/god/<skill>/` — lessons, scorecards, god-dev's repo profiles, god-qa's regression files, god-ceo's decisions and priorities, god-ally's activity log. Nothing there is ever sent anywhere except the summarized rules described above.
+Memory lives in `~/.claude/god/<skill>/` — lessons, scorecards, god-dev's repo profiles, god-qa's regression files, god-ceo's decisions and priorities, god-ally's activity log. Nothing there is ever sent anywhere except the summarized rules described above. The only documents any skill publishes are god-dev's flowchart + change log and god-qa's test cases and manual guide.
 
 ## The rules every God obeys
 
@@ -157,7 +159,7 @@ Memory lives in `~/.claude/god/<skill>/` — lessons, scorecards, god-dev's repo
 
 **Integrity gate.** god-qa's integrity pass re-runs one test, re-verifies one claim, and greps the final diff for what the org PR reviewer hard-blocks before any PASS — sampling catches most shortcuts.
 
-**Ship gate.** god-dev writes to, and god-qa fails on, the org PR auto-reviewer's own blocker list: raw errors in responses, unindexed or unbounded SQL, PII in logs / URLs / third parties, missing authz, XSS, secrets, credential-shaped fixtures, red CI.
+**Ship gate.** god-dev writes to, and god-qa fails on, the org PR auto-reviewer's own checklist, line by line: raw errors in responses, unindexed or unbounded SQL, PII in logs / URLs / third parties / error bodies, missing authz, XSS, secrets and credential-shaped fixtures, the injection markers, size caps, red CI. The gate is met, never gamed — a rule that cannot be met is written into the PR body instead.
 
 **Brevity.** Lead with the finding, one line per point, max three points outside the templates, no prose on a pass. If the review is longer than the change, the review is wrong.
 
