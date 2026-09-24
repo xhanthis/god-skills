@@ -187,7 +187,7 @@ assert_contains "$DEV" "https://github.com/<owner>/<repo>/pull/<n>" "god-dev lis
 assert_contains "$DEV" "run god-qa yourself" "god-dev tests by default by running god-qa itself"
 assert_contains "$DEV" "never type a verdict god-qa did not return" "god-dev may only relay god-qa's real verdict"
 assert_contains "$DEV" "## Mode"  "god-dev calls it mode, not size"
-assert_contains "$DEV" "exactly \`🥷🏾 Authored by [God](https://www.npmjs.com/package/god-skills)\`" "god-dev signs every PR with the one God line"
+assert_contains "$DEV" "exactly \`🥷🏾 Authored by [God](https://xhanthis.github.io/god-skills/)\`" "god-dev signs every PR with the one God line"
 assert_not_contains "$DEV" "signatures.jsonl" "god-dev keeps no signer rotation"
 assert_not_contains "$DEV" "set -- \"" "god-dev ships no signer list"
 assert_contains "$DEV" "# ✅ <Task name in 3–6 words>" "god-dev's final message opens with an H1 title"

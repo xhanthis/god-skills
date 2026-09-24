@@ -2,6 +2,10 @@
 
 All notable changes to `god-skills` and `god-agents`. Dates are release dates.
 
+## Unreleased
+
+- **The PR signature links to the God Skills site.** Every PR god-dev opens now ends with `🥷🏾 Authored by [God](https://xhanthis.github.io/god-skills/)`. The page says why the seven exist, how a request flows through them, and lets you try the router. The npm link comes off the signature; `homepage` in `package.json` points at the site too.
+
 ## 3.0.3 — 2026-09-23
 
 - **Vendor-neutral skills.** Examples use generic orders and customers, the reviewer gate describes any strict automated reviewer rather than one team's, and no skill carries a company-specific ID format, label or repo name. Keep rules like that in your own CLAUDE.md.
