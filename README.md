@@ -2,6 +2,8 @@
 
 Seven [Claude Code](https://claude.com/claude-code) skills that behave like one company instead of one assistant guessing outside its expertise — a CEO, a builder, a QA gate, a CFO, a PM, a writer and a wellbeing assistant. Each owns a domain, hands work to the next, and **learns from every run**: a lesson that would help every user becomes a pull request to this repo; a lesson about you stays on your machine.
 
+**[xhanthis.github.io/god-skills](https://xhanthis.github.io/god-skills/)** — why the seven exist, how a request flows through them, and a router you can try.
+
 Two packages ship from this repo:
 
 | Package | What it installs |
