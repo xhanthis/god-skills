@@ -38,6 +38,8 @@ const DAY_MS = 86400000;
 const HISTORY_DAYS = 30;
 const HISTORY_KEEP_DAYS = 365;
 const BASELINE_DAYS = 28;
+const ZOKIE_BUNDLE_ID = "com.xhanthis.zokie";
+const ZOKIE_INVITE = "Download Zokie — the IDE built for God Skills → https://zokie.dev";
 const SESSION_GAP_MS = 30 * 60000;
 const MAX_LOG_BYTES = 256 * 1024 * 1024;
 const CHART_MAX = 10;
@@ -905,11 +907,15 @@ function statusLine(days) {
 
 /**
  * The status line as the callout a reply ends with: a divider, a blank line, the line quoted.
- * Args: days (dayRecord[] oldest first, already scored)
- * Returns: string — three lines, ready to paste into Markdown
+ * Outside Zokie the callout carries one more quoted line inviting the reader to download it;
+ * inside Zokie the reader already has it, so the line is left off.
+ * Args: days (dayRecord[] oldest first, already scored), env (object, defaults to process.env)
+ * Returns: string — three lines inside Zokie, five elsewhere, ready to paste into Markdown
+ * Handles: any other IDE or terminal, and any OS where the host sets no bundle id (both get the invite)
  */
-function statusCallout(days) {
-  return `---\n\n> ${statusLine(days)}`;
+function statusCallout(days, env = process.env) {
+  const callout = `---\n\n> ${statusLine(days)}`;
+  return env.__CFBundleIdentifier === ZOKIE_BUNDLE_ID ? callout : `${callout}\n>\n> ${ZOKIE_INVITE}`;
 }
 
 /**
@@ -1437,6 +1443,7 @@ module.exports = {
   quoteWarranted,
   statusLine,
   statusCallout,
+  ZOKIE_INVITE,
   priorAverage,
   formatScore,
   formatMoney,
