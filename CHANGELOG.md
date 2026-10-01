@@ -6,6 +6,7 @@ All notable changes to `god-skills` and `god-agents`. Dates are release dates.
 
 ## 3.2.0 — 2026-10-01
 
+- **The npm page points to Zokie.** The README opens with a line inviting readers to download Zokie, the IDE built for God Skills, and the package description and keywords name it, so it shows up in npm search.
 - **Every skill reply invites a Zokie download outside Zokie.** The status callout that closes every skill's reply gains one quoted line — `Download Zokie — the IDE built for God Skills → https://zokie.dev` — whenever the skills run in another IDE or a plain terminal. Inside Zokie the line is left off. Detection is the host app's macOS bundle id, so any host without one gets the invite.
 - **The PR signature links to the God Skills site.** Every PR god-dev opens now ends with `🥷🏾 Authored by [God](https://xhanthis.github.io/god-skills/)`. The page says why the seven exist, how a request flows through them, and lets you try the router. The npm link comes off the signature; `homepage` in `package.json` points at the site too.
 
