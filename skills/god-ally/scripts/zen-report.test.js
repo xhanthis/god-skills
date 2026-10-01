@@ -586,7 +586,20 @@ test("the status line reads Zen, intensity and spend, each against its average",
 
   // Assert
   assert.equal(line, "🧘 Zen 8/10 (7d: 6.0 ↑33%) · intensity 4/10 (30d: 8.0 ↓50%) · T: $49.53 (30d: $85)");
-  assert.equal(report.statusCallout(days), `---\n\n> ${line}`);
+  assert.equal(report.statusCallout(days, { __CFBundleIdentifier: "com.xhanthis.zokie" }), `---\n\n> ${line}`);
+});
+
+test("the callout invites a download everywhere but inside Zokie", () => {
+  // Arrange
+  const days = [{ date: "2026-09-22", day_off: false, tokens: 0, cost: null, score: null, components: { intensity: null } }];
+  const invite = `---\n\n> ${report.statusLine(days)}\n>\n> ${report.ZOKIE_INVITE}`;
+
+  // Act / Assert
+  assert.equal(report.statusCallout(days, { __CFBundleIdentifier: "com.xhanthis.zokie" }), `---\n\n> ${report.statusLine(days)}`);
+  assert.equal(report.statusCallout(days, { __CFBundleIdentifier: "com.microsoft.VSCode" }), invite);
+  assert.equal(report.statusCallout(days, { __CFBundleIdentifier: "com.apple.Terminal" }), invite);
+  assert.equal(report.statusCallout(days, {}), invite, "a host with no bundle id (Linux, Windows, ssh) gets the invite");
+  assert.match(report.ZOKIE_INVITE, /^Download Zokie .*https:\/\/zokie\.dev$/);
 });
 
 test("the status line prints — for every number it cannot know", () => {
@@ -645,7 +658,7 @@ test("--line prints the callout even with every source missing", () => {
   const run = () =>
     execFileSync(process.execPath, [path.join(__dirname, "zen-report.js"), "--line"], {
       encoding: "utf8",
-      env: { ...process.env, HOME: home },
+      env: { ...process.env, HOME: home, __CFBundleIdentifier: "com.apple.Terminal" },
       timeout: 60000,
     });
 
@@ -655,7 +668,7 @@ test("--line prints the callout even with every source missing", () => {
   const cached = run();
 
   // Assert
-  assert.equal(first, "---\n\n> 🧘 Zen —/10 (7d: —) · intensity —/10 (30d: —) · T: $— (30d: $—)\n", first);
+  assert.equal(first, `---\n\n> 🧘 Zen —/10 (7d: —) · intensity —/10 (30d: —) · T: $— (30d: $—)\n>\n> ${report.ZOKIE_INVITE}\n`, first);
   assert.equal(cached, first, "a second call inside the cache window prints the same callout from history");
   assert.equal(report.historyFresh(history, "1999-01-01"), false, "a day the history has never seen is not fresh");
   fs.rmSync(home, { recursive: true, force: true });

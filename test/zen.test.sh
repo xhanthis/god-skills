@@ -12,7 +12,7 @@ assert_file "$SCRIPTS/zen-score.js" "the scoring module ships with the skill"
 assert_file "$SCRIPTS/zen-report.test.js" "the report's own suite ships"
 
 # --- the algorithm, run for real -------------------------------------------
-OUT=$(node --test "$SCRIPTS/" 2>&1)
+OUT=$(node --test "$SCRIPTS"/*.test.js 2>&1)
 case "$OUT" in
   *"# fail 0"*) _ok "every scoring unit test passes" ;;
   *) _fail "every scoring unit test passes" "$(printf '%s' "$OUT" | grep -E '^not ok|# fail' | head -5)" ;;
@@ -41,7 +41,11 @@ NUMBERS_ONLY=$(grep -c '"date"' "$HOME_DIR/.god-ally/history.jsonl" 2>/dev/null 
 assert_not_contains "$(cat "$HOME_DIR/.god-ally/history.jsonl")" "message" "history holds numbers, never content"
 JSON_OUT=$(HOME="$HOME_DIR" node "$SCRIPTS/zen-report.js" --json 2>&1)
 assert_contains "$JSON_OUT" '"sources"' "--json returns the same run as data"
-LINE=$(HOME="$HOME_DIR" node "$SCRIPTS/zen-report.js" --line 2>&1)
+LINE=$(HOME="$HOME_DIR" __CFBundleIdentifier=com.apple.Terminal node "$SCRIPTS/zen-report.js" --line 2>&1)
+IN_ZOKIE=$(HOME="$HOME_DIR" __CFBundleIdentifier=com.xhanthis.zokie node "$SCRIPTS/zen-report.js" --line 2>&1)
+assert_contains "$LINE" "> Download Zokie" "outside Zokie the callout invites a download"
+assert_contains "$LINE" "https://zokie.dev" "the invite links to the Zokie site"
+assert_not_contains "$IN_ZOKIE" "Download Zokie" "inside Zokie the invite is left off"
 assert_eq "$(printf '%s\n' "$LINE" | grep -c '^---$')" "1" "--line opens with one divider"
 assert_eq "$(printf '%s' "$LINE" | grep -c '🧘')" "1" "--line carries exactly one status line"
 assert_contains "$LINE" "> 🧘 Zen " "the status line is quoted as a callout and leads with the Zen Score"
