@@ -1,6 +1,6 @@
 {
   "name": "god-skills",
-  "version": "3.2.0",
+  "version": "3.2.1",
   "description": "7 Claude Code agent skills that behave like one company and learn from every run. Built for Zokie, the IDE that runs them — https://zokie.dev",
   "bin": {
     "god-skills": "bin/god-skills.js"
