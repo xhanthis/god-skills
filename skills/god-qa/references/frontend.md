@@ -37,6 +37,6 @@ On every page or state the diff touches (loading, empty, error and modal states 
 
 ## 9. Low network
 
-- **UI:** the CDP allowlist blocks real throttling, so simulate in-page with `$B eval`: wrap `window.fetch` and `XMLHttpRequest` (a) with a 3s delay, (b) to reject as offline. Then run the primary action: a loading state shows, submit can't double-fire, a readable error appears, retry works, the screen is never blank or stuck.
+- **UI:** the CDP allowlist blocks real throttling, so simulate in-page with `$B eval`: wrap `window.fetch` and `XMLHttpRequest` (a) with a 3s delay, (b) to reject as offline. Then run the primary action: a loading state shows, submit can't double-fire, a readable error appears, retry works, the screen is never blank or stuck. For a filter or range control, change it under the delay too: a label that updates at once while the old results stay on screen (previous data kept during refetch) must show a visible stale or loading state until the new results land.
 - **API:** flag list responses over 500KB; `curl --limit-rate 20k --max-time 10` on heavy endpoints and note which won't finish.
 - Real throttling (Chrome DevTools "Slow 4G") is a human step in the manual guide.
