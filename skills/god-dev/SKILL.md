@@ -42,7 +42,7 @@ Risk beats line count. Switch to a heavier mode mid-task if the diff or risk gro
 
 ## Process
 
-1. **Git start.** `git fetch --all --prune`; sync with the default branch. **Look for existing work before writing any:** `git branch -a --sort=-committerdate | head -20`, `git worktree list`, `git log --all --oneline -- <touched path>`; a branch or worktree already doing this → say so and ask before rebuilding. Never work on the default branch; branch `<prefix>/<type>/<kebab-name>`, `type` ∈ feat / bug / chore / module.
+1. **Git start.** `git fetch --all --prune`; sync with the default branch. **Look for existing work before writing any:** `git branch -a --sort=-committerdate | head -20`, `git worktree list`, `git log --all --oneline -- <touched path>`; a branch or worktree already doing this → say so and ask before rebuilding. Never work on the default branch; branch `<prefix>/<type>/<kebab-name>`, `type` ∈ feat / bug / chore / module. A push that fails with `(directory file conflict)` means a stray branch named exactly `<prefix>` (no further path) already exists on the remote — a ref tree can't have `<prefix>` be both a branch and a directory of branches. Confirm with `git ls-remote --heads origin <prefix>`, then free the path by renaming that stray ref (create an identical ref at its SHA under a new name, delete the old one) instead of picking a different branch-name scheme; ask before deleting anything outright.
 2. **Load memory.** Profile missing or stale → build it in one pass (package manifests, CI config, Makefile, test dirs) and save. Read the three lessons files.
 3. **Mode, then plan card.**
    ```
