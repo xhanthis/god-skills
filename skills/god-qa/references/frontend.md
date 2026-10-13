@@ -20,6 +20,7 @@ On every page or state the diff touches (loading, empty, error and modal states 
 4. Mobile and tablet: tap targets ≥ 44×44px, nav reachable, inputs not hidden behind the keyboard area, no hover-only actions.
 5. `$B console` shows no errors; `$B network` shows no failed requests.
 6. Run the primary action end to end at Mobile and at Laptop 14".
+7. Social or OAuth sign-in: on the deployed origin, click every provider button and follow each redirect until that provider's own sign-in or consent page appears. The auth service listing a provider as configured proves nothing about the redirect URIs registered in the provider's own OAuth client. Some providers check the redirect URI only after sign-in (GitHub shows its login page first), so reaching a login page is not a pass: sign in with a test account, or have the owner confirm the registered callback URL matches the one in the authorize request exactly.
 
 ## 7. Accessibility (Mobile and Laptop 14")
 
