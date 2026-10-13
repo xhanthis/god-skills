@@ -13,6 +13,7 @@ Core question: **how could this be exploited, leaked, abused, or compromised?** 
 - **Dependencies:** known-vulnerable packages (`npm audit`, `govulncheck`, `pip-audit` — run the one the repo has), unnecessary new dependencies.
 - **Abuse:** rate limits, replay, enumeration, business-logic abuse (free-cancellation loops, coupon stacking, refund double-claims).
 - **Frontend:** `dangerouslySetInnerHTML` / `innerHTML` / `insertAdjacentHTML` with unsanitized data, `javascript:` hrefs, user input concatenated into query strings or payloads, secrets in the bundle.
+- **In-app link checks:** a deep link, redirect or notification path validated by comparing `new URL(x, location.origin).origin` to `location.origin` breaks in hybrid apps served from a custom scheme (`capacitor://`, `ionic://`, `app://`), where `URL.origin` is the opaque `"null"` — every link is refused, or every host passes. Parse against a fixed `https://` base and compare to that base, and run the tests under the custom-scheme origin too.
 
 ## Proof-of-concept hygiene
 
